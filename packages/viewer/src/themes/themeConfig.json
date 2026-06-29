@@ -1,0 +1,152 @@
+{
+  "id": "",
+  "name": "",
+  "containerConfig": {
+    "maxWidth": "",
+    "padding": "",
+    "backgroundColor": ""
+  },
+  "typography": {
+    "fontFamily": "",
+    "baseFontSize": "",
+    "baseFontWeight": "",
+    "baseLineHeight": "",
+    "baseTextColor": "",
+    "prompt": {
+      "fontSize": "",
+      "fontWeight": ""
+    },
+    "exampleStimulus": {
+      "fontSize": "",
+      "fontWeight": "",
+      "borderColor": "",
+      "borderWidth": ""
+    },
+    "optionBase": {
+      "fontSize": "",
+      "fontWeight": ""
+    }
+  },
+  "blankConfig": {
+    "style": "",
+    "borderColor": "",
+    "borderWidth": ""
+  },
+  "questionOptionConfig": {
+    "common": {
+      "padding": "",
+      "borderWidth": "",
+      "borderRadius": ""
+    },
+    "state": {
+      "default": {
+        "backgroundColor": "",
+        "borderColor": "",
+        "textColor": ""
+      },
+      "hover": {
+        "borderColor": "",
+        "backgroundColor": ""
+      },
+      "selected": {
+        "backgroundColor": "",
+        "borderColor": "",
+        "textColor": ""
+      },
+      "correct": {
+        "backgroundColor": "",
+        "borderColor": "",
+        "textColor": ""
+      },
+      "incorrect": {
+        "backgroundColor": "",
+        "borderColor": "",
+        "textColor": ""
+      }
+    }
+  },
+  "submitButtonConfig": {
+    "common": {
+      "height": "",
+      "width": "",
+      "borderWidth": "",
+      "borderRadius": ""
+    },
+    "state": {
+      "default": {
+        "backgroundColor": "",
+        "borderColor": "",
+        "textColor": ""
+      },
+      "hover": {
+        "backgroundColor": "",
+        "borderColor": "",
+        "textColor": ""
+      },
+      "disabled": {
+        "backgroundColor": "",
+        "borderColor": "",
+        "textColor": ""
+      }
+    }
+  },
+  "feedbackConfig": {
+    "common": {
+      "padding": "",
+      "fontSize": "",
+      "borderRadius": "",
+      "buttonWidth": "",
+      "buttonHeight": "",
+      "title": {
+        "fontSize": "",
+        "fontWeight": "",
+        "color": ""
+      },
+      "description": {
+        "fontSize": "",
+        "fontWeight": "",
+        "color": ""
+      },
+      "correctIconUrl": "",
+      "incorrectIconUrl": ""
+    },
+    "state": {
+      "correct": {
+        "backgroundColor": "",
+        "textColor": "",
+        "buttonBackgroundColor": "",
+        "buttonTextColor": "",
+        "title": {
+          "color": ""
+        },
+        "description": {
+          "color": ""
+        }
+      },
+      "incorrect": {
+        "backgroundColor": "",
+        "textColor": "",
+        "buttonBackgroundColor": "",
+        "buttonTextColor": "",
+        "title": {
+          "color": ""
+        },
+        "description": {
+          "color": ""
+        }
+      },
+      "explanation": {
+        "backgroundColor": "",
+        "textColor": "",
+        "buttonBackgroundColor": "",
+        "buttonTextColor": "",
+        "title": {
+          "color": ""
+        },
+        "description": {
+          "color": ""
+        }
+      }
+    }
+  }
+}

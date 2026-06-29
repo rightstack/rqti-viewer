@@ -1,0 +1,1 @@
+export { parsePairs } from "./parsePairs";

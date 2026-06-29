@@ -1,0 +1,16 @@
+/* ========================================
+   @rtqi/viewer styles
+   ======================================== */
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* 패키지 소스의 클래스명을 스캔 대상으로 지정 */
+@source "../../**/*.{ts,tsx}";
+
+/* base tokens (@theme + :root variables) */
+@import "./base.css";
+
+/* qti components */
+@import "./qti.css";
+@import "./qti-ext.css";

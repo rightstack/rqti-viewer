@@ -1,0 +1,3564 @@
+/* ========================================
+   QTI Extension Classes
+   변수는 QuestionContainer에서 style로 주입됨 (themeToCSS.ts)
+   ======================================== */
+
+/* ---------------------------------------------------------------------------
+   모바일 UI — 두 조건을 같은 수치로 유지합니다 (순수 CSS라 선언은 이중 배치).
+   • 조상 [data-device="mobile"] : 넓은 뷰포트에서 모바일 디바이스 미리보기
+   • @media (width < 640px)        : 좁은 뷰포트 (Tailwind sm 미만)
+   하단「모바일 미러 [data-device="mobile"]」블록 = 말단 @media 와 동기화.
+   --------------------------------------------------------------------------- */
+
+/* ========================================
+     Wrapper - 최상위 래퍼 (iframe용 부모 컨테이너)
+     ======================================== */
+.qti-ext-wrapper {
+  width: 100%;
+
+  background-color: var(--qti-container-bg, #ffffff);
+
+  @apply flex h-full w-full overflow-auto wrap-anywhere break-keep whitespace-pre-line;
+}
+
+/* ========================================
+         Container - 문항 컨테이너 (width 제어)
+         ======================================== */
+.qti-ext-container {
+  max-width: var(--qti-container-max-width);
+
+  /* margin: 0 auto; */
+  padding: 54px var(--qti-container-padding);
+
+  background-color: var(--qti-container-bg);
+
+  color: var(--qti-base-text-color, #1a1a1a);
+
+  /* 타이포그래피 - 테마에서 설정 */
+  font-family: var(
+    --qti-font-family,
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif
+  );
+  font-size: var(--qti-font-size-base, 16px);
+  font-weight: var(--font-weight-normal, 400);
+  line-height: var(--qti-line-height-base, 1.5);
+
+  @apply relative mx-auto flex w-full min-w-[320px] flex-col;
+}
+
+/* 문항 상세 미리보기: 지문 | 문항 병렬 시 문항 컨테이너가 패널 전체 너비 사용 */
+[data-item-detail-split] .qti-ext-container {
+  max-width: 100%;
+}
+
+/* 병렬 패널: 스크롤은 바깥 패널만, 래퍼 중복 스크롤 방지 (@apply h-full 무효화) */
+[data-item-detail-split] .qti-ext-wrapper {
+  overflow: visible;
+
+  height: auto;
+  min-height: 0;
+}
+
+.qti-ext-preview-container {
+  @apply flex h-full flex-col overflow-auto;
+}
+
+.qti-ext-preview-container .qti-ext-wrapper,
+.qti-ext-preview-container .qti-ext-question {
+  padding-bottom: 0 !important;
+}
+
+.qti-ext-preview-container .qti-ext-feedback-inline {
+  @apply max-w-full;
+}
+
+.qti-ext-passage-wrapper {
+  @apply flex min-h-full min-w-0 flex-1 flex-row;
+}
+
+.qti-ext-passage-wrapper[data-orientation-type="horizontal"] {
+  @apply flex min-h-full min-w-0 flex-1 flex-row px-8;
+}
+
+.qti-ext-passage-wrapper[data-orientation-type="vertical"] {
+  @apply flex min-h-full min-w-0 flex-1 flex-col;
+}
+
+.qti-ext-passage-wrapper[data-orientation-type="vertical"] > .qti-ext-container {
+  padding: 24px var(--qti-container-padding) 0 var(--qti-container-padding) !important;
+}
+
+/* 지문 루트 안에 편집기/복사로 .qti-ext-container가 중첩된 경우 이중 패딩 방지 */
+[data-item-detail-split] .qti-ext-passage .qti-ext-container {
+  max-width: 100%;
+  padding: 0;
+}
+
+/* 지문 전용 블록 (문항 .qti-ext-container와 대응) */
+.qti-ext-passage {
+  width: 100%;
+  max-width: 100%;
+  padding: 54px var(--qti-container-padding);
+
+  background-color: var(--qti-container-bg);
+
+  color: var(--qti-base-text-color, #1a1a1a);
+  font-family: var(
+    --qti-font-family,
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif
+  );
+  font-size: var(--qti-font-size-base, 16px);
+  font-weight: var(--font-weight-normal, 400);
+  line-height: var(--qti-line-height-base, 1.5);
+
+  @apply relative flex w-full min-w-0 flex-col;
+}
+
+/**
+========================================
+ 이미지 스타일
+========================================
+*/
+
+.qti-ext-image {
+  max-width: 100%;
+
+  @apply block;
+}
+
+/* 이미지·미디어와 같은 수축 폭 안에서 캡션을 두기 위해 table + table-caption 사용 */
+.qti-ext-figure {
+  display: table;
+
+  width: max-content;
+  max-width: 100%;
+  margin-right: auto;
+  margin-left: 0;
+
+  @apply p-1;
+}
+
+.qti-ext-figure .qti-ext-image {
+  @apply block;
+}
+
+.qti-ext-figure.qti-align-left {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+.qti-ext-figure.qti-align-center {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.qti-ext-figure.qti-align-right {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+.qti-ext-figurecap {
+  display: table-caption;
+
+  font-size: 0.8em;
+  caption-side: bottom;
+
+  @apply mt-1.5 text-center text-gray-500;
+}
+
+.qti-ext-media {
+  /* TODO: 스타일 추가 */
+}
+
+/**
+========================================
+ 비디오 / 오디오 스타일
+========================================
+*/
+
+.qti-ext-video {
+  max-width: min(480px, 100%);
+
+  @apply block;
+}
+
+.qti-ext-figure .qti-ext-video {
+  @apply my-0 block;
+}
+
+.qti-ext-figure .qti-ext-audio-player {
+  display: inline-flex;
+}
+
+.qti-ext-audio {
+  @apply block;
+}
+
+/* ========================================
+             Option - 선택지 스타일 (SCQ/MCQ)
+======================================== */
+
+.qti-ext-option-base {
+  padding: var(--qti-option-padding);
+
+  border-width: var(--qti-option-border-width);
+
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-option-border);
+  border-radius: var(--qti-option-border-radius, 0.375rem);
+
+  background-color: var(--qti-option-bg);
+
+  color: inherit;
+  font-size: var(--qti-option-font-size, var(--qti-font-size-base, inherit));
+  font-weight: var(--qti-option-font-weight, var(--qti-font-weight-base, inherit));
+
+  cursor: pointer;
+
+  @apply w-full transition-all duration-150;
+}
+
+.qti-ext-option-base .qti-ext-image {
+  @apply my-0;
+}
+
+.qti-ext-choice-option {
+  @apply flex h-auto min-h-0 items-center justify-between gap-1 text-left whitespace-normal;
+}
+
+/* 선택지 내부 이미지: 반응형 + 높이 제한 (Tailwind breakpoint: sm 640px, md 768px, lg 1024px) */
+.qti-ext-choice-option img,
+.qti-ext-choice-option .qti-ext-image img {
+  @apply block h-auto max-w-full object-contain;
+}
+
+.qti-ext-choice-option img {
+  max-height: min(10rem, 35vh);
+}
+
+.qti-ext-choice-option .qti-ext-figure {
+  width: max-content;
+  max-width: 100%;
+}
+
+.qti-ext-choice-option .qti-ext-image {
+  max-height: min(10rem, 35vh);
+
+  @apply overflow-hidden;
+}
+
+@media (width >= 640px) {
+  .qti-ext-choice-option img {
+    max-height: min(12rem, 40vh);
+  }
+
+  .qti-ext-choice-option .qti-ext-image {
+    max-height: min(12rem, 40vh);
+  }
+}
+
+@media (width >= 768px) {
+  .qti-ext-choice-option img {
+    max-height: min(14rem, 45vh);
+  }
+
+  .qti-ext-choice-option .qti-ext-image {
+    max-height: min(14rem, 45vh);
+  }
+}
+
+@media (width >= 1024px) {
+  .qti-ext-choice-option img {
+    max-height: min(16rem, 50vh);
+  }
+
+  .qti-ext-choice-option .qti-ext-image {
+    max-height: min(16rem, 50vh);
+  }
+}
+
+/* Option Hover State - 선택되지 않은 상태에서만 적용, disabled 상태 제외 */
+.qti-ext-choice-option:not(
+    .qti-ext-choice-option-selected,
+    .qti-ext-choice-option-correct,
+    .qti-ext-choice-option-incorrect,
+    .qti-ext-choice-option-answer-reveal,
+    .qti-ext-option-disabled
+  ):hover {
+  border-color: var(--qti-option-border-hover);
+
+  background-color: var(--qti-option-bg-hover);
+}
+
+/* Option Disabled State - 제출 후 상호작용 비활성화 */
+.qti-ext-option-disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Option Selected State */
+.qti-ext-choice-option-selected {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+}
+
+/* Option Correct State */
+.qti-ext-choice-option-correct {
+  border-color: var(--qti-option-border-correct);
+
+  background-color: var(--qti-option-bg-correct);
+}
+
+/* Option Incorrect State */
+.qti-ext-choice-option-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+
+  background-color: var(--qti-option-bg-incorrect);
+}
+
+/* Option Answer Reveal - 오답 제출 시 정답 선지(만점 correct 스타일과 구분, hover 토큰 재사용) */
+.qti-ext-choice-option-answer-reveal {
+  border-color: var(--qti-feedback-border-explanation);
+
+  background-color: var(--qti-feedback-bg-explanation);
+}
+
+/* Option Radio - 라디오 버튼 공통 스타일 */
+.qti-ext-choice-option-radio {
+  border-width: var(--qti-option-border-width);
+
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-option-border);
+
+  @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all duration-150;
+}
+
+/* Option Radio Selected State */
+.qti-ext-choice-option-radio-selected {
+  border-color: var(--qti-option-border-selected);
+}
+
+/* Option Radio Correct State */
+.qti-ext-choice-option-radio-correct {
+  border-color: var(--qti-option-border-correct);
+}
+
+/* Option Radio Incorrect State */
+.qti-ext-choice-option-radio-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+}
+
+/* Option Radio Answer Reveal */
+.qti-ext-choice-option-radio-answer-reveal {
+  border-color: var(--qti-option-border-hover);
+}
+
+/* Option Radio Dot */
+.qti-ext-choice-option-radio-dot {
+  background-color: var(--qti-option-border-selected);
+
+  animation: var(--animate-bounce-in);
+
+  @apply h-3 w-3 rounded-full;
+}
+
+/* Option Radio Dot Correct State */
+.qti-ext-choice-option-radio-dot-correct {
+  background-color: var(--qti-option-border-correct);
+}
+
+/* Option Radio Dot Incorrect State */
+.qti-ext-choice-option-radio-dot-incorrect {
+  background-color: var(--qti-option-border-incorrect);
+}
+
+/* Option Content — 남는 가로 사용; 긴 수식(MathLive)은 줄바꿈이 어려워 가로 스크롤로 표시 */
+.qti-ext-choice-option-content {
+  line-height: 1.5;
+
+  @apply flex min-h-0 min-w-0 flex-1 items-center gap-2 overflow-x-auto text-left wrap-break-word;
+}
+
+/* Option Label (DOM 라벨용; XML class + counter 시에는 ::before 사용) */
+.qti-ext-choice-option-label {
+  color: var(--qti-base-text-color);
+  font-family: var(--qti-font-family);
+  font-size: var(--qti-font-size-base);
+  font-weight: var(--qti-font-weight-bold);
+  line-height: var(--qti-line-height-base);
+
+  @apply mr-1;
+}
+
+/* ========================================
+   Choice interaction wrapper (XML class 기반)
+   orientation, stacking, list-style-type 은 XML class 로 제어
+   ======================================== */
+
+@counter-style circled_number {
+  suffix: "";
+  symbols: "① " "② " "③ " "④ " "⑤ " "⑥ " "⑦ " "⑧ " "⑨ " "⑩ ";
+  system: fixed;
+}
+
+@counter-style hangul-consonant {
+  suffix: "";
+  symbols: "ㄱ. " "ㄴ. " "ㄷ. " "ㄹ. " "ㅁ. " "ㅂ. " "ㅅ. " "ㅇ. " "ㅈ. " "ㅊ. " "ㅋ. " "ㅌ. "
+    "ㅍ. " "ㅎ. ";
+  system: fixed;
+}
+
+@counter-style hangul-consonant-paren {
+  suffix: "";
+  symbols: "ㄱ) " "ㄴ) " "ㄷ) " "ㄹ) " "ㅁ) " "ㅂ) " "ㅅ) " "ㅇ) " "ㅈ) " "ㅊ) " "ㅋ) " "ㅌ) "
+    "ㅍ) " "ㅎ) ";
+  system: fixed;
+}
+
+@counter-style hangul-consonant-bracket {
+  suffix: "";
+  symbols: "(ㄱ) " "(ㄴ) " "(ㄷ) " "(ㄹ) " "(ㅁ) " "(ㅂ) " "(ㅅ) " "(ㅇ) " "(ㅈ) " "(ㅊ) " "(ㅋ) "
+    "(ㅌ) " "(ㅍ) " "(ㅎ) ";
+  system: fixed;
+}
+
+@counter-style hangul-syllable-dot {
+  suffix: "";
+  symbols: "가. " "나. " "다. " "라. " "마. " "바. " "사. " "아. " "자. " "차. " "카. " "타. "
+    "파. " "하. ";
+  system: fixed;
+}
+
+.qti-choice-interaction-wrapper {
+  @apply flex flex-col gap-4;
+}
+
+/* horizontal + stacking: grid 열 수 */
+.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-2 {
+  display: grid;
+
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-3 {
+  display: grid;
+
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-4 {
+  display: grid;
+
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-5 {
+  display: grid;
+
+  gap: 1rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+/* horizontal + stacking 그리드: 같은 행 선택지 박스 높이 통일 (.qti-ext-choice-option 기본 h-auto 보정) */
+.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-2 > div,
+.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-3 > div,
+.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-4 > div,
+.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-5 > div {
+  @apply h-full min-h-0;
+}
+
+.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-2
+  .qti-ext-choice-option,
+.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-3
+  .qti-ext-choice-option,
+.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-4
+  .qti-ext-choice-option,
+.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-5
+  .qti-ext-choice-option {
+  @apply h-full min-h-0;
+}
+
+/* 반응형(뷰포트 < 640px): 실제 규칙은 파일 맨 아래「뷰포트 반응형 (width < 640px)」블록 — 테마 !important보다 뒤에 두어 적용 */
+
+/* list-style-type: 컨테이너 counter-reset, 옵션 counter-increment + ::before 라벨 */
+.qti-choice-interaction-wrapper.qti-list-style-type-decimal,
+.qti-choice-interaction-wrapper.qti-list-style-type-lower-alpha,
+.qti-choice-interaction-wrapper.qti-list-style-type-upper-alpha,
+.qti-choice-interaction-wrapper.qti-list-style-type-circled,
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-consonant,
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-consonant-paren,
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-consonant-bracket,
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-syllable {
+  counter-reset: choice-index 0;
+}
+
+.qti-choice-interaction-wrapper.qti-list-style-type-decimal .qti-ext-choice-option,
+.qti-choice-interaction-wrapper.qti-list-style-type-lower-alpha .qti-ext-choice-option,
+.qti-choice-interaction-wrapper.qti-list-style-type-upper-alpha .qti-ext-choice-option,
+.qti-choice-interaction-wrapper.qti-list-style-type-circled .qti-ext-choice-option,
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-consonant .qti-ext-choice-option,
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-consonant-paren .qti-ext-choice-option,
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-consonant-bracket .qti-ext-choice-option,
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-syllable .qti-ext-choice-option {
+  counter-increment: choice-index;
+}
+
+.qti-choice-interaction-wrapper.qti-list-style-type-circled
+  .qti-ext-choice-option
+  > div:first-of-type::before,
+.qti-choice-interaction-wrapper.qti-list-style-type-decimal
+  .qti-ext-choice-option
+  > div:first-of-type::before,
+.qti-choice-interaction-wrapper.qti-list-style-type-lower-alpha
+  .qti-ext-choice-option
+  > div:first-of-type::before,
+.qti-choice-interaction-wrapper.qti-list-style-type-upper-alpha
+  .qti-ext-choice-option
+  > div:first-of-type::before,
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-consonant
+  .qti-ext-choice-option
+  > div:first-of-type::before,
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-consonant-paren
+  .qti-ext-choice-option
+  > div:first-of-type::before,
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-consonant-bracket
+  .qti-ext-choice-option
+  > div:first-of-type::before,
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-syllable
+  .qti-ext-choice-option
+  > div:first-of-type::before {
+  margin-right: 0.25rem;
+
+  color: var(--qti-base-text-color);
+  font-family: var(--qti-font-family);
+  font-size: var(--qti-font-size-base);
+  font-weight: var(--qti-font-weight-bold);
+  line-height: var(--qti-line-height-base);
+}
+
+.qti-choice-interaction-wrapper.qti-list-style-type-circled
+  .qti-ext-choice-option
+  > div:first-of-type::before {
+  content: counter(choice-index, circled_number);
+}
+
+.qti-choice-interaction-wrapper.qti-list-style-type-decimal
+  .qti-ext-choice-option
+  > div:first-of-type::before {
+  content: counter(choice-index, decimal) ". ";
+}
+
+.qti-choice-interaction-wrapper.qti-list-style-type-lower-alpha
+  .qti-ext-choice-option
+  > div:first-of-type::before {
+  content: counter(choice-index, lower-alpha) ". ";
+}
+
+.qti-choice-interaction-wrapper.qti-list-style-type-upper-alpha
+  .qti-ext-choice-option
+  > div:first-of-type::before {
+  content: counter(choice-index, upper-alpha) ". ";
+}
+
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-consonant
+  .qti-ext-choice-option
+  > div:first-of-type::before {
+  content: counter(choice-index, hangul-consonant);
+}
+
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-consonant-paren
+  .qti-ext-choice-option
+  > div:first-of-type::before {
+  content: counter(choice-index, hangul-consonant-paren);
+}
+
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-consonant-bracket
+  .qti-ext-choice-option
+  > div:first-of-type::before {
+  content: counter(choice-index, hangul-consonant-bracket);
+}
+
+.qti-choice-interaction-wrapper.qti-list-style-type-hangul-syllable
+  .qti-ext-choice-option
+  > div:first-of-type::before {
+  content: counter(choice-index, hangul-syllable-dot);
+}
+
+/* ========================================
+             Checkbox - MCQ 체크박스 스타일
+             ======================================== */
+
+/* Option Checkbox Base */
+.qti-ext-choice-option-checkbox {
+  border-width: var(--qti-option-border-width);
+
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-option-border);
+
+  @apply relative flex h-6 w-6 shrink-0 items-center justify-center rounded transition-all duration-150;
+}
+
+/* Option Checkbox Selected State */
+.qti-ext-choice-option-checkbox-selected {
+  border-color: var(--qti-option-border-selected);
+}
+
+/* Option Checkbox Correct State */
+.qti-ext-choice-option-checkbox-correct {
+  border-color: var(--qti-option-border-correct);
+}
+
+/* Option Checkbox Incorrect State */
+.qti-ext-choice-option-checkbox-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+}
+
+/* Option Checkbox Answer Reveal */
+.qti-ext-choice-option-checkbox-answer-reveal {
+  border-color: var(--qti-option-border-hover);
+}
+
+/* Option Checkbox Icon */
+.qti-ext-choice-option-checkbox-icon {
+  width: 70%;
+  height: 70%;
+
+  color: var(--qti-option-border-selected);
+}
+
+.qti-ext-choice-option-checkbox-correct .qti-ext-choice-option-checkbox-icon {
+  color: var(--qti-option-border-correct);
+}
+
+.qti-ext-choice-option-checkbox-incorrect .qti-ext-choice-option-checkbox-icon {
+  color: var(--qti-option-border-incorrect);
+}
+
+.qti-ext-choice-option-checkbox-answer-reveal .qti-ext-choice-option-checkbox-icon {
+  color: var(--qti-option-border-hover);
+}
+
+/* ========================================
+             TFQ Row - 버튼 내부 flex, 이미지 OX 노출
+             ======================================== */
+.tfq-buttons .qti-ext-choice-button {
+  @apply flex items-center gap-2;
+}
+
+.tfq-buttons .qti-ext-choice-button img,
+.tfq-buttons img.qti-ext-image {
+  @apply h-auto max-w-full object-contain;
+}
+
+/* ========================================
+             Button - TFQ 등 버튼 스타일
+             ======================================== */
+
+.qti-ext-choice-button {
+  @apply flex h-auto items-center justify-center gap-4 whitespace-normal;
+}
+
+/* Choice Button 내부 이미지 */
+.qti-ext-choice-button img {
+  width: 100% !important;
+
+  @apply h-auto max-w-full rounded-md object-contain;
+}
+
+.qti-ext-choice-button .qti-ext-image {
+  @apply mx-auto p-0;
+}
+
+/* 태블릿 디바이스: 단일 문항 TFQ OX SVG 이미지 크기 축소 */
+[data-device="tablet"] .tfq-single .qti-ext-choice-button img {
+  width: 50% !important;
+  max-width: 36px;
+
+  @apply mx-auto;
+}
+
+/* 반응형: 단일 문항 TFQ OX — 브레이크포인트는 말단 @media (width < 640px) 와 동일 */
+@media (width < 640px) {
+  .tfq-single .qti-ext-choice-button img {
+    width: 50% !important;
+    max-width: 36px;
+
+    @apply mx-auto;
+  }
+
+  .qti-ext-question {
+    padding: 20px 0 !important;
+  }
+}
+
+@media (width >= 640px) and (width < 768px) {
+  .qti-ext-passage,
+  .qti-ext-container,
+  .qti-ext-feedback-inline {
+    padding: 36px !important;
+  }
+}
+
+/* Button Hover State - 선택되지 않은 상태에서만 적용 */
+.qti-ext-choice-button:not(
+    .qti-ext-choice-button-selected,
+    .qti-ext-choice-button-correct,
+    .qti-ext-choice-button-incorrect,
+    .qti-ext-choice-button-answer-reveal
+  ):hover {
+  border-color: var(--qti-option-border-hover);
+
+  background-color: var(--qti-option-bg-hover);
+}
+
+/* Button Selected State */
+.qti-ext-choice-button-selected {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+}
+
+/* Button Correct State */
+.qti-ext-choice-button-correct {
+  border-color: var(--qti-option-border-correct);
+
+  background-color: var(--qti-option-bg-correct);
+}
+
+/* Button Incorrect State */
+.qti-ext-choice-button-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+
+  background-color: var(--qti-option-bg-incorrect);
+}
+
+/* Button Answer Reveal (TFQ 등, 오답 후 정답 버튼 강조) */
+.qti-ext-choice-button-answer-reveal {
+  border-color: var(--qti-option-border-hover);
+
+  background-color: var(--qti-option-bg-hover);
+}
+
+/* Question Container */
+.qti-ext-question {
+  @apply space-y-2 pb-[54px];
+
+  /* 폰트는 .qti-ext-container에서 상속 */
+}
+
+/* 문항 번호 공통 (폰트/색상, top·inline 공통) */
+.qti-ext-question-number {
+  flex-shrink: 0;
+
+  color: var(--qti-question-number-color);
+  font-size: var(--qti-question-number-font-size, var(--qti-font-size-base, inherit));
+  font-weight: var(--qti-question-number-font-weight, var(--qti-font-weight-base, inherit));
+  white-space: pre; /* 번호 뒤 띄어쓰기(접미사)가 영역을 차지하도록 */
+}
+
+/* 문항 번호 - position: top (문항 좌측 상단 블록) */
+.qti-ext-question-number-top {
+  margin-bottom: 0.25rem;
+}
+
+/* 문항 번호 - position: inline (item-body 첫 자식으로 번호, 같은 줄) */
+.qti-ext-question-number-inline {
+  display: flex;
+
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/**
+========================================
+              발문 스타일
+              테스트를 위해 임의로 발문 스타일 추가
+========================================
+*/
+.qti-ext-prompt {
+  padding-bottom: 0.5em;
+
+  font-size: var(--qti-prompt-font-size, var(--qti-font-size-base, inherit));
+  font-weight: var(--qti-prompt-font-weight, var(--qti-font-weight-base, inherit));
+
+  @apply space-y-2 break-words;
+}
+
+/* 보기 영역 */
+.qti-ext-example {
+  margin: 1em 0;
+  padding: 1em;
+
+  border-width: var(--qti-example-stimulus-border-width, 1px);
+  border-style: solid;
+  border-color: var(--qti-example-stimulus-border-color, var(--qti-option-border));
+
+  background-color: var(--qti-container-bg);
+
+  font-size: var(--qti-example-stimulus-font-size, var(--qti-font-size-base, inherit));
+  font-weight: var(--qti-example-stimulus-font-weight, var(--qti-font-weight-base, inherit));
+
+  @apply relative space-y-2 rounded-lg;
+}
+
+/* 보기 라벨 */
+.qti-ext-example-label {
+  top: -1em;
+  left: 1.5em;
+
+  padding: 0.2em 0.7em;
+
+  border-color: var(--qti-option-border);
+
+  background-color: var(--qti-option-bg);
+
+  color: inherit;
+  font-size: calc(var(--qti-example-stimulus-font-size) * 0.7);
+  line-height: 1.2;
+
+  @apply absolute rounded border;
+}
+
+/* 지문 영역 */
+.qti-ext-stimulus {
+  border-width: var(--qti-example-stimulus-border-width, 1px);
+  border-style: solid;
+  border-color: var(--qti-example-stimulus-border-color, var(--qti-option-border));
+
+  color: var(--qti-base-text-color, #1a1a1a);
+  font-size: var(--qti-example-stimulus-font-size, var(--qti-font-size-base, inherit));
+  font-weight: var(--qti-example-stimulus-font-weight, var(--qti-font-weight-base, inherit));
+
+  @apply my-3 space-y-2 rounded-md p-3;
+}
+
+.qti-ext-stimulus-dialogue {
+  border-color: var(--qti-option-border);
+
+  @apply mx-0 my-5 flex flex-col rounded-md border border-dashed p-5;
+}
+
+.qti-ext-stimulus-dialogue-item {
+  @apply flex items-center justify-start gap-1;
+}
+
+.qti-ext-stimulus-dialogue-profile {
+  @apply flex flex-col items-center;
+}
+
+.qti-ext-stimulus-dialogue-profile > .qti-ext-image {
+  @apply m-1 w-[100px] max-w-none p-0;
+}
+
+.qti-ext-bold {
+  @apply font-bold;
+}
+
+.qti-ext-italic {
+  @apply italic;
+}
+
+.qti-ext-underline {
+  text-decoration-color: var(--qti-base-text-color);
+
+  @apply underline underline-offset-[0.25em];
+}
+
+.qti-ext-old-korean,
+.qti-ext-old-korean-gothic {
+  font-family: NanumBarunGothicYetHangul, "Noto Serif KR", Pretendard, serif;
+}
+
+.qti-ext-old-korean-myeongjo {
+  font-family: NanumMyeongjoYetHangul, "Noto Serif KR", Pretendard, serif;
+}
+
+/* 첫 줄 들여쓰기, 첫 줄 내여쓰기 관련 스타일 제거 */
+
+.qti-ext-text-entry,
+.qti-ext-dropdown,
+.qti-ext-blank,
+.qti-ext-blank-content,
+.qti-ext-mathfield {
+  @apply indent-0;
+}
+
+/* 보기 또는 지문에서 빈칸 UI */
+
+/* ========================================
+  blank (형태는 테마 blankConfig.style 로 제어: underline | box)
+======================================== */
+.qti-ext-blank {
+  display: inline;
+}
+
+.qti-ext-blank-content {
+  position: relative;
+
+  display: inline-block;
+
+  min-width: 4em;
+  min-height: var(--qti-blank-min-height, 0);
+  margin: 0 5px;
+  padding: var(--qti-blank-padding, 0 5px);
+
+  border: var(--qti-blank-border, none);
+  border-bottom: var(
+    --qti-blank-border-bottom,
+    var(--qti-blank-border-width, 1px) solid var(--qti-blank-border-color, var(--qti-option-border))
+  );
+  border-radius: var(--qti-blank-border-radius, 0);
+
+  text-align: center;
+  vertical-align: middle;
+}
+
+.qti-ext-blank-content::after {
+  content: "";
+
+  position: absolute;
+  right: 0;
+  bottom: var(--qti-blank-underline-shift);
+  left: 0;
+
+  border-bottom: var(--qti-blank-underline-line, none);
+
+  pointer-events: none;
+}
+
+/* ========================================
+           Inline Choice - 드롭다운 스타일
+           ======================================== */
+
+.qti-ext-dropdown {
+  margin-block: 0.25em;
+
+  @apply relative mx-1 inline-block align-middle;
+}
+
+/* Dropdown Trigger (div with role=button: font-size에 맞게 높이 자동 조정) */
+.qti-ext-dropdown-trigger {
+  box-sizing: border-box;
+  height: 100%;
+
+  /* min-height: var(--qti-option-font-size); */
+  padding-inline: 0.75em 2.5em; /* 우측: 화살표(1.25em) + 여백 em으로 폰트 크기 따라감 */
+
+  /* padding-block: 0.375em; */
+
+  border-width: var(--qti-option-border-width) !important;
+
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-option-border) !important;
+  border-radius: var(--qti-option-border-radius) !important;
+
+  background-color: var(--qti-option-bg) !important;
+  box-shadow: none !important;
+
+  color: inherit !important;
+  font-size: inherit;
+  font-weight: var(--qti-option-font-weight, inherit);
+  line-height: inherit;
+
+  cursor: pointer;
+
+  @apply inline-flex w-full items-center justify-between transition-all duration-100 outline-none focus-visible:ring-2 focus-visible:ring-offset-1;
+}
+
+/* 옵션 최대 길이에 따라 너비 자동 조정: sizer가 너비를 결정, trigger가 그 위에 덮음 */
+
+.qti-ext-dropdown-auto-width {
+  --qti-dropdown-margin-inline: 0.25rem; /* .qti-ext-dropdown mx-1과 동일 */
+
+  position: relative;
+
+  /* sizer(숨김)와 트리거를 한 셀에 겹침; minmax(0,1fr)로 min-content(전체 문자열)가 max-width를 뚫지 않게 함 */
+  display: inline-grid;
+
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+
+  box-sizing: border-box;
+
+  /* 선호 너비는 긴 옵션(sizer) 기준이나, max-width 이하로 사용 너비가 정해지면 1fr 열이 그 안에만 맞춤 */
+  width: max-content;
+  max-width: min(
+    calc(100% - 2 * var(--qti-dropdown-margin-inline)),
+    calc(var(--qti-container-max-width) - 2 * var(--qti-dropdown-margin-inline))
+  );
+
+  vertical-align: middle;
+}
+
+.qti-ext-dropdown-sizer {
+  visibility: hidden;
+
+  box-sizing: border-box;
+
+  /* min-height: 2.25em; */
+  padding-inline: 0.75em 2.5em; /* 우측: 화살표(1.25em) + 여백 em으로 폰트 크기 따라감 */
+  padding-block: 0.5em;
+
+  white-space: nowrap;
+
+  @apply inline-flex w-max min-w-[theme(spacing.24)] items-center justify-between rounded-md;
+}
+
+.qti-ext-dropdown-auto-width .qti-ext-dropdown-sizer,
+.qti-ext-dropdown-auto-width .qti-ext-dropdown-trigger {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.qti-ext-dropdown-auto-width .qti-ext-dropdown-sizer {
+  overflow: hidden;
+
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.qti-ext-dropdown-auto-width .qti-ext-dropdown-trigger {
+  z-index: 1;
+
+  width: 100%;
+  min-width: 0;
+}
+
+/* 트리거가 inline-flex일 때 콘텐츠 영역이 intrinsic 폭으로만 줄어들지 않도록 */
+.qti-ext-dropdown-trigger .qti-ext-dropdown-content {
+  flex: 1 1 0%;
+
+  min-width: 0;
+}
+
+.qti-ext-dropdown-auto-width .qti-ext-dropdown-trigger-has-value .qti-ext-dropdown-content {
+  overflow: visible;
+
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+/* auto-width: 미선택은 한 줄·말줄임(높이 고정), 선택 후에만 줄바꿈·높이 가변 */
+.qti-ext-dropdown-auto-width
+  .qti-ext-dropdown-trigger:not(.qti-ext-dropdown-trigger-has-value)
+  .qti-ext-dropdown-content {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * renderQtiNode가 루트 div 등 블록으로 감싸면 바깥 .qti-ext-dropdown-content 제약이
+ * 텍스트에 닿지 않을 수 있음 → rich-label·직계 자식에 동일 분기 전달
+ */
+.qti-ext-dropdown-auto-width
+  .qti-ext-dropdown-trigger:not(.qti-ext-dropdown-trigger-has-value)
+  .qti-ext-dropdown-rich-label {
+  @apply block max-w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+.qti-ext-dropdown-auto-width .qti-ext-dropdown-trigger-has-value .qti-ext-dropdown-rich-label {
+  overflow: visible;
+
+  white-space: normal;
+  overflow-wrap: break-word;
+
+  @apply block max-w-full min-w-0;
+}
+
+.qti-ext-dropdown-auto-width
+  .qti-ext-dropdown-trigger:not(.qti-ext-dropdown-trigger-has-value)
+  .qti-ext-dropdown-rich-label
+  > * {
+  vertical-align: middle;
+
+  @apply m-0 inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+.qti-ext-dropdown:has(.qti-ext-dropdown-menu) .qti-ext-dropdown-trigger {
+  border-radius: var(--qti-option-border-radius) var(--qti-option-border-radius) 0 0 !important;
+}
+
+.qti-ext-dropdown-trigger-selected {
+  border-color: var(--qti-option-border-selected) !important;
+
+  background-color: var(--qti-option-bg-selected) !important;
+}
+
+.qti-ext-dropdown-trigger-correct {
+  border-color: var(--qti-option-border-correct) !important;
+
+  background-color: var(--qti-option-bg-correct) !important;
+}
+
+.qti-ext-dropdown-trigger-incorrect {
+  border-color: var(--qti-option-border-incorrect) !important;
+
+  background-color: var(--qti-option-bg-incorrect) !important;
+}
+
+.qti-ext-dropdown-trigger-open {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.qti-ext-dropdown-trigger-disabled {
+  opacity: 0.5 !important;
+
+  cursor: not-allowed !important;
+}
+
+/* Dropdown Content */
+.qti-ext-dropdown-content {
+  @apply block truncate pl-1 text-left;
+}
+
+/* Dropdown Arrow (right를 em으로 해서 font-size 커져도 텍스트와 겹치지 않음) */
+.qti-ext-dropdown-arrow {
+  right: 0.5em;
+
+  color: var(--qti-base-text-color);
+
+  @apply pointer-events-none absolute flex items-center;
+}
+
+.qti-ext-dropdown-arrow-icon {
+  flex-shrink: 0;
+
+  width: 1.25em;
+  height: 1.25em;
+
+  @apply transition-transform duration-200;
+}
+
+.qti-ext-dropdown-arrow-icon-open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.qti-ext-dropdown-menu {
+  top: calc(100% - (var(--qti-option-border-width)));
+
+  /* top: calc(100% - 2px); */
+
+  border-width: var(--qti-option-border-width) !important;
+  border-color: var(--qti-option-border) !important;
+  border-radius: 0 0 var(--qti-option-border-radius) var(--qti-option-border-radius) !important;
+
+  background-color: #ffffff !important;
+
+  @apply absolute left-0 z-50 w-auto min-w-full whitespace-nowrap;
+}
+
+/* auto-width: 메뉴가 container max-width를 넘지 않고 옵션 텍스트 줄바꿈 */
+.qti-ext-dropdown-auto-width .qti-ext-dropdown-menu {
+  max-width: 100%;
+
+  white-space: normal;
+}
+
+.qti-ext-dropdown-auto-width .qti-ext-dropdown-option-content {
+  overflow-wrap: break-word;
+}
+
+/* Dropdown Option */
+.qti-ext-dropdown-option {
+  padding: 0.5rem 1rem;
+
+  background-color: transparent !important;
+
+  color: inherit !important;
+  font-size: inherit;
+
+  @apply cursor-pointer px-4 py-2 text-left;
+}
+
+.qti-ext-dropdown-option:last-child {
+  border-radius: 0 0 var(--qti-option-border-radius) var(--qti-option-border-radius) !important;
+}
+
+.qti-ext-dropdown-option:hover,
+.qti-ext-dropdown-option:focus {
+  border-color: var(--qti-option-border-hover) !important;
+  outline: none;
+
+  background-color: #f5f5f5 !important;
+
+  color: inherit !important;
+}
+
+/* selected 상태는 hover보다 우선순위 높음 */
+.qti-ext-dropdown-option-selected,
+.qti-ext-dropdown-option-selected:hover,
+.qti-ext-dropdown-option-selected:focus {
+  background-color: var(--qti-option-bg-selected) !important;
+
+  color: inherit !important;
+}
+
+.qti-ext-dropdown-option-content {
+  @apply flex flex-col gap-1;
+}
+
+/* ========================================
+   Inline Choice - Alone Mode (단독 사용)
+   ======================================== */
+
+/* inline-choice-interaction이 단독으로 사용될 때 width 조절 (너비 캡은 .qti-ext-dropdown-auto-width) */
+.qti-ext-dropdown.is-alone {
+  min-width: 50%;
+}
+
+/* ========================================
+           Text Entry - 텍스트 입력 필드
+           ======================================== */
+
+.qti-ext-text-entry {
+  @apply relative m-1;
+}
+
+.qti-text-entry {
+  --qti-text-entry-width: 10ch;
+
+  @apply relative;
+}
+
+.qti-text-entry--inline {
+  display: inline-block;
+
+  width: var(--qti-text-entry-width);
+  min-width: 8ch;
+  max-width: 15ch;
+
+  vertical-align: baseline;
+}
+
+.qti-text-entry--block {
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+}
+
+.qti-ext-text-entry-cloze {
+  /* CLOZE(빈칸 채우기): 본문 문장 안에 인라인으로 들어가는 입력칸 */
+  @apply relative m-1;
+}
+
+.qti-text-entry__label {
+  @apply sr-only;
+}
+
+.qti-ext-text-entry-input {
+  overflow-x: auto;
+
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 2em;
+
+  border-width: var(--qti-option-border-width);
+
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-option-border);
+  border-radius: var(--qti-option-border-radius);
+
+  background-color: var(--qti-option-bg);
+
+  color: inherit;
+  font-size: var(--qti-font-size-base, inherit) !important;
+  font-weight: var(--qti-option-font-weight, inherit);
+  line-height: 1.5;
+  white-space: nowrap;
+
+  @apply px-2 transition-all duration-200 placeholder:text-gray-300;
+}
+
+.qti-ext-text-entry-input-cloze {
+  /* CLOZE(빈칸 채우기): inline-choice 드롭다운과 유사한 높이/패딩 */
+  @apply px-3;
+}
+
+.qti-text-entry__field {
+  width: 100%;
+  max-width: 100%;
+}
+
+.qti-text-entry__counter {
+  font-size: calc(var(--qti-font-size-base) * 0.8);
+
+  @apply mt-1 block text-right text-gray-500;
+}
+
+.qti-ext-text-entry-srq {
+  /* SRQ(단답형): 지문/예시 아래 하단 답안 입력 UI */
+  @apply mx-0 mt-10 mb-2 block w-full;
+}
+
+.qti-ext-text-entry-input-srq {
+  /* SRQ(단답형): 더 넓고 명확한 입력칸 */
+  @apply mx-auto block w-full px-4 font-medium;
+}
+
+.qti-ext-text-entry-input:disabled {
+  cursor: not-allowed;
+}
+
+.qti-ext-text-entry-input:hover:not(:disabled) {
+  border-color: var(--qti-option-border-hover);
+
+  background-color: var(--qti-option-bg-hover);
+}
+
+.qti-ext-text-entry-input:focus:not(:disabled) {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+}
+
+.qti-ext-text-entry-input-focus {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+}
+
+.qti-ext-text-entry-input-correct {
+  border-color: var(--qti-option-border-correct);
+
+  background-color: var(--qti-option-bg-correct);
+
+  @apply text-center text-lg;
+}
+
+.qti-ext-text-entry-input-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+
+  background-color: var(--qti-option-bg-incorrect);
+
+  @apply text-center text-lg;
+}
+
+/* ========================================
+           분수 스타일 (분자/분모) - 텍스트 입력과 조합
+           ======================================== */
+
+.qti-ext-fraction {
+  @apply relative mx-1 inline-block align-middle;
+}
+
+.qti-ext-fraction .qti-ext-fraction-inner {
+  @apply flex items-center;
+}
+
+.qti-ext-fraction .qti-ext-fraction-frac {
+  @apply flex flex-col items-center;
+}
+
+.qti-ext-fraction .qti-text-entry {
+  @apply m-0 p-1 text-center;
+}
+
+.qti-ext-fraction .qti-text-entry.qti-text-entry--inline {
+  width: calc(var(--qti-text-entry-width) / 3);
+}
+
+.qti-ext-fraction .qti-text-entry.qti-text-entry--inline .qti-ext-text-entry-input {
+  @apply text-center;
+}
+
+.qti-ext-fraction .qti-ext-fraction-frac .qti-text-entry:first-of-type {
+  border-bottom: var(--qti-option-border-width) solid var(--qti-base-text-color);
+}
+
+/* 폴백: :has() 미지원 브라우저 */
+.qti-ext-fraction:focus-within .qti-ext-fraction-frac .qti-text-entry:first-of-type {
+  border-color: var(--qti-base-text-color);
+}
+
+/* :has() 지원 브라우저에서 덮어쓰기 */
+@supports selector(:has(a)) {
+  .qti-ext-fraction .qti-ext-fraction-frac .qti-text-entry:first-of-type,
+  .qti-ext-fraction:focus-within .qti-ext-fraction-frac .qti-text-entry:first-of-type {
+    border-color: var(--qti-option-border);
+  }
+
+  .qti-ext-fraction:has(.qti-ext-text-entry-input-focus)
+    .qti-ext-fraction-frac
+    .qti-text-entry:first-of-type {
+    border-color: var(--qti-option-border-selected);
+  }
+}
+
+/* ========================================
+           File Upload - 파일 업로드
+           ======================================== */
+
+.qti-ext-upload {
+  @apply my-4 space-y-2;
+}
+
+.qti-ext-upload-dropzone {
+  border-width: 2px;
+  border-style: dashed;
+  border-color: var(--qti-option-border);
+  border-radius: var(--qti-option-border-radius);
+
+  background-color: var(--qti-option-bg);
+
+  @apply flex cursor-pointer flex-col items-center justify-center p-6 transition-colors;
+}
+
+.qti-ext-upload-dropzone:hover {
+  border-color: var(--qti-option-border-hover);
+
+  background-color: var(--qti-option-bg-hover);
+}
+
+.qti-ext-upload-icon {
+  color: inherit;
+
+  @apply mb-2 h-8 w-8;
+}
+
+.qti-ext-upload-text {
+  color: inherit;
+
+  @apply mb-2 text-sm;
+}
+
+.qti-ext-upload-hint {
+  color: inherit;
+
+  @apply text-xs opacity-70;
+}
+
+.qti-ext-upload-file {
+  border-width: var(--qti-option-border-width);
+
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-option-border);
+  border-radius: var(--qti-option-border-radius);
+
+  background-color: #ffffff;
+
+  @apply p-3;
+}
+
+.qti-ext-upload-file-info {
+  @apply flex items-center justify-between;
+}
+
+.qti-ext-upload-file-details {
+  @apply flex items-center space-x-2;
+}
+
+.qti-ext-upload-file-icon {
+  @apply h-5 w-5 text-gray-400;
+}
+
+.qti-ext-upload-file-name {
+  color: inherit;
+
+  @apply text-sm font-medium;
+}
+
+.qti-ext-upload-file-size {
+  @apply text-xs text-gray-500;
+}
+
+.qti-ext-upload-remove {
+  @apply flex items-center gap-1 text-sm text-red-600 transition-colors hover:text-red-800;
+}
+
+/* ========================================
+           Gap Match - 빈칸 채우기
+           ======================================== */
+
+.qti-ext-gap-choices {
+  border-color: var(--qti-option-border);
+
+  @apply my-4 flex flex-wrap items-center justify-center gap-4 rounded-md border p-4;
+}
+
+/* Gap Choice (선택지 버튼) */
+.qti-ext-gap-choice {
+  border-width: var(--qti-option-border-width);
+
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-option-border);
+  border-radius: var(--qti-option-border-radius);
+
+  background-color: var(--qti-option-bg);
+
+  color: inherit;
+  font-size: inherit;
+  font-weight: var(--qti-option-font-weight, inherit);
+
+  cursor: default;
+  user-select: none;
+
+  @apply px-3 py-1.5 transition-all duration-150;
+}
+
+.qti-ext-gap-choice-draggable {
+  cursor: grab;
+}
+
+.qti-ext-gap-choice-draggable:active {
+  cursor: grabbing;
+}
+
+.qti-ext-gap-choice:hover:not([aria-disabled="true"]) {
+  border-color: var(--qti-option-border-hover);
+
+  background-color: var(--qti-option-bg-hover);
+}
+
+.qti-ext-gap-choice-used {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
+/* Gap (빈칸 - 드롭 영역) */
+.qti-ext-gap {
+  border-width: var(--qti-option-border-width);
+  border-style: dashed;
+  border-color: var(--qti-option-border);
+  border-radius: var(--qti-option-border-radius);
+
+  background-color: var(--qti-option-bg);
+
+  color: var(--qti-option-text);
+  font-size: inherit;
+
+  @apply mx-1 my-1 inline-block min-h-8 min-w-20 px-2 py-1 text-center align-middle transition-all duration-150;
+}
+
+/* 콘텐츠가 있는 Gap */
+.qti-ext-gap-filled {
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+
+  cursor: grab;
+}
+
+.qti-ext-gap-filled:active {
+  cursor: grabbing;
+}
+
+/* 드래그 오버 상태 */
+.qti-ext-gap-dragover {
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-hover);
+
+  transform: scale(1.02);
+}
+
+.qti-ext-gap-correct {
+  border-style: solid;
+  border-color: var(--qti-option-border-correct);
+
+  background-color: var(--qti-option-bg-correct);
+}
+
+.qti-ext-gap-incorrect {
+  border-style: solid;
+  border-color: var(--qti-option-border-incorrect);
+
+  background-color: var(--qti-option-bg-incorrect);
+}
+
+/* ========================================
+             Textarea - 서술형 텍스트 영역
+             ======================================== */
+
+.qti-ext-textarea {
+  @apply min-h-[200px] w-full resize-y p-4 transition-all duration-150;
+}
+
+.qti-ext-textarea:focus {
+  border-color: var(--qti-option-border-selected);
+  outline: none;
+}
+
+.qti-ext-textarea-wrapper {
+  @apply flex flex-1 flex-col pb-10;
+}
+
+.qti-ext-textarea-count {
+  color: var(--qti-base-text-color);
+  font-size: calc(var(--qti-font-size-base) * 0.8);
+
+  @apply mt-4 ml-auto;
+}
+
+/* gap-match-interaction 보기 조각 UI */
+.qti-ext-gap-source {
+  /* TODO: 스타일 추가 */
+}
+
+/* 수식 (MathLive math-field, parseLatexToReact) — KaTeX 렌더 시와 동일 폰트 스택 */
+
+.qti-ext-mathfield {
+  position: relative;
+
+  display: inline-block;
+
+  color: inherit;
+  font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif !important;
+  font-size: inherit;
+  line-height: inherit;
+  vertical-align: middle;
+}
+
+.qti-ext-mathfield::after {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background-color: transparent;
+}
+
+/* 블록 수식 ($$...$$, \\[...\\]) */
+.qti-ext-mathfield.qti-ext-mathfield--display {
+  display: block;
+
+  margin: 0.75em 0;
+
+  text-align: center;
+}
+
+.qti-ext-mathfield math-field {
+  /* MathLive shadow 내 .ML__text·placeholder 등 텍스트 모드 */
+  --text-font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif;
+  display: inline-block;
+
+  border: none;
+
+  background: transparent !important;
+
+  color: inherit;
+  font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif !important;
+  font-size: inherit;
+  line-height: inherit;
+  vertical-align: text-bottom;
+}
+
+.qti-ext-mathfield math-field::part(container) {
+  padding: 0;
+
+  background: transparent !important;
+
+  font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif !important;
+}
+
+.qti-ext-mathfield math-field::part(content) {
+  padding: 2px 0;
+}
+
+.qti-ext-mathfield math-field::part(virtual-keyboard-toggle),
+.qti-ext-mathfield math-field::part(menu-toggle) {
+  display: none !important;
+}
+
+.qti-ext-feedback-section-answer-item math-field {
+  background: inherit !important;
+}
+
+/* 선지 콘텐츠: 긴 수식은 부모(.qti-ext-choice-option-content) 가로 스크롤로 표시 */
+.qti-ext-choice-option-content .qti-ext-mathfield,
+.qti-ext-choice-option-content .qti-ext-mathfield math-field {
+  max-width: none;
+}
+
+.qti-ext-choice-option-content .qti-ext-mathfield.qti-ext-mathfield--display {
+  width: max-content;
+  max-width: none;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* ========================================
+             Match Interaction - 연결하기 스타일
+             ======================================== */
+
+/* Match Option Base */
+.qti-ext-match-option {
+  /* min-height는 useMatchHeightSync 측정값과 겹치면 레이아웃이 어긋나 보일 수 있어 전환에서 제외 */
+  transition-property: border-color, background-color;
+
+  @apply relative flex h-auto min-h-[60px] min-w-0 items-center justify-center bg-clip-padding bg-origin-border whitespace-normal duration-100 ease-out;
+}
+
+/* Match Option Hover State */
+.qti-ext-match-option:not(
+    .qti-ext-match-option-selected,
+    .qti-ext-match-option-matched,
+    .qti-ext-match-option-correct,
+    .qti-ext-match-option-incorrect
+  ):hover {
+  border-color: var(--qti-option-border-hover, var(--primary));
+
+  background-color: var(--qti-option-bg-hover, color-mix(in oklch, var(--primary) 5%, transparent));
+}
+
+/* Match Option Selected State */
+.qti-ext-match-option-selected {
+  border-color: var(--qti-option-border-selected, var(--primary));
+
+  background-color: var(
+    --qti-option-bg-selected,
+    color-mix(in oklch, var(--primary) 10%, transparent)
+  );
+}
+
+/* Match Option Matched State */
+.qti-ext-match-option-matched {
+  border-color: var(--qti-option-border-selected, var(--primary));
+
+  background-color: var(
+    --qti-option-bg-selected,
+    color-mix(in oklch, var(--primary) 10%, transparent)
+  );
+}
+
+/* Match Option Partial State (1:N 매칭에서 추가 연결 가능) */
+.qti-ext-match-option-partial {
+  border-style: solid;
+  border-color: var(--qti-option-border-selected, var(--primary));
+
+  background-color: var(
+    --qti-option-bg-selected,
+    color-mix(in oklch, var(--primary) 10%, transparent)
+  );
+}
+
+/* Match Option Correct State */
+.qti-ext-match-option-correct {
+  border-color: var(--qti-option-border-correct);
+
+  background-color: var(--qti-option-bg-correct);
+}
+
+/* Match Option Incorrect State */
+.qti-ext-match-option-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+
+  background-color: var(--qti-option-bg-incorrect);
+}
+
+/* Match Option Empty State — 값이 입력되지 않은 항목 */
+.qti-ext-match-option-empty {
+  border-color: var(--color-muted);
+
+  color: var(--color-muted-foreground);
+}
+
+/* Match Option Content */
+.qti-ext-match-option-content {
+  overflow: hidden;
+
+  @apply flex w-full min-w-0 flex-1 flex-col items-stretch justify-center gap-2 text-left;
+}
+
+.qti-ext-match-option-content > span {
+  @apply w-full max-w-full wrap-break-word;
+}
+
+/* Match Option 내 수식(mathfield)이 영역을 초과하지 않도록 제한 */
+.qti-ext-match-option-content .qti-ext-mathfield {
+  display: inline-flex;
+  overflow: hidden;
+
+  justify-content: center;
+  align-items: center;
+
+  max-width: 100%;
+  max-height: 100%;
+
+  font-size: min(var(--qti-option-font-size, 1em), 20px);
+}
+
+.qti-ext-match-option-content .qti-ext-mathfield math-field {
+  max-width: 100%;
+  max-height: 100%;
+
+  font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif !important;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-rendering: optimizeLegibility;
+
+  transform-origin: center;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* blank가 텍스트와 같은 줄 높이로 보이도록 (inline-block baseline 방지) */
+.qti-ext-match-option-content .qti-ext-blank,
+.qti-ext-match-option-content .qti-ext-blank-content {
+  /* overflow:hidden 조상 아래 pseudo 밑줄 잘림 완화 */
+
+  margin: 3px auto;
+  padding: 0.6em 0;
+
+  vertical-align: bottom;
+}
+
+.qti-ext-match-option-content .qti-ext-figure {
+  width: max-content;
+  max-width: 100%;
+  padding: 0;
+}
+
+.qti-ext-match-option-content .qti-ext-image {
+  padding: 0;
+}
+
+/* Match Connection Point - 연결점 */
+.qti-ext-match-point {
+  border-width: var(--qti-option-border-width);
+
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-option-border);
+
+  background-color: var(--qti-option-bg, var(--background));
+
+  @apply absolute top-1/2 z-10 h-3 w-3 -translate-y-1/2 rounded-full;
+}
+
+.qti-ext-match-point-left {
+  left: -6px;
+}
+
+.qti-ext-match-point-right {
+  right: -6px;
+}
+
+/* Match Point Selected State */
+.qti-ext-match-point-selected {
+  border-color: var(--qti-option-border-selected, var(--primary));
+
+  background-color: var(--qti-option-border-selected, var(--primary));
+}
+
+/* Match Point Matched State */
+.qti-ext-match-point-matched {
+  border-color: var(--qti-option-border-selected, var(--primary));
+
+  background-color: var(--qti-option-border-selected, var(--primary));
+}
+
+/* Match Point Correct State */
+.qti-ext-match-point-correct {
+  border-color: var(--qti-option-border-correct);
+
+  background-color: var(--qti-option-bg-correct);
+}
+
+/* Match Point Incorrect State */
+.qti-ext-match-point-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+
+  background-color: var(--qti-option-bg-incorrect);
+}
+
+/* Match Connection Line SVG */
+.qti-ext-match-svg {
+  z-index: 1;
+
+  @apply pointer-events-none absolute inset-0 h-full w-full;
+}
+
+/* Match Connection Line */
+.qti-ext-match-line {
+  fill: none;
+  stroke: var(--qti-option-border-selected, var(--primary, #737373));
+  stroke-width: var(--qti-option-border-width, 2px);
+  stroke-linecap: round;
+}
+
+.qti-ext-match-line-correct {
+  stroke: var(
+    --qti-option-border-correct,
+    var(--qti-option-border-selected, var(--primary, #16a34a))
+  );
+}
+
+.qti-ext-match-line-incorrect {
+  stroke: var(
+    --qti-option-border-incorrect,
+    var(--qti-option-border-selected, var(--destructive, #dc2626))
+  );
+}
+
+/* ========================================
+             Order Interaction - 순서 정하기 스타일
+             ======================================== */
+
+.qti-ext-order-choice {
+  @apply relative mb-2 select-none sm:mb-3;
+}
+
+/* Order Choice Dragging State */
+.qti-ext-order-choice-dragging {
+  opacity: 0.3;
+
+  transform: rotate(-3deg);
+  transition: none;
+}
+
+/* Order Choice Dropped State */
+.qti-ext-order-choice-dropped {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+
+  color: var(--qti-option-text-selected);
+
+  transform: scale(1.01);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Order Choice Correct State */
+.qti-ext-order-choice-correct {
+  border-color: var(--qti-option-border-correct);
+
+  background-color: var(--qti-option-bg-correct);
+
+  color: var(--qti-option-text-correct);
+}
+
+/* Order Choice Incorrect State */
+.qti-ext-order-choice-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+
+  background-color: var(--qti-option-bg-incorrect);
+
+  color: var(--qti-option-text-incorrect);
+}
+
+/* Order Choice Content */
+.qti-ext-order-choice-content {
+  @apply flex items-center gap-2 sm:gap-3 md:gap-4;
+}
+
+/* Order Number Circle */
+.qti-ext-order-number {
+  border-width: var(--qti-option-border-width);
+
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-option-border);
+
+  background-color: var(--qti-option-bg);
+
+  @apply flex h-5 w-5 shrink-0 items-center justify-center rounded-full sm:h-6 sm:w-6 md:h-7 md:w-7;
+}
+
+/* Order Number Text */
+.qti-ext-order-number-text {
+  color: var(--qti-option-border);
+
+  @apply leading-none font-extrabold;
+}
+
+/* Order Number Dropped State */
+.qti-ext-order-number-dropped {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+}
+
+.qti-ext-order-number-dropped .qti-ext-order-number-text {
+  color: var(--qti-option-border-selected);
+}
+
+/* Order Number Correct State */
+.qti-ext-order-number-correct {
+  border-color: var(--qti-option-border-correct);
+
+  background-color: var(--qti-option-bg-correct);
+}
+
+.qti-ext-order-number-correct .qti-ext-order-number-text {
+  color: var(--qti-option-border-correct);
+}
+
+/* Order Number Incorrect State */
+.qti-ext-order-number-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+
+  background-color: var(--qti-option-bg-incorrect);
+}
+
+.qti-ext-order-number-incorrect .qti-ext-order-number-text {
+  color: var(--qti-option-border-incorrect);
+}
+
+/* Order Choice Text Content */
+.qti-ext-order-choice-text {
+  @apply flex flex-1 flex-col gap-1.5 sm:gap-2;
+}
+
+/* Order Drag Indicator Line */
+.qti-ext-order-drag-indicator {
+  background-color: var(--qti-option-border-selected);
+
+  @apply absolute right-0 left-0 z-10 h-[3px];
+}
+
+.qti-ext-order-drag-indicator-top {
+  top: 0;
+
+  transform: translateY(-50%);
+}
+
+.qti-ext-order-drag-indicator-bottom {
+  bottom: 0;
+
+  transform: translateY(50%);
+}
+
+/* ========================================
+             Feedback 영역
+             ======================================== */
+
+.qti-ext-feedback-wrapper {
+  /* TODO: 피드백 컨테이너 스타일 */
+  @apply whitespace-pre-line;
+}
+
+.qti-ext-feedback-footer {
+  @apply mt-auto flex w-full flex-col gap-2 p-0;
+}
+
+/* ========================================
+             Feedback Button - 피드백 버튼
+             ======================================== */
+
+.qti-ext-feedback-buttons {
+  @apply flex w-full justify-center gap-5 pt-5;
+}
+
+.qti-ext-feedback-button {
+  flex-grow: 0 !important;
+  flex-shrink: 1 !important;
+
+  width: var(--qti-feedback-button-width, 100%) !important;
+  height: var(--qti-feedback-button-height, 44px) !important;
+  padding: var(--qti-button-padding) !important;
+
+  border-radius: var(--qti-button-border-radius) !important;
+
+  font-family: var(
+    --qti-font-family,
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif
+  );
+  font-size: var(--qti-feedback-description-font-size, 16px) !important;
+  font-weight: var(--qti-button-font-weight) !important;
+  line-height: var(--qti-button-line-height) !important;
+
+  transition:
+    transform 0.15s ease-in-out,
+    font-weight 0.15s ease-in-out !important;
+
+  @apply cursor-pointer border-0 font-normal transition-all;
+}
+
+.qti-ext-feedback-button:hover {
+  font-weight: 500 !important;
+
+  transform: scale(1.01) !important;
+}
+
+/* ========================================
+             Feedback Title - 피드백 제목
+             ======================================== */
+.qti-ext-feedback-title {
+  color: var(--qti-feedback-title-color, var(--qti-ext-base-text-color, inherit)) !important;
+  font-size: var(--qti-feedback-title-font-size, var(--qti-feedback-font-size, 20px)) !important;
+
+  @apply mb-2 font-bold;
+}
+
+.qti-ext-feedback-title-correct {
+  color: var(
+    --qti-feedback-title-color-correct,
+    var(--qti-feedback-title-color, inherit)
+  ) !important;
+}
+
+.qti-ext-feedback-title-incorrect {
+  color: var(
+    --qti-feedback-title-color-incorrect,
+    var(--qti-feedback-title-color, inherit)
+  ) !important;
+}
+
+.qti-ext-feedback-title-explanation {
+  color: var(
+    --qti-feedback-title-color-explanation,
+    var(--qti-feedback-title-color, inherit)
+  ) !important;
+}
+
+/* ========================================
+             Feedback Description - 피드백 설명
+             ======================================== */
+.qti-ext-feedback-description {
+  color: var(--qti-feedback-description-color, var(--qti-base-text-color, inherit)) !important;
+  font-size: var(
+    --qti-feedback-description-font-size,
+    var(--qti-feedback-font-size, 14px)
+  ) !important;
+  font-weight: var(--qti-feedback-description-font-weight, 400) !important;
+
+  @apply pb-8;
+}
+
+.qti-ext-feedback-correct .qti-ext-feedback-description {
+  color: var(
+    --qti-feedback-description-color-correct,
+    var(--qti-feedback-description-color, inherit)
+  ) !important;
+}
+
+.qti-ext-feedback-incorrect .qti-ext-feedback-description {
+  color: var(
+    --qti-feedback-description-color-incorrect,
+    var(--qti-feedback-description-color, inherit)
+  ) !important;
+}
+
+.qti-ext-feedback-explanation .qti-ext-feedback-description,
+.qti-ext-feedback-inline .qti-ext-feedback-description {
+  padding-bottom: 0 !important;
+
+  color: var(
+    --qti-feedback-description-color-explanation,
+    var(--qti-feedback-description-color, inherit)
+  ) !important;
+}
+
+.qti-ext-feedback-inline .qti-ext-feedback-sections {
+  @apply pb-0;
+}
+
+/* Feedback Section - 모달/시트/인라인 공통 (레이아웃·간격 동일, 테마는 상위 .qti-ext-feedback-* 로) */
+.qti-ext-feedback-sections {
+  @apply flex flex-col gap-4;
+}
+
+.qti-ext-feedback-section {
+  background-color: var(--qti-feedback-section-bg, transparent);
+
+  @apply p-1;
+}
+
+.qti-ext-feedback-section-head {
+  display: flex;
+
+  align-items: center;
+  gap: 5px;
+
+  margin-bottom: 0.5rem;
+
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.qti-ext-feedback-section-icon {
+  display: inline-flex;
+
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+
+  color: inherit;
+}
+
+.qti-ext-feedback-section-icon-svg {
+  width: 1em;
+  height: 1em;
+}
+
+.qti-ext-feedback-section-label {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+
+  @apply flex-shrink-0 whitespace-nowrap;
+}
+
+.qti-ext-feedback-section-answer {
+  @apply ml-4 flex gap-1;
+}
+
+.qti-ext-feedback-section-content {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+
+  @apply px-6 pb-5 whitespace-pre-line;
+}
+
+.qti-ext-feedback-section-content p:first-child {
+  margin-top: 0;
+}
+
+.qti-ext-feedback-section-content p:last-child {
+  margin-bottom: 0;
+}
+
+/*
+ * 매칭 옵션 콘텐츠는 flex-col + items-stretch 이고, 미디어가 있으면 renderQtiNode가
+ * qti-simple-associable-choice 루트에 w-full 을 붙인다. 이때 figure는 그 div *안*에만 있어
+ * display:table + margin 정렬이 교차축 stretch 와 맞지 않을 수 있다.
+ * 루트/span/p 를 flex column 으로 두고 figure 에 align-self 로 좌·중·우를 맞춘다.
+ * (feedback p 규칙 뒤에 둬서 no-descending-specificity 를 만족한다.)
+ */
+/* stylelint-disable no-descending-specificity -- :has() 선택자가 파일 상단 수식 래퍼 규칙과 교차 비교됨 */
+
+.qti-ext-match-option-content > div:has(> .qti-ext-figure) {
+  display: flex;
+
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.qti-ext-match-option-content > span:has(> .qti-ext-figure) {
+  display: flex;
+
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.qti-ext-match-option-content > div p:has(> .qti-ext-figure),
+.qti-ext-match-option-content > span p:has(> .qti-ext-figure) {
+  display: flex;
+
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.qti-ext-match-option-content > .qti-ext-figure.qti-align-center,
+.qti-ext-match-option-content > div > .qti-ext-figure.qti-align-center,
+.qti-ext-match-option-content > span > .qti-ext-figure.qti-align-center,
+.qti-ext-match-option-content > div p > .qti-ext-figure.qti-align-center,
+.qti-ext-match-option-content > span p > .qti-ext-figure.qti-align-center {
+  align-self: center;
+}
+
+.qti-ext-match-option-content > .qti-ext-figure.qti-align-right,
+.qti-ext-match-option-content > div > .qti-ext-figure.qti-align-right,
+.qti-ext-match-option-content > span > .qti-ext-figure.qti-align-right,
+.qti-ext-match-option-content > div p > .qti-ext-figure.qti-align-right,
+.qti-ext-match-option-content > span p > .qti-ext-figure.qti-align-right {
+  align-self: flex-end;
+}
+
+.qti-ext-match-option-content > .qti-ext-figure.qti-align-left,
+.qti-ext-match-option-content > div > .qti-ext-figure.qti-align-left,
+.qti-ext-match-option-content > span > .qti-ext-figure.qti-align-left,
+.qti-ext-match-option-content > div p > .qti-ext-figure.qti-align-left,
+.qti-ext-match-option-content > span p > .qti-ext-figure.qti-align-left {
+  align-self: flex-start;
+}
+
+.qti-ext-match-option-content > .qti-ext-figure:not(.qti-align-center, .qti-align-right),
+.qti-ext-match-option-content > div > .qti-ext-figure:not(.qti-align-center, .qti-align-right),
+.qti-ext-match-option-content > span > .qti-ext-figure:not(.qti-align-center, .qti-align-right),
+.qti-ext-match-option-content > div p > .qti-ext-figure:not(.qti-align-center, .qti-align-right),
+.qti-ext-match-option-content > span p > .qti-ext-figure:not(.qti-align-center, .qti-align-right) {
+  align-self: flex-start;
+}
+
+/* stylelint-enable no-descending-specificity */
+
+/* Feedback Inline - 문항 하단에 붙어 전체와 함께 스크롤, 테마 스타일 */
+.qti-ext-feedback-inline {
+  display: flex;
+
+  flex-shrink: 0;
+  flex-direction: column;
+
+  max-width: var(--qti-container-max-width);
+
+  background-color: var(--qti-feedback-bg-explanation) !important;
+
+  color: var(--qti-feedback-description-color-explanation);
+  font-family: var(
+    --qti-font-family,
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif
+  );
+  font-size: var(--qti-feedback-description-font-size);
+
+  @apply mx-auto flex w-full flex-col rounded-md px-4 py-5;
+}
+
+.qti-ext-feedback-inline .qti-ext-feedback-description
+
+/* ========================================
+             Feedback Icon - 정답/오답 아이콘
+             ======================================== */
+
+.qti-ext-feedback-icon {
+  @apply absolute top-[-10px] right-[-10px] h-[22px] w-[22px] rounded-full;
+}
+
+.qti-ext-feedback-icon-correct {
+  fill: var(--qti-option-border-correct);
+}
+
+.qti-ext-feedback-icon-incorrect {
+  fill: var(--qti-option-border-incorrect);
+}
+
+/* 정답/오답 O·X 뱃지 — 크기는 부모 font-size 기준 em (문항 번호 영역은 --qti-question-number-font-size와 동기)
+   테마 업로드 시 권장: 256×256 (1:1 비율) */
+.qti-ext-feedback-badge {
+  position: absolute;
+  z-index: 10;
+
+  width: 2em;
+  height: 2em;
+
+  pointer-events: none;
+}
+
+/* 문항 번호(top) 영역 — 뱃지 기준점 · em은 문항 번호 폰트에 맞춤 */
+.qti-ext-question-number-region {
+  position: relative;
+
+  align-self: flex-start;
+
+  width: 100%;
+  max-width: 100%;
+
+  font-size: var(--qti-question-number-font-size, var(--qti-font-size-base, 1rem));
+}
+
+.qti-ext-question-number-region .qti-ext-feedback-badge {
+  top: 0;
+  left: 0;
+
+  transform: translate(-25%, -20%);
+}
+
+/* 문항 번호(inline) 앵커 — 번호 텍스트 박스 기준 · 뱃지 em 동기 */
+.qti-ext-question-number-anchor {
+  position: relative;
+
+  display: inline-flex;
+
+  align-items: baseline;
+
+  max-width: 100%;
+
+  font-size: var(--qti-question-number-font-size, var(--qti-font-size-base, 1rem));
+}
+
+.qti-ext-question-number-anchor .qti-ext-feedback-badge {
+  top: 0;
+  left: 0;
+
+  transform: translate(-35%, -18%);
+}
+
+/* @media (width < 640px) {
+  .qti-ext-feedback-badge {
+    width: 6em;
+    height: 6em;
+  }
+
+  .qti-ext-container > .qti-ext-feedback-badge {
+    top: 0;
+    left: 0;
+  }
+} */
+
+/* @media (width >= 1024px) {
+  .qti-ext-feedback-badge {
+    top: calc(54px - 3.5rem);
+    left: calc(var(--qti-container-padding, 24px) - 3.5rem);
+
+    width: 8rem;
+    height: 8rem;
+  }
+} */
+
+.qti-ext-feedback-badge .qti-ext-feedback-icon-correct,
+.qti-ext-feedback-badge .qti-ext-feedback-icon-incorrect {
+  width: 100%;
+  height: 100%;
+}
+
+.qti-ext-feedback-badge-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ========================================
+             Feedback Sheet - 피드백 시트
+             ======================================== */
+
+.qti-ext-feedback-sheet-wrapper {
+  @apply absolute right-0 bottom-0 left-0 z-50;
+}
+
+/* 피드백 시트 - 공통 및 상태별 스타일 */
+.qti-ext-feedback-sheet {
+  /* 폰트 패밀리 상속 */
+  font-family: var(
+    --qti-font-family,
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif
+  );
+  font-size: var(--qti-feedback-font-size);
+
+  @apply absolute right-0 bottom-0 left-0 z-50 flex w-full flex-col justify-center p-8 transition duration-500 ease-in-out;
+}
+
+.qti-ext-feedback-wrapper-mobile .qti-ext-feedback-sheet {
+  @apply p-5;
+}
+
+.qti-ext-feedback-sheet[data-state="closed"] {
+  @apply animate-out slide-out-to-bottom hidden;
+}
+
+.qti-ext-feedback-sheet[data-state="open"] {
+  @apply animate-in slide-in-from-bottom;
+}
+
+/* ========================================
+              Feedback Type - 피드백 타입
+              ======================================== */
+
+.qti-ext-feedback-correct {
+  background-color: var(--qti-feedback-bg-correct) !important;
+
+  color: var(--qti-feedback-text-correct) !important;
+}
+
+.qti-ext-feedback-incorrect {
+  background-color: var(--qti-feedback-bg-incorrect) !important;
+
+  color: var(--qti-feedback-text-incorrect) !important;
+}
+
+.qti-ext-feedback-explanation {
+  background-color: var(--qti-feedback-bg-explanation) !important;
+
+  color: var(--qti-feedback-text-explanation) !important;
+}
+
+.qti-ext-feedback-correct .qti-ext-feedback-button-primary {
+  background-color: var(
+    --feedback-correct-btn-primary-bg,
+    var(--qti-feedback-button-bg-correct)
+  ) !important;
+
+  color: var(
+    --feedback-correct-btn-primary-text,
+    var(--qti-feedback-button-text-correct, var(--qti-button-text))
+  ) !important;
+}
+
+.qti-ext-feedback-incorrect .qti-ext-feedback-button-primary {
+  background-color: var(
+    --feedback-incorrect-btn-primary-bg,
+    var(--qti-feedback-button-bg-incorrect)
+  ) !important;
+
+  color: var(
+    --feedback-incorrect-btn-primary-text,
+    var(--qti-feedback-button-text-incorrect, var(--qti-button-text))
+  ) !important;
+}
+
+.qti-ext-feedback-explanation .qti-ext-feedback-button-primary {
+  background-color: var(
+    --feedback-explanation-btn-primary-bg,
+    var(--qti-feedback-button-bg-explanation)
+  ) !important;
+
+  color: var(
+    --feedback-explanation-btn-primary-text,
+    var(--qti-feedback-button-text-explanation, var(--qti-button-text))
+  ) !important;
+}
+
+.qti-ext-feedback-correct .qti-ext-feedback-button-secondary {
+  background-color: var(
+    --feedback-correct-btn-secondary-bg,
+    var(--qti-feedback-button-bg-default)
+  ) !important;
+
+  color: var(
+    --feedback-correct-btn-secondary-text,
+    var(--qti-feedback-button-text-default, var(--qti-button-text))
+  ) !important;
+}
+
+.qti-ext-feedback-incorrect .qti-ext-feedback-button-secondary {
+  background-color: var(
+    --feedback-incorrect-btn-secondary-bg,
+    var(--qti-feedback-button-bg-default)
+  ) !important;
+
+  color: var(
+    --feedback-incorrect-btn-secondary-text,
+    var(--qti-feedback-button-text-default, var(--qti-button-text))
+  ) !important;
+}
+
+.qti-ext-feedback-explanation .qti-ext-feedback-button-secondary {
+  background-color: var(
+    --feedback-explanation-btn-secondary-bg,
+    var(--qti-feedback-button-bg-default)
+  ) !important;
+
+  color: var(
+    --feedback-explanation-btn-secondary-text,
+    var(--qti-feedback-button-text-default, var(--qti-button-text))
+  ) !important;
+}
+
+/* ========================================
+             Feedback Modal - 피드백 모달
+             ======================================== */
+
+.qti-ext-feedback-wrapper-mobile .qti-ext-feedback-modal {
+  @apply slide-in-from-bottom fade-in-0 zoom-in-100 inset-0 top-0 left-0 h-full max-h-none w-full max-w-none translate-x-0 translate-y-0 rounded-none duration-300;
+}
+
+.qti-ext-feedback-modal {
+  background-color: var(--qti-feedback-bg-explanation) !important;
+
+  color: var(--qti-feedback-text-explanation) !important;
+  font-family: var(
+    --qti-font-family,
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif
+  );
+  font-size: var(--qti-feedback-font-size);
+
+  /* 공통 속성 */
+  @apply absolute flex flex-col bg-white shadow-xl;
+
+  /* 모바일: 전체 화면 + 하단에서 슬라이드업 */
+  @apply animate-in slide-in-from-bottom inset-0 h-full w-full overflow-y-auto rounded-none duration-300;
+
+  /* 데스크톱 (sm: 640px 이상): 중앙 팝업 + 페이드/줌 */
+  @apply sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-auto sm:max-h-[80%] sm:w-[calc(100%-2rem)] sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:duration-200;
+}
+
+.qti-ext-feedback-modal-content {
+  @apply p-5;
+}
+
+/* ========================================
+             Submit Button - 제출 버튼
+             ======================================== */
+
+.qti-ext-submit-button-wrapper {
+  @apply sticky right-0 bottom-5 left-0 flex items-center justify-center;
+}
+
+/* 제출 버튼 - 공통 및 상태별 스타일 */
+.qti-ext-submit-button {
+  width: var(--qti-button-width) !important;
+  height: var(--qti-button-height) !important;
+
+  border-width: var(--qti-button-border-width) !important;
+
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-button-border) !important;
+  border-radius: var(--qti-button-border-radius) !important;
+
+  background-color: var(--qti-button-bg) !important;
+
+  color: var(--qti-button-text) !important;
+  font-size: var(--qti-font-size-base, 16px) !important;
+
+  /* font-weight는 상위에서 상속 */
+
+  @apply font-medium transition-all active:scale-[0.98];
+}
+
+.qti-ext-submit-button:disabled {
+  border-color: var(--qti-button-border-disabled) !important;
+
+  background-color: var(--qti-button-bg-disabled) !important;
+
+  color: var(--qti-button-text-disabled) !important;
+
+  cursor: not-allowed;
+}
+
+.qti-ext-submit-button:hover:not(:disabled) {
+  border-color: var(--qti-button-border-hover) !important;
+
+  background-color: var(--qti-button-bg-hover) !important;
+
+  color: var(--qti-button-text-hover) !important;
+}
+
+/* 이전/다음 버튼 - 제출 버튼과 동일한 테마 변수 적용 */
+.qti-ext-prev-next-button {
+  border-width: var(--qti-button-border-width) !important;
+  border-color: var(--qti-button-border) !important;
+  border-radius: var(--qti-button-border-radius) !important;
+
+  background-color: var(--qti-button-bg) !important;
+
+  color: var(--qti-button-text) !important;
+  font-size: var(--qti-font-size-base, 16px);
+
+  @apply font-medium transition-all active:scale-[0.98];
+}
+
+.qti-ext-prev-next-button:disabled {
+  border-color: var(--qti-button-border-disabled) !important;
+
+  background-color: var(--qti-button-bg-disabled) !important;
+
+  color: var(--qti-button-text-disabled) !important;
+
+  cursor: not-allowed;
+}
+
+.qti-ext-prev-next-button:hover:not(:disabled) {
+  border-color: var(--qti-button-border-hover) !important;
+
+  background-color: var(--qti-button-bg-hover) !important;
+
+  color: var(--qti-button-text-hover) !important;
+}
+
+/* 데스크톱 이전/다음 - 아이콘만 있을 때: 아이콘 색만 테마 배경색(bg)으로 적용, 버튼 자체 배경/테두리 없음 */
+.qti-ext-prev-next-icon-button {
+  color: var(--qti-button-bg) !important;
+
+  @apply transition-colors;
+}
+
+.qti-ext-prev-next-icon-button:disabled {
+  color: var(--qti-button-bg-disabled) !important;
+
+  cursor: not-allowed;
+}
+
+.qti-ext-prev-next-icon-button:hover:not(:disabled) {
+  color: var(--qti-button-bg-hover) !important;
+}
+
+/* ========================================
+           Assessment Set - 평가세트
+           ======================================== */
+
+.qti-ext-assessment-set-wrapper {
+  background-color: var(--qti-container-bg, #ffffff);
+
+  @apply h-full w-full max-w-4xl overflow-y-auto;
+}
+
+.qti-ext-assessment-wrapper {
+  /* border: 1px solid var(--qti-container-border, #e5e7eb); */
+  border-radius: var(--qti-container-border-radius, 12px);
+
+  background-color: var(--qti-container-bg, #ffffff);
+
+  color: var(--qti-base-text-color, #1a1a1a);
+
+  /* 타이포그래피 - 테마에서 설정 */
+  font-family: var(
+    --qti-font-family,
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif
+  );
+  font-size: var(--qti-font-size-base, 16px);
+  font-weight: var(--font-weight-normal, 400);
+  line-height: var(--qti-line-height-base, 1.5);
+
+  @apply relative flex h-full flex-col overflow-hidden;
+}
+
+.qti-ext-assessment-header {
+  @apply shrink-0 p-5;
+}
+
+.qti-ext-assessment-content {
+  @apply flex-1;
+}
+
+.qti-ext-assessment-nav {
+  border-color: var(--qti-option-border, #e5e7eb);
+
+  @apply flex shrink-0 items-center justify-between gap-4 border-t pt-4 pb-8;
+}
+
+/* 이전, 다음 버튼 */
+.qti-ext-nav-button-wrapper {
+  background-color: var(--qti-container-bg, #e5e7eb) !important;
+}
+
+.qti-ext-nav-button {
+  width: auto !important;
+  padding: 0.5rem 1.5rem !important;
+
+  border-width: var(--qti-button-border-width, 1px) !important;
+  border-color: var(--qti-option-border, #ffffff) !important;
+  border-radius: var(--qti-button-border-radius, 0.375rem) !important;
+
+  background-color: var(--qti-option-bg, #e5e7eb) !important;
+
+  color: var(--qti-base-text-color, #374151) !important;
+  font-size: var(--qti-font-size-base, 16px) !important;
+  font-weight: 500 !important;
+
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    color 0.2s !important;
+
+  cursor: pointer !important;
+
+  @apply flex items-center gap-1;
+}
+
+.qti-ext-nav-button:disabled {
+  border-color: var(--qti-button-bg-disabled, var(--qti-button-bg, #f9fafb)) !important;
+
+  background-color: var(--qti-button-border-disabled, var(--qti-button-border, #e5e7eb)) !important;
+  opacity: 0.5 !important;
+
+  color: var(--qti-button-text-disabled, var(--qti-button-text, #9ca3af)) !important;
+
+  cursor: not-allowed !important;
+}
+
+.qti-ext-nav-button:hover:not(:disabled) {
+  border-color: var(--qti-button-bg-hover, var(--qti-button-bg, #f3f4f6)) !important;
+
+  background-color: var(--qti-button-border-hover, var(--qti-button-border, #e5e7eb)) !important;
+
+  color: var(--qti-button-text-hover, var(--qti-button-text, #111827)) !important;
+}
+
+/* Progress Bar - 진행률 표시 */
+.qti-ext-progress {
+  @apply flex flex-col gap-2;
+}
+
+.qti-ext-progress-header {
+  @apply flex items-center justify-between;
+}
+
+.qti-ext-progress-label {
+  @apply text-sm font-medium;
+}
+
+.qti-ext-progress-count {
+  color: inherit;
+
+  @apply flex items-center text-sm;
+}
+
+.qti-ext-progress-answered {
+  color: var(--qti-button-enabled-bg);
+
+  @apply font-bold;
+}
+
+.qti-ext-progress-separator {
+  @apply mx-0.5;
+}
+
+.qti-ext-progress-total {
+  @apply font-medium;
+}
+
+.qti-ext-progress-unit {
+  color: inherit;
+
+  @apply ml-1 text-xs;
+}
+
+/* Progress Bar - 진행률 바 형태 */
+.qti-ext-progress-bar {
+  @apply flex flex-col gap-2;
+}
+
+/* LayoutC 좌측 스테퍼 컬럼: 스크롤 가능하되 스크롤바 UI 숨김 */
+.qti-ext-stepper-column-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.qti-ext-stepper-column-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* LayoutA 스테퍼 가로 스크롤: 스크롤 가능하되 스크롤바 UI 숨김 */
+.qti-ext-stepper-row-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.qti-ext-stepper-row-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Progress Stepper - 스테퍼 형태 (1번부터 차례대로 보이도록 start 정렬) */
+.qti-ext-progress-stepper {
+  @apply flex items-center justify-start px-1 pt-1 pb-6;
+}
+
+/* 세로 스테퍼: 1번부터 위에서 차례대로 보이도록 flex-start, 20개여도 스크롤로 모두 확인 가능 */
+.qti-ext-progress-stepper-vertical {
+  @apply flex flex-col items-center justify-start;
+}
+
+/* Progress Dot - 점 형태 컨테이너 */
+.qti-ext-progress-dot-container {
+  @apply flex items-center justify-center gap-2;
+}
+
+/* Progress Dot - 개별 점 요소 */
+.qti-ext-progress-dot {
+  @apply h-3 w-3 rounded-full bg-gray-300 transition-all duration-200;
+}
+
+.qti-ext-progress-step {
+  @apply relative flex items-center;
+}
+
+.qti-ext-progress-step-vertical {
+  @apply flex-col;
+}
+
+.qti-ext-progress-line {
+  background-color: var(--qti-option-border);
+
+  @apply h-0.5 w-8 shrink-0 transition-colors duration-300;
+}
+
+.qti-ext-progress-line-correct {
+  background-color: var(--qti-option-border-correct);
+}
+
+.qti-ext-progress-line-incorrect {
+  background-color: var(--qti-option-border-incorrect);
+}
+
+.qti-ext-progress-line-active {
+  background-color: var(--qti-option-border-selected);
+}
+
+.qti-ext-progress-line-vertical {
+  @apply h-8 w-0.5;
+}
+
+.qti-ext-progress-item {
+  border-width: 2px;
+
+  /* border-style은 상위에서 상속 (solid) */
+  border-color: var(--qti-option-border);
+
+  background-color: var(--qti-option-bg);
+
+  color: inherit;
+
+  @apply relative z-10 flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200;
+  @apply focus:outline-none;
+}
+
+.qti-ext-progress-item:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+
+.qti-ext-progress-item-disabled {
+  cursor: default;
+}
+
+.qti-ext-progress-item-disabled:hover {
+  transform: none;
+}
+
+.qti-ext-progress-item-current {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+
+  color: var(--qti-option-bg-selected-text);
+}
+
+.qti-ext-progress-item-answered {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg);
+
+  color: var(--qti-option-bg-selected);
+}
+
+.qti-ext-progress-item-correct {
+  border-color: var(--qti-option-border-correct);
+
+  background-color: var(--qti-option-bg-correct);
+
+  color: var(--qti-option-border-correct);
+}
+
+.qti-ext-progress-item-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+
+  background-color: var(--qti-option-bg-incorrect);
+
+  color: var(--qti-option-border-incorrect);
+}
+
+/* Progress Indicator - 인디케이터 형태 (원형 bullet만 표시) */
+.qti-ext-progress-indicator {
+  @apply flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-sm font-semibold transition-all duration-200;
+}
+
+.qti-ext-progress-indicator-current {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+
+  color: var(--qti-option-bg-selected-text);
+}
+
+.qti-ext-progress-indicator-answered {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg);
+
+  color: var(--qti-option-bg-selected);
+}
+
+.qti-ext-progress-indicator-correct {
+  border-color: var(--qti-option-border-correct);
+
+  background-color: var(--qti-option-bg-correct);
+
+  color: var(--qti-option-border-correct);
+}
+
+.qti-ext-progress-indicator-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+
+  background-color: var(--qti-option-bg-incorrect);
+
+  color: var(--qti-option-border-incorrect);
+}
+
+.qti-ext-progress-dot-current {
+  background-color: var(--qti-option-border-selected);
+
+  @apply w-10;
+}
+
+.qti-ext-progress-dot-answered {
+  background-color: var(--qti-option-border-selected);
+}
+
+.qti-ext-progress-dot-correct {
+  background-color: var(--qti-option-border-correct);
+}
+
+.qti-ext-progress-dot-incorrect {
+  background-color: var(--qti-option-border-incorrect);
+}
+
+/* Assessment Complete - 평가 완료 화면 */
+.qti-ext-assessment-complete {
+  @apply flex flex-col items-center justify-center gap-6 py-16;
+}
+
+.qti-ext-complete-icon {
+  background-color: var(--qti-option-bg-correct);
+
+  color: var(--qti-option-border-correct);
+
+  @apply flex h-24 w-24 items-center justify-center rounded-full;
+}
+
+.qti-ext-complete-title {
+  color: var(--text-color);
+
+  @apply text-2xl font-bold;
+}
+
+.qti-ext-complete-message {
+  color: var(--text-color);
+
+  @apply opacity-70;
+}
+
+/* 01-26 시연용 코드 추후 개선 필요 */
+.qti-ext-container .dialogue,
+.qti-ext-passage .dialogue {
+  border: 1px dashed var(--qti-container-border, #e3e8f0);
+
+  background: var(--qti-container-bg, #f7f9fc);
+
+  @apply my-8 rounded-md p-4;
+}
+
+@keyframes qti-ext-draw-line {
+  from {
+    stroke-dasharray: 0 1000;
+  }
+  to {
+    stroke-dasharray: 1000 0;
+  }
+}
+
+/*
+========================================
+ gcq 유형 스타일 예시(클래스 수정 필요
+========================================
+*/
+
+/* ========================================
+   QTI Grid Choice Interaction
+======================================== */
+
+.qti-ext-grid {
+  @apply mt-8 w-full;
+}
+
+/* 그리드 body 안 선택지: 콘텐츠 영역이 라디오/체크박스 제외한 나머지 공간을 전부 쓰도록 */
+.qti-ext-grid-body .qti-ext-choice-option > div:first-of-type {
+  flex: 1 1 0%;
+
+  min-width: 0;
+
+  @apply w-full;
+}
+
+.qti-ext-grid-body .qti-ext-choice-option > div:first-of-type .qti-ext-grid-row {
+  min-width: 0;
+
+  @apply w-full;
+}
+
+.qti-ext-grid-header {
+  @apply grid grid-cols-[40px_1fr_1fr] p-4 pr-13 font-bold;
+}
+
+.qti-ext-grid-header-cell,
+.qti-ext-grid-cell {
+  @apply text-center;
+}
+
+.qti-ext-choice-label {
+  @apply px-1;
+}
+
+/* 그리드에 list-style-type이 있을 때: counter-reset/increment + .qti-ext-choice-label::before */
+.qti-ext-grid.qti-list-style-type-decimal .qti-choice-interaction-wrapper,
+.qti-ext-grid.qti-list-style-type-lower-alpha .qti-choice-interaction-wrapper,
+.qti-ext-grid.qti-list-style-type-upper-alpha .qti-choice-interaction-wrapper,
+.qti-ext-grid.qti-list-style-type-circled .qti-choice-interaction-wrapper,
+.qti-ext-grid.qti-list-style-type-hangul-consonant .qti-choice-interaction-wrapper,
+.qti-ext-grid.qti-list-style-type-hangul-consonant-paren .qti-choice-interaction-wrapper,
+.qti-ext-grid.qti-list-style-type-hangul-consonant-bracket .qti-choice-interaction-wrapper,
+.qti-ext-grid.qti-list-style-type-hangul-syllable .qti-choice-interaction-wrapper {
+  counter-reset: choice-index 0;
+}
+
+.qti-ext-grid.qti-list-style-type-decimal .qti-ext-choice-option,
+.qti-ext-grid.qti-list-style-type-lower-alpha .qti-ext-choice-option,
+.qti-ext-grid.qti-list-style-type-upper-alpha .qti-ext-choice-option,
+.qti-ext-grid.qti-list-style-type-circled .qti-ext-choice-option,
+.qti-ext-grid.qti-list-style-type-hangul-consonant .qti-ext-choice-option,
+.qti-ext-grid.qti-list-style-type-hangul-consonant-paren .qti-ext-choice-option,
+.qti-ext-grid.qti-list-style-type-hangul-consonant-bracket .qti-ext-choice-option,
+.qti-ext-grid.qti-list-style-type-hangul-syllable .qti-ext-choice-option {
+  counter-increment: choice-index;
+}
+
+.qti-ext-grid.qti-list-style-type-decimal .qti-ext-choice-label::before,
+.qti-ext-grid.qti-list-style-type-lower-alpha .qti-ext-choice-label::before,
+.qti-ext-grid.qti-list-style-type-upper-alpha .qti-ext-choice-label::before,
+.qti-ext-grid.qti-list-style-type-circled .qti-ext-choice-label::before,
+.qti-ext-grid.qti-list-style-type-hangul-consonant .qti-ext-choice-label::before,
+.qti-ext-grid.qti-list-style-type-hangul-consonant-paren .qti-ext-choice-label::before,
+.qti-ext-grid.qti-list-style-type-hangul-consonant-bracket .qti-ext-choice-label::before,
+.qti-ext-grid.qti-list-style-type-hangul-syllable .qti-ext-choice-label::before {
+  color: var(--qti-base-text-color);
+  font-family: var(--qti-font-family);
+  font-size: var(--qti-font-size-base);
+  font-weight: var(--qti-font-weight-bold);
+  line-height: var(--qti-line-height-base);
+}
+
+.qti-ext-grid.qti-list-style-type-decimal .qti-ext-choice-label::before {
+  content: counter(choice-index, decimal) ". ";
+}
+
+.qti-ext-grid.qti-list-style-type-lower-alpha .qti-ext-choice-label::before {
+  content: counter(choice-index, lower-alpha) ". ";
+}
+
+.qti-ext-grid.qti-list-style-type-upper-alpha .qti-ext-choice-label::before {
+  content: counter(choice-index, upper-alpha) ". ";
+}
+
+.qti-ext-grid.qti-list-style-type-circled .qti-ext-choice-label::before {
+  content: counter(choice-index, circled_number);
+}
+
+.qti-ext-grid.qti-list-style-type-hangul-consonant .qti-ext-choice-label::before {
+  content: counter(choice-index, hangul-consonant);
+}
+
+.qti-ext-grid.qti-list-style-type-hangul-consonant-paren .qti-ext-choice-label::before {
+  content: counter(choice-index, hangul-consonant-paren);
+}
+
+.qti-ext-grid.qti-list-style-type-hangul-consonant-bracket .qti-ext-choice-label::before {
+  content: counter(choice-index, hangul-consonant-bracket);
+}
+
+.qti-ext-grid.qti-list-style-type-hangul-syllable .qti-ext-choice-label::before {
+  content: counter(choice-index, hangul-syllable-dot);
+}
+
+.qti-list-style-type-hangul-consonant-paren .qti-ext-choice-label {
+  @apply px-2;
+}
+
+.qti-ext-grid-row {
+  @apply grid w-full items-center;
+}
+
+.qti-ext-grid-2 .qti-ext-grid-header,
+.qti-ext-grid-2 .qti-ext-grid-row {
+  @apply grid-cols-[40px_repeat(2,_1fr)];
+}
+
+.qti-ext-grid-3 .qti-ext-grid-header,
+.qti-ext-grid-3 .qti-ext-grid-row {
+  @apply grid-cols-[40px_repeat(3,_1fr)];
+}
+
+.qti-ext-grid-4 .qti-ext-grid-header,
+.qti-ext-grid-4 .qti-ext-grid-row {
+  @apply grid-cols-[repeat(4,_1fr)];
+}
+
+/* ========================================
+  parsed list (ol/ul from qti-list-style-type-* grouping)
+======================================== */
+
+.qti-ext-container ol[class*="qti-list-style-type-"],
+.qti-ext-container ul[class*="qti-list-style-type-"],
+.qti-ext-passage ol[class*="qti-list-style-type-"],
+.qti-ext-passage ul[class*="qti-list-style-type-"],
+.qti-ext-feedback-section-content ol[class*="qti-list-style-type-"],
+.qti-ext-feedback-section-content ul[class*="qti-list-style-type-"],
+.qti-ext-feedback-description ol[class*="qti-list-style-type-"],
+.qti-ext-feedback-description ul[class*="qti-list-style-type-"] {
+  padding-left: 0;
+  list-style-position: outside;
+}
+
+.qti-ext-container ol.qti-list-style-type-decimal,
+.qti-ext-passage ol.qti-list-style-type-decimal,
+.qti-ext-feedback-section-content ol.qti-list-style-type-decimal,
+.qti-ext-feedback-description ol.qti-list-style-type-decimal {
+  list-style-type: decimal;
+}
+
+.qti-ext-container ol.qti-list-style-type-lower-alpha,
+.qti-ext-passage ol.qti-list-style-type-lower-alpha,
+.qti-ext-feedback-section-content ol.qti-list-style-type-lower-alpha,
+.qti-ext-feedback-description ol.qti-list-style-type-lower-alpha {
+  list-style-type: lower-alpha;
+}
+
+.qti-ext-container ol.qti-list-style-type-upper-alpha,
+.qti-ext-passage ol.qti-list-style-type-upper-alpha,
+.qti-ext-feedback-section-content ol.qti-list-style-type-upper-alpha,
+.qti-ext-feedback-description ol.qti-list-style-type-upper-alpha {
+  list-style-type: upper-alpha;
+}
+
+.qti-ext-container ol.qti-list-style-type-lower-roman,
+.qti-ext-passage ol.qti-list-style-type-lower-roman,
+.qti-ext-feedback-section-content ol.qti-list-style-type-lower-roman,
+.qti-ext-feedback-description ol.qti-list-style-type-lower-roman {
+  list-style-type: lower-roman;
+}
+
+.qti-ext-container ol.qti-list-style-type-upper-roman,
+.qti-ext-passage ol.qti-list-style-type-upper-roman,
+.qti-ext-feedback-section-content ol.qti-list-style-type-upper-roman,
+.qti-ext-feedback-description ol.qti-list-style-type-upper-roman {
+  list-style-type: upper-roman;
+}
+
+.qti-ext-container ul.qti-list-style-type-disc,
+.qti-ext-passage ul.qti-list-style-type-disc,
+.qti-ext-feedback-section-content ul.qti-list-style-type-disc,
+.qti-ext-feedback-description ul.qti-list-style-type-disc {
+  list-style-type: disc;
+}
+
+.qti-ext-container ul.qti-list-style-type-circle,
+.qti-ext-passage ul.qti-list-style-type-circle,
+.qti-ext-feedback-section-content ul.qti-list-style-type-circle,
+.qti-ext-feedback-description ul.qti-list-style-type-circle {
+  list-style-type: circle;
+}
+
+.qti-ext-container ul.qti-list-style-type-square,
+.qti-ext-passage ul.qti-list-style-type-square,
+.qti-ext-feedback-section-content ul.qti-list-style-type-square,
+.qti-ext-feedback-description ul.qti-list-style-type-square {
+  list-style-type: square;
+}
+
+/* ========================================
+  template-prev-button, template-next-button
+======================================== */
+
+.qti-ext-template-prev-button {
+  @apply absolute top-1/2 left-0 z-10 -translate-y-1/2;
+}
+
+.qti-ext-template-next-button {
+  @apply absolute top-1/2 right-0 z-10 -translate-y-1/2;
+}
+
+/* Plate.js column — 그룹은 가로 배치, 컬럼은 문항(.qti-ext-question)과 동일한 수직 간격.
+   stimulus / prompt / example / p 는 기존 .qti-ext-* 전역 규칙을 그대로 사용 */
+.qti-ext-column-group {
+  display: flex;
+
+  align-items: stretch;
+
+  width: 100%;
+
+  @apply gap-3;
+}
+
+.qti-ext-column {
+  flex: 1 1 0;
+
+  min-width: 0;
+
+  @apply space-y-2 p-2;
+}
+
+/* 컬럼 내부: width 100% 시 .qti-ext-text-entry m-1 가로 마진이 더해져 넘치므로 가로 마진 제거 */
+.qti-ext-column .qti-text-entry--inline {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+/* ========================================
+   뷰포트 반응형 (width < 640px) — 파일 말단 고정
+   테마·컴포넌트 기본 스타일에 !important가 많아, 동일 특이도에서는
+   출현 순서가 우선합니다. 반응형 전용 값은 반드시 이 블록 이전의
+   모든 해당 선택자 규칙보다 뒤에 둡니다.
+   바로 아래 블록과 동일 선언은「모바일 미러 [data-device="mobile"]」에 복제합니다.
+   ======================================== */
+@media (width < 640px) {
+  /* 래퍼·지문 동일 토큰 (지문은 세로 분할 시 래퍼 밖에 있을 수 있음) */
+  .qti-ext-wrapper,
+  .qti-ext-passage {
+    --qti-font-size-base: 16px !important;
+    --qti-line-height-base: 1.5 !important;
+    --qti-option-font-size: 16px !important;
+    --qti-prompt-font-size: 16px !important;
+    --qti-example-stimulus-font-size: 16px !important;
+    --qti-question-number-font-size: 15px !important;
+    --qti-feedback-font-size: 15px !important;
+    --qti-feedback-title-font-size: 16px !important;
+    --qti-container-padding: 16px !important;
+    --qti-container-max-width: 100% !important;
+  }
+
+  .qti-ext-passage {
+    padding: 24px 16px 0 !important;
+  }
+
+  .qti-ext-container {
+    padding: 24px 16px !important;
+  }
+
+  .qti-ext-option-base {
+    padding: 10px !important;
+  }
+
+  .qti-ext-choice-option {
+    padding: 10px !important;
+  }
+
+  .tfq-buttons .qti-ext-choice-button img {
+    width: 30% !important;
+    max-width: 36px;
+
+    @apply mx-auto;
+  }
+
+  .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-4,
+  .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-5 {
+    grid-template-columns: 1fr;
+  }
+
+  /* 반응형 드롭다운: 겹침 방지용 여백 */
+  .qti-ext-dropdown {
+    margin: 0.5rem !important;
+  }
+
+  /* 반응형 이전/다음·네비: 사이즈만 고정, 색/테두리는 테마 유지 */
+  .qti-ext-prev-next-button {
+    padding: 0.5rem 1rem !important;
+
+    font-size: 14px !important;
+  }
+
+  .qti-ext-nav-button {
+    padding: 0.5rem 1rem !important;
+
+    font-size: 14px !important;
+  }
+
+  .qti-ext-assessment-nav {
+    padding-top: 1rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+
+  /* 제출 버튼: 고정 width/height 테마값 무시 */
+  .qti-ext-submit-button {
+    width: min(100%, 20rem) !important;
+    height: auto !important;
+    min-height: 44px !important;
+    padding: 0.625rem 1rem !important;
+
+    font-size: 14px !important;
+  }
+
+  /* 피드백 하단 버튼: 테마 width/height !important 이후에도 터치·너비 제한 */
+  .qti-ext-feedback-button {
+    width: min(100%, 20rem) !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 44px !important;
+    padding: 0.5rem 1rem !important;
+
+    font-size: 14px !important;
+  }
+
+  /* Plate 컬럼: 좁은 뷰포트에서는 세로 스택 */
+  .qti-ext-column-group {
+    flex-direction: column !important;
+  }
+
+  .qti-ext-column {
+    flex: none !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .qti-ext-feedback-inline {
+    font-size: 16px !important;
+  }
+
+  .qti-ext-feedback-title {
+    font-size: 16px !important;
+  }
+
+  .qti-ext-feedback-description {
+    font-size: 16px !important;
+  }
+}
+
+/* ========================================================================
+   모바일 미러 — 조상 [data-device="mobile"] 일 때 위 @media (width < 640px) 와 동일
+   (선언 변경 시 반드시 양쪽 수정)
+   ======================================================================== */
+[data-device="mobile"] .qti-ext-wrapper,
+[data-device="mobile"] .qti-ext-passage {
+  --qti-font-size-base: 16px !important;
+  --qti-line-height-base: 1.5 !important;
+  --qti-option-font-size: 16px !important;
+  --qti-prompt-font-size: 16px !important;
+  --qti-example-stimulus-font-size: 16px !important;
+  --qti-question-number-font-size: 15px !important;
+  --qti-feedback-font-size: 15px !important;
+  --qti-feedback-title-font-size: 16px !important;
+  --qti-container-padding: 16px !important;
+  --qti-container-max-width: 100% !important;
+}
+
+[data-device="mobile"] .qti-ext-passage {
+  padding: 24px 16px !important;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+[data-device="mobile"] .qti-ext-container {
+  padding: 24px 16px !important;
+}
+
+[data-device="mobile"] .qti-ext-option-base {
+  padding: 10px !important;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+[data-device="mobile"] .qti-ext-choice-option {
+  padding: 10px !important;
+}
+
+[data-device="mobile"] .tfq-buttons .qti-ext-choice-button img {
+  width: 30% !important;
+  max-width: 36px;
+
+  @apply mx-auto;
+}
+
+[data-device="mobile"]
+  .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-4,
+[data-device="mobile"]
+  .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-5 {
+  grid-template-columns: 1fr;
+}
+
+[data-device="mobile"] .qti-ext-dropdown {
+  margin: 0.5rem !important;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+[data-device="mobile"] .qti-ext-prev-next-button {
+  padding: 0.5rem 1rem !important;
+
+  font-size: 14px !important;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+[data-device="mobile"] .qti-ext-nav-button {
+  padding: 0.5rem 1rem !important;
+
+  font-size: 14px !important;
+}
+
+[data-device="mobile"] .qti-ext-assessment-nav {
+  padding-top: 1rem !important;
+  padding-bottom: 1.5rem !important;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+[data-device="mobile"] .qti-ext-submit-button {
+  width: min(100%, 20rem) !important;
+  height: auto !important;
+  min-height: 44px !important;
+  padding: 0.625rem 1rem !important;
+
+  font-size: 14px !important;
+}
+
+[data-device="mobile"] .qti-ext-feedback-button {
+  width: min(100%, 20rem) !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 44px !important;
+  padding: 0.5rem 1rem !important;
+
+  font-size: 14px !important;
+}
+
+[data-device="mobile"] .qti-ext-column-group {
+  flex-direction: column !important;
+}
+
+[data-device="mobile"] .qti-ext-column {
+  flex: none !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+[data-device="mobile"] .qti-ext-feedback-inline {
+  font-size: 16px !important;
+}
+
+[data-device="mobile"] .qti-ext-feedback-title {
+  font-size: 16px !important;
+}
+
+[data-device="mobile"] .qti-ext-feedback-description {
+  font-size: 16px !important;
+}
+
+/* [data-device="mobile"] .qti-ext-feedback-badge {
+  width: 6em;
+  height: 6em;
+} */
+
+/* [data-device="mobile"] .qti-ext-container > .qti-ext-feedback-badge {
+  top: 0;
+  left: 0;
+} */
