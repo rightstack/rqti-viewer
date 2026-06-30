@@ -1,6 +1,16 @@
 import { useMemo, useState } from "react";
-import { Question, type QuestionMode, type ResponseValueMap } from "@rtqi/viewer";
+import {
+  Question,
+  type QuestionMode,
+  type ResponseValueMap,
+} from "@rtqi/viewer";
 import { SAMPLES } from "./samples";
+
+/** preview 모드는 "제출 후 리뷰(정답·해설 표시)" 역할이므로 review로 표기 */
+const MODE_OPTIONS: { value: QuestionMode; label: string }[] = [
+  { value: "practice", label: "practice" },
+  { value: "preview", label: "review" },
+];
 
 export default function App() {
   const [selectedId, setSelectedId] = useState(SAMPLES[0].id);
@@ -10,7 +20,7 @@ export default function App() {
 
   const sample = useMemo(
     () => SAMPLES.find((s) => s.id === selectedId) ?? SAMPLES[0],
-    [selectedId]
+    [selectedId],
   );
 
   const handleSelect = (id: string) => {
@@ -41,15 +51,15 @@ export default function App() {
         </nav>
 
         <div style={styles.modes}>
-          {(["practice", "preview"] as QuestionMode[]).map((m) => (
-            <label key={m} style={styles.modeLabel}>
+          {MODE_OPTIONS.map((m) => (
+            <label key={m.value} style={styles.modeLabel}>
               <input
                 type="radio"
                 name="mode"
-                checked={mode === m}
-                onChange={() => setMode(m)}
+                checked={mode === m.value}
+                onChange={() => setMode(m.value)}
               />
-              {m}
+              {m.label}
             </label>
           ))}
         </div>
@@ -74,6 +84,10 @@ export default function App() {
             type={sample.type}
             mode={mode}
             correctAnswers={sample.correctAnswers}
+            showFeedback
+            solution={sample.solution}
+            feedbacks={sample.feedbacks}
+            passageFeedbacks={sample.passageFeedbacks}
             onResponse={setResponses}
             onSubmit={setSubmitted}
           />
@@ -84,7 +98,11 @@ export default function App() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  page: { display: "flex", minHeight: "100vh", fontFamily: "system-ui, sans-serif" },
+  page: {
+    display: "flex",
+    minHeight: "100vh",
+    fontFamily: "system-ui, sans-serif",
+  },
   sidebar: {
     width: 300,
     flexShrink: 0,
@@ -105,11 +123,20 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     fontSize: 14,
   },
-  navItemActive: { background: "#fff", border: "1px solid #ddd", fontWeight: 600 },
+  navItemActive: {
+    background: "#fff",
+    border: "1px solid #ddd",
+    fontWeight: 600,
+  },
   modes: { display: "flex", gap: 16, marginTop: 20 },
   modeLabel: { display: "flex", alignItems: "center", gap: 4, fontSize: 13 },
   state: { marginTop: 24 },
-  stateTitle: { fontSize: 12, textTransform: "uppercase", color: "#888", margin: "12px 0 4px" },
+  stateTitle: {
+    fontSize: 12,
+    textTransform: "uppercase",
+    color: "#888",
+    margin: "12px 0 4px",
+  },
   pre: {
     background: "#1e1e1e",
     color: "#d4d4d4",
@@ -119,7 +146,13 @@ const styles: Record<string, React.CSSProperties> = {
     overflowX: "auto",
     margin: 0,
   },
-  main: { flex: 1, padding: 40, display: "flex", justifyContent: "center", alignItems: "flex-start" },
+  main: {
+    flex: 1,
+    padding: 40,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "flex-start",
+  },
   card: {
     width: "100%",
     maxWidth: 720,

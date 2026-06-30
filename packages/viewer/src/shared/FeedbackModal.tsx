@@ -143,9 +143,21 @@ export const FeedbackModal = ({
         <DialogHeader>
           <DialogTitle className={cn("qti-ext-feedback-title")}>{title}</DialogTitle>
 
-          <DialogDescription className="qti-ext-feedback-description">
-            {description || "해설 내용입니다."}
+        {typeof description === "string" ? (
+          <DialogDescription
+            className="qti-ext-feedback-description"
+            asChild
+          >
+            <div
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{ __html: description || "해설 내용입니다." }}
+            />
           </DialogDescription>
+        ) : (
+          <DialogDescription className="qti-ext-feedback-description">
+            {description ?? "해설 내용입니다."}
+          </DialogDescription>
+        )}
         </DialogHeader>
         {renderButtons()}
       </DialogContent>

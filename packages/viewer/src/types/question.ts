@@ -13,6 +13,19 @@ export interface FeedbackSubmitResponse {
   correctAnswer?: ResponseValueMap;
 }
 
+/**
+ * 복습(preview) 모드에서 문항 하단에 표시되는 피드백 섹션 한 항목.
+ * - type: 피드백 유형 (해설/해석/힌트 등, FeedbackType과 호환)
+ * - typeLabel: 표시 라벨 (없으면 type 기본 라벨 사용)
+ * - content: 본문 HTML 조각
+ */
+export interface FeedbackItem {
+  type: string;
+  typeLabel?: string;
+  title?: string;
+  content: string;
+}
+
 export interface MediaContentType {
   id: string;
   type: "image" | "video" | "audio";

@@ -6,3 +6,5 @@ export { SubmitButton } from "./SubmitButton";
 export { FeedbackSheet } from "./FeedbackSheet";
 export type { ButtonConfigType, FeedbackStyleVariant } from "./FeedbackSheet";
 export { FeedbackModal } from "./FeedbackModal";
+export { FeedbackInline } from "./FeedbackInline";
+export type { FeedbackInlineProps } from "./FeedbackInline";

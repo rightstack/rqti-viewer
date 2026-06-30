@@ -2,6 +2,24 @@ import { ITEM_TYPE, type ItemsType } from "../constants/itemType";
 import type { FeedbackType, ResponseValue, ResponseValueMap, Theme } from "../types";
 
 /**
+ * 응답 값을 비교 가능한 정규화 문자열로 변환.
+ * - 문자열: 앞뒤 공백 제거
+ * - 배열(MCQ/순서 무관 다중선택 등): 각 요소 정규화 후 정렬하여 순서 무관 비교
+ * - 객체(point 등): JSON 직렬화
+ */
+function normalizeAnswer(value: ResponseValue | undefined | null): string {
+  if (value === undefined || value === null) return "";
+  if (Array.isArray(value)) {
+    return value
+      .map((v) => (Array.isArray(v) ? v.map(String).join(":") : String(v).trim()))
+      .sort()
+      .join("|");
+  }
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value).trim();
+}
+
+/**
  * 정답 확인 함수
  * @param responses 사용자 응답
  * @param correctAnswers 정답
@@ -14,10 +32,14 @@ export function checkAnswerUtil(
   if (!correctAnswers) {
     return false;
   }
-  return Object.entries(correctAnswers).every(([identifier, correctValue]) => {
-    const userResponse = responses[identifier];
-    return correctValue === userResponse;
-  });
+  const identifiers = Object.keys(correctAnswers);
+  if (identifiers.length === 0) {
+    return false;
+  }
+  return identifiers.every(
+    (identifier) =>
+      normalizeAnswer(responses?.[identifier]) === normalizeAnswer(correctAnswers[identifier])
+  );
 }
 
 export interface CanSubmitOptions {
