@@ -1,8 +1,8 @@
 /**
- * @rqti/viewer - QTI 문제(Viewer) 렌더링 라이브러리
+ * @rightstack/rqti-viewer - QTI 문제(Viewer) 렌더링 라이브러리
  *
  * 스타일은 별도로 import 해야 한다:
- *   import "@rqti/viewer/styles.css";
+ *   import "@rightstack/rqti-viewer/styles.css";
  */
 
 // 메인 Viewer

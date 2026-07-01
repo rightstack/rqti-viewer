@@ -4,7 +4,7 @@ import {
   Question,
   type QuestionMode,
   type ResponseValueMap,
-} from "@rqti/viewer";
+} from "@rightstack/rqti-viewer";
 import { SAMPLES } from "./samples";
 
 /** preview 모드는 "제출 후 리뷰(정답·해설 표시)" 역할이므로 review로 표기 */
@@ -33,7 +33,7 @@ export default function App() {
   return (
     <div style={styles.page}>
       <aside style={styles.sidebar}>
-        <h1 style={styles.title}>@rqti/viewer</h1>
+        <h1 style={styles.title}>@rightstack/rqti-viewer</h1>
         <p style={styles.subtitle}>playground</p>
 
         <nav style={styles.nav}>

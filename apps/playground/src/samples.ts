@@ -3,7 +3,7 @@ import {
   ITEM_TYPE,
   type ItemsType,
   type ResponseValue,
-} from "@rqti/viewer";
+} from "@rightstack/rqti-viewer";
 
 export interface Sample {
   id: string;

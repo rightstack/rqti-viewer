@@ -11,7 +11,7 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
-    "@rqti/viewer": "workspace:*",
+    "@rightstack/rqti-viewer": "workspace:*",
     "lucide-react": "^0.546.0",
     "mathlive": "^0.107.1",
     "react": "^18.3.1",
