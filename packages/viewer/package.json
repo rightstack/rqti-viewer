@@ -1,5 +1,5 @@
 {
-  "name": "@rtqi/viewer",
+  "name": "@rqti/viewer",
   "version": "0.1.0",
   "description": "QTI 문제(Viewer) 렌더링 라이브러리",
   "license": "MIT",

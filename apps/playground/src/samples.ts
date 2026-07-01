@@ -1,4 +1,9 @@
-import { type FeedbackItem, ITEM_TYPE, type ItemsType, type ResponseValue } from "@rtqi/viewer";
+import {
+  type FeedbackItem,
+  ITEM_TYPE,
+  type ItemsType,
+  type ResponseValue,
+} from "@rqti/viewer";
 
 export interface Sample {
   id: string;
@@ -177,13 +182,15 @@ export const SAMPLES: Sample[] = [
     type: ITEM_TYPE.MCQ,
     data: mcq,
     correctAnswers: { RESPONSE: ["A", "C"] },
-    solution: "<p><strong>사과</strong>와 <strong>바나나</strong>가 과일입니다. 당근과 감자는 채소입니다.</p>",
+    solution:
+      "<p><strong>사과</strong>와 <strong>바나나</strong>가 과일입니다. 당근과 감자는 채소입니다.</p>",
     feedbacks: [
       {
         type: "SOLUTION",
         typeLabel: "해설",
         title: "",
-        content: "<p><strong>사과</strong>와 <strong>바나나</strong>는 과일, 당근과 감자는 채소입니다.</p>",
+        content:
+          "<p><strong>사과</strong>와 <strong>바나나</strong>는 과일, 당근과 감자는 채소입니다.</p>",
       },
     ],
   },
@@ -193,12 +200,14 @@ export const SAMPLES: Sample[] = [
     type: ITEM_TYPE.TFQ,
     data: tfq,
     correctAnswers: { RESPONSE: "CHOICE_O" },
-    solution: "<p>지구는 태양 주위를 공전(공전 주기 약 365일)하므로 <strong>참</strong>입니다.</p>",
+    solution:
+      "<p>지구는 태양 주위를 공전(공전 주기 약 365일)하므로 <strong>참</strong>입니다.</p>",
     feedbacks: [
       {
         type: "SOLUTION",
         typeLabel: "해설",
-        content: "<p>지구는 태양 주위를 약 365일 주기로 공전하므로 <strong>참</strong>입니다.</p>",
+        content:
+          "<p>지구는 태양 주위를 약 365일 주기로 공전하므로 <strong>참</strong>입니다.</p>",
       },
     ],
   },
@@ -208,12 +217,14 @@ export const SAMPLES: Sample[] = [
     type: ITEM_TYPE.CLOZE,
     data: cloze,
     correctAnswers: { RESPONSE: "300000" },
-    solution: "<p>빛의 속도는 진공에서 약 <strong>300,000 km/s</strong>입니다.</p>",
+    solution:
+      "<p>빛의 속도는 진공에서 약 <strong>300,000 km/s</strong>입니다.</p>",
     feedbacks: [
       {
         type: "SOLUTION",
         typeLabel: "해설",
-        content: "<p>진공에서 빛의 속도는 약 <strong>300,000 km/s</strong>입니다.</p>",
+        content:
+          "<p>진공에서 빛의 속도는 약 <strong>300,000 km/s</strong>입니다.</p>",
       },
     ],
   },
@@ -238,12 +249,14 @@ export const SAMPLES: Sample[] = [
     type: ITEM_TYPE.ORDER,
     data: order,
     correctAnswers: { RESPONSE: ["MERCURY", "VENUS", "EARTH", "MARS"] },
-    solution: "<p>태양에서 가까운 순서: <strong>수성 → 금성 → 지구 → 화성</strong></p>",
+    solution:
+      "<p>태양에서 가까운 순서: <strong>수성 → 금성 → 지구 → 화성</strong></p>",
     feedbacks: [
       {
         type: "SOLUTION",
         typeLabel: "해설",
-        content: "<p>태양에서 가까운 순서는 <strong>수성 → 금성 → 지구 → 화성</strong>입니다.</p>",
+        content:
+          "<p>태양에서 가까운 순서는 <strong>수성 → 금성 → 지구 → 화성</strong>입니다.</p>",
       },
     ],
   },
@@ -282,12 +295,14 @@ export const SAMPLES: Sample[] = [
     label: "서술형 (ESSAY)",
     type: ITEM_TYPE.ESSAY,
     data: essay,
-    solution: "<p>예시 답안: 대중교통 이용, 일회용품 줄이기, 분리수거 실천 등.</p>",
+    solution:
+      "<p>예시 답안: 대중교통 이용, 일회용품 줄이기, 분리수거 실천 등.</p>",
     feedbacks: [
       {
         type: "SAMPLE_ANSWER",
         typeLabel: "모범 답안",
-        content: "<p>대중교통 이용, 일회용품 줄이기, 분리수거 실천 등 일상 속 실천 방안을 제시할 수 있습니다.</p>",
+        content:
+          "<p>대중교통 이용, 일회용품 줄이기, 분리수거 실천 등 일상 속 실천 방안을 제시할 수 있습니다.</p>",
       },
     ],
   },
@@ -303,12 +318,14 @@ export const SAMPLES: Sample[] = [
     type: ITEM_TYPE.SCQ,
     data: latex,
     correctAnswers: { RESPONSE: "A" },
-    solution: "<p>근의 공식은 $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ 입니다.</p>",
+    solution:
+      "<p>근의 공식은 $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ 입니다.</p>",
     feedbacks: [
       {
         type: "SOLUTION",
         typeLabel: "해설",
-        content: "<p>이차방정식의 근의 공식은 $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ 입니다.</p>",
+        content:
+          "<p>이차방정식의 근의 공식은 $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ 입니다.</p>",
       },
     ],
   },
