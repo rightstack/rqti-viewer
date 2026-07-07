@@ -1,4 +1,4 @@
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.rtqi-viewer.dark *));
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -65,7 +65,7 @@
   }
 }
 
-:root {
+.rtqi-viewer {
   --radius: 0.625rem;
   --background: oklch(100% 0 0);
   --foreground: #3c323e;
@@ -91,7 +91,7 @@
   --highlight-foreground: oklch(100% 0 0);
 }
 
-.dark {
+.rtqi-viewer.dark {
   --background: oklch(14.5% 0 0);
   --foreground: oklch(98.5% 0 0);
   --card: oklch(20.5% 0 0);
@@ -114,14 +114,20 @@
   --highlight-foreground: oklch(100% 0 0);
 }
 
+.rtqi-viewer *,
+.rtqi-viewer *::before,
+.rtqi-viewer *::after {
+  box-sizing: border-box;
+}
+
 @layer base {
-  *,
-  ::before,
-  ::after {
+  .rtqi-viewer *,
+  .rtqi-viewer ::before,
+  .rtqi-viewer ::after {
     border-color: var(--border);
   }
 
-  button {
+  .rtqi-viewer button {
     cursor: pointer;
   }
 }

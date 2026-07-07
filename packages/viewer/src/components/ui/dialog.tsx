@@ -44,7 +44,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        "rtqi:data-[state=open]:animate-in rtqi:data-[state=closed]:animate-out rtqi:data-[state=closed]:fade-out-0 rtqi:data-[state=open]:fade-in-0 rtqi:fixed rtqi:inset-0 rtqi:z-50 rtqi:bg-black/50",
         className
       )}
       {...props}
@@ -66,7 +66,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+          "rtqi:bg-background rtqi:data-[state=open]:animate-in rtqi:data-[state=closed]:animate-out rtqi:data-[state=closed]:fade-out-0 rtqi:data-[state=open]:fade-in-0 rtqi:data-[state=closed]:zoom-out-95 rtqi:data-[state=open]:zoom-in-95 rtqi:fixed rtqi:top-[50%] rtqi:left-[50%] rtqi:z-50 rtqi:grid rtqi:w-full rtqi:max-w-[calc(100%-2rem)] rtqi:translate-x-[-50%] rtqi:translate-y-[-50%] rtqi:gap-4 rtqi:rounded-lg rtqi:border rtqi:p-6 rtqi:shadow-lg rtqi:duration-200 rtqi:sm:max-w-lg",
           className
         )}
         {...props}
@@ -75,10 +75,10 @@ function DialogContent({
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            className="rtqi:ring-offset-background rtqi:focus:ring-ring rtqi:data-[state=open]:bg-accent rtqi:data-[state=open]:text-muted-foreground rtqi:absolute rtqi:top-4 rtqi:right-4 rtqi:rounded-xs rtqi:opacity-70 rtqi:transition-opacity rtqi:hover:opacity-100 rtqi:focus:ring-2 rtqi:focus:ring-offset-2 rtqi:focus:outline-hidden rtqi:disabled:pointer-events-none rtqi:[&_svg]:pointer-events-none rtqi:[&_svg]:shrink-0 rtqi:[&_svg:not([class*='size-'])]:size-4"
           >
             <XIcon />
-            <span className="sr-only">Close</span>
+            <span className="rtqi:sr-only">Close</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>
@@ -90,7 +90,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
+      className={cn("rtqi:flex rtqi:flex-col rtqi:gap-2 rtqi:text-center rtqi:sm:text-left", className)}
       {...props}
     />
   );
@@ -100,7 +100,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-footer"
-      className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}
+      className={cn("rtqi:flex rtqi:flex-col-reverse rtqi:gap-2 rtqi:sm:flex-row rtqi:sm:justify-end", className)}
       {...props}
     />
   );
@@ -110,7 +110,7 @@ function DialogTitle({ className, ...props }: React.ComponentProps<typeof Dialog
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg leading-none font-semibold", className)}
+      className={cn("rtqi:text-lg rtqi:leading-none rtqi:font-semibold", className)}
       {...props}
     />
   );
@@ -123,7 +123,7 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("rtqi:text-muted-foreground rtqi:text-sm", className)}
       {...props}
     />
   );

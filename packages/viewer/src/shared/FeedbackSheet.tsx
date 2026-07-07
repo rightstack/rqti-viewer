@@ -143,7 +143,7 @@ export const FeedbackSheet = ({
         className={cn("qti-ext-feedback-sheet", `qti-ext-feedback-${typeClass}`)}
         style={themeVariables as React.CSSProperties}
       >
-        <div className="mx-auto w-full max-w-[520px] px-5">
+        <div className="rtqi:mx-auto rtqi:w-full rtqi:max-w-[520px] rtqi:px-5">
           <h2 className={cn("qti-ext-feedback-title", `qti-ext-feedback-title-${typeClass}`)}>
             {title}
           </h2>
@@ -171,14 +171,14 @@ export const FeedbackSheet = ({
         className={cn(
           "qti-ext-feedback-sheet",
           `qti-ext-feedback-${typeClass}`,
-          "[&_[data-state=closed]]:hidden",
-          "[&>button]:hidden"
+          "rtqi:[&_[data-state=closed]]:hidden",
+          "rtqi:[&>button]:hidden"
         )}
         style={themeVariables as React.CSSProperties}
       >
-        <div className="mx-auto w-full max-w-[520px] px-5">
+        <div className="rtqi:mx-auto rtqi:w-full rtqi:max-w-[520px] rtqi:px-5">
           <SheetHeader
-            className={cn("p-0!", "qti-ext-feedback-title", `qti-ext-feedback-title-${typeClass}`)}
+            className={cn("rtqi:p-0!", "qti-ext-feedback-title", `qti-ext-feedback-title-${typeClass}`)}
           >
             {title}
           </SheetHeader>

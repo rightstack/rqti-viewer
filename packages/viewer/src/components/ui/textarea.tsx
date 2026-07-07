@@ -6,9 +6,9 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
     <textarea
       data-slot="textarea"
       className={cn(
-        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex min-h-[60px] w-full min-w-0 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+        "rtqi:file:text-foreground rtqi:placeholder:text-muted-foreground rtqi:selection:bg-primary rtqi:selection:text-primary-foreground rtqi:dark:bg-input/30 rtqi:border-input rtqi:flex rtqi:min-h-[60px] rtqi:w-full rtqi:min-w-0 rtqi:rounded-md rtqi:border rtqi:bg-transparent rtqi:px-3 rtqi:py-2 rtqi:text-sm rtqi:shadow-xs rtqi:transition-[color,box-shadow] rtqi:outline-none rtqi:disabled:pointer-events-none rtqi:disabled:cursor-not-allowed rtqi:disabled:opacity-50 rtqi:md:text-sm",
+        "rtqi:focus-visible:border-ring rtqi:focus-visible:ring-ring/50 rtqi:focus-visible:ring-[3px]",
+        "rtqi:aria-invalid:ring-destructive/20 rtqi:dark:aria-invalid:ring-destructive/40 rtqi:aria-invalid:border-destructive",
         className
       )}
       {...props}

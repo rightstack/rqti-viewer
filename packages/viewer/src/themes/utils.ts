@@ -11,7 +11,7 @@ export const parseInputWidth = (
   totalInputs: number
 ): { className: string; style: CSSProperties } => {
   if (totalInputs === 1) return { className: "", style: {} };
-  if (!inputWidth || typeof inputWidth !== "string") return { className: "min-w-32", style: {} };
+  if (!inputWidth || typeof inputWidth !== "string") return { className: "rtqi:min-w-32", style: {} };
 
   const qtiWidthMatch = inputWidth.match(/^qti-input-width-(\d+)$/);
   if (qtiWidthMatch && qtiWidthMatch[1]) {
@@ -23,9 +23,10 @@ export const parseInputWidth = (
     return { className: "", style: { width } };
   }
 
-  // Tailwind 클래스 (w-로 시작)
-  if (inputWidth.startsWith("w-")) {
-    return { className: inputWidth, style: {} };
+  // Tailwind 클래스 (w- 또는 rtqi-w-)
+  if (inputWidth.startsWith("w-") || inputWidth.startsWith("rtqi:w-")) {
+    const className = inputWidth.startsWith("rtqi:") ? inputWidth : `rtqi:${inputWidth}`;
+    return { className, style: {} };
   }
 
   // CSS 값 (px, rem, em 등)

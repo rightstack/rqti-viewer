@@ -235,7 +235,7 @@ function Question({
     !!qnConfig && !(qnConfig?.enabled === false || String(qnConfig?.enabled) === "false");
   const showQuestionNumber =
     enabled && questionIndex !== undefined && questionIndex !== null && questionIndex >= 1;
-  const position = qnConfig?.position === "top" ? "top" : "inline";
+  const position = qnConfig?.position === "top" ? "top" : "rtqi:inline";
   const digits = Number(qnConfig?.digits) || 1;
   const prefix = qnConfig?.prefix ?? "";
   const suffix = qnConfig?.suffix ?? "";
@@ -275,14 +275,14 @@ function Question({
   const contentBlock = (() => {
     if (
       showQuestionNumber &&
-      position === "inline" &&
+      position === "rtqi:inline" &&
       parsedContent &&
       React.isValidElement(parsedContent)
     ) {
       const numberNode = (
         <QuestionNumber
           label={questionNumberLabel}
-          position="inline"
+          position="rtqi:inline"
           feedbackBadge={showFeedbackBadge ? renderFeedbackBadge() : undefined}
         />
       );
@@ -296,10 +296,11 @@ function Question({
 
   return (
     <div
-      className={cn("qti-ext-wrapper", stackInlineFeedback && "flex-col", className)}
+      className={cn("rtqi-viewer", className)}
       style={themeVariables as React.CSSProperties}
     >
-      <div className={cn("qti-ext-container", stackInlineFeedback && "mx-auto w-full")}>
+      <div className={cn("qti-ext-wrapper", stackInlineFeedback && "rtqi:flex-col")}>
+      <div className={cn("qti-ext-container", stackInlineFeedback && "rtqi:mx-auto rtqi:w-full")}>
         {showQuestionNumber &&
           position === "top" &&
           (showFeedbackBadge ? (
@@ -314,10 +315,11 @@ function Question({
         {contentBlock}
 
         {mode !== "preview" && showSubmitButton && (
-          <div className="mt-auto pb-8">
+          <div className="rtqi:mt-auto rtqi:pb-8">
             <SubmitButton canSubmit={canSubmit} onSubmit={handleSubmit} label={submitButtonLabel} />
           </div>
         )}
+      </div>
       </div>
 
       {mode === "preview" && showInlineFeedback && (

@@ -13,7 +13,8 @@
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean && rm -rf node_modules",
     "dev:web": "turbo run dev --filter=playground",
-    "build:viewer": "turbo run build --filter=@rightstack/rqti-viewer"
+    "build:viewer": "turbo run build --filter=@rightstack/rqti-viewer",
+    "publish:viewer": "pnpm --filter @rightstack/rqti-viewer publish --no-git-checks"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

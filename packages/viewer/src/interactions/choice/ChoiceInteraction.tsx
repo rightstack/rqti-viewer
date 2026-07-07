@@ -25,7 +25,7 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
   index,
 }) => {
   const responseIdentifier = element.getAttribute("response-identifier") || "";
-  const maxChoices = Number(element.getAttribute("max-choices"));
+  const maxChoices = Number(element.getAttribute("rtqi:max-choices"));
   const xmlClass = element.getAttribute("class") || "";
   const isMultiple = maxChoices !== 1;
 
@@ -171,7 +171,7 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
   return (
     <div
       key={`choice-${responseIdentifier}-${index}`}
-      className={`qti-choice-interaction-wrapper my-4 flex flex-col gap-4 ${xmlClass}`.trim()}
+      className={`qti-choice-interaction-wrapper rtqi:my-4 rtqi:flex rtqi:flex-col rtqi:gap-4 ${xmlClass}`.trim()}
     >
       {choices.map((choice) => {
         const isSelected: boolean = Boolean(

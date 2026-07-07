@@ -18,7 +18,7 @@
 
   background-color: var(--qti-container-bg, #ffffff);
 
-  @apply flex h-full w-full overflow-auto wrap-anywhere break-keep whitespace-pre-line;
+  @apply rtqi:flex rtqi:h-full rtqi:w-full rtqi:overflow-auto rtqi:wrap-anywhere rtqi:break-keep rtqi:whitespace-pre-line;
 }
 
 /* ========================================
@@ -47,7 +47,7 @@
   font-weight: var(--font-weight-normal, 400);
   line-height: var(--qti-line-height-base, 1.5);
 
-  @apply relative mx-auto flex w-full min-w-[320px] flex-col;
+  @apply rtqi:relative rtqi:mx-auto rtqi:flex rtqi:w-full rtqi:min-w-[320px] rtqi:flex-col;
 }
 
 /* 문항 상세 미리보기: 지문 | 문항 병렬 시 문항 컨테이너가 패널 전체 너비 사용 */
@@ -55,7 +55,7 @@
   max-width: 100%;
 }
 
-/* 병렬 패널: 스크롤은 바깥 패널만, 래퍼 중복 스크롤 방지 (@apply h-full 무효화) */
+/* 병렬 패널: 스크롤은 바깥 패널만, 래퍼 중복 스크롤 방지 (@apply rtqi:h-full 무효화) */
 [data-item-detail-split] .qti-ext-wrapper {
   overflow: visible;
 
@@ -64,7 +64,7 @@
 }
 
 .qti-ext-preview-container {
-  @apply flex h-full flex-col overflow-auto;
+  @apply rtqi:flex rtqi:h-full rtqi:flex-col rtqi:overflow-auto;
 }
 
 .qti-ext-preview-container .qti-ext-wrapper,
@@ -73,19 +73,19 @@
 }
 
 .qti-ext-preview-container .qti-ext-feedback-inline {
-  @apply max-w-full;
+  @apply rtqi:max-w-full;
 }
 
 .qti-ext-passage-wrapper {
-  @apply flex min-h-full min-w-0 flex-1 flex-row;
+  @apply rtqi:flex rtqi:min-h-full rtqi:min-w-0 rtqi:flex-1 rtqi:flex-row;
 }
 
 .qti-ext-passage-wrapper[data-orientation-type="horizontal"] {
-  @apply flex min-h-full min-w-0 flex-1 flex-row px-8;
+  @apply rtqi:flex rtqi:min-h-full rtqi:min-w-0 rtqi:flex-1 rtqi:flex-row rtqi:px-8;
 }
 
 .qti-ext-passage-wrapper[data-orientation-type="vertical"] {
-  @apply flex min-h-full min-w-0 flex-1 flex-col;
+  @apply rtqi:flex rtqi:min-h-full rtqi:min-w-0 rtqi:flex-1 rtqi:flex-col;
 }
 
 .qti-ext-passage-wrapper[data-orientation-type="vertical"] > .qti-ext-container {
@@ -119,7 +119,7 @@
   font-weight: var(--font-weight-normal, 400);
   line-height: var(--qti-line-height-base, 1.5);
 
-  @apply relative flex w-full min-w-0 flex-col;
+  @apply rtqi:relative rtqi:flex rtqi:w-full rtqi:min-w-0 rtqi:flex-col;
 }
 
 /**
@@ -131,7 +131,7 @@
 .qti-ext-image {
   max-width: 100%;
 
-  @apply block;
+  @apply rtqi:block;
 }
 
 /* 이미지·미디어와 같은 수축 폭 안에서 캡션을 두기 위해 table + table-caption 사용 */
@@ -143,11 +143,11 @@
   margin-right: auto;
   margin-left: 0;
 
-  @apply p-1;
+  @apply rtqi:p-1;
 }
 
 .qti-ext-figure .qti-ext-image {
-  @apply block;
+  @apply rtqi:block;
 }
 
 .qti-ext-figure.qti-align-left {
@@ -171,7 +171,7 @@
   font-size: 0.8em;
   caption-side: bottom;
 
-  @apply mt-1.5 text-center text-gray-500;
+  @apply rtqi:mt-1.5 rtqi:text-center rtqi:text-gray-500;
 }
 
 .qti-ext-media {
@@ -187,11 +187,11 @@
 .qti-ext-video {
   max-width: min(480px, 100%);
 
-  @apply block;
+  @apply rtqi:block;
 }
 
 .qti-ext-figure .qti-ext-video {
-  @apply my-0 block;
+  @apply rtqi:my-0 rtqi:block;
 }
 
 .qti-ext-figure .qti-ext-audio-player {
@@ -199,7 +199,7 @@
 }
 
 .qti-ext-audio {
-  @apply block;
+  @apply rtqi:block;
 }
 
 /* ========================================
@@ -223,21 +223,21 @@
 
   cursor: pointer;
 
-  @apply w-full transition-all duration-150;
+  @apply rtqi:w-full rtqi:transition-all rtqi:duration-150;
 }
 
 .qti-ext-option-base .qti-ext-image {
-  @apply my-0;
+  @apply rtqi:my-0;
 }
 
 .qti-ext-choice-option {
-  @apply flex h-auto min-h-0 items-center justify-between gap-1 text-left whitespace-normal;
+  @apply rtqi:flex rtqi:h-auto rtqi:min-h-0 rtqi:items-center rtqi:justify-between rtqi:gap-1 rtqi:text-left rtqi:whitespace-normal;
 }
 
 /* 선택지 내부 이미지: 반응형 + 높이 제한 (Tailwind breakpoint: sm 640px, md 768px, lg 1024px) */
 .qti-ext-choice-option img,
 .qti-ext-choice-option .qti-ext-image img {
-  @apply block h-auto max-w-full object-contain;
+  @apply rtqi:block rtqi:h-auto rtqi:max-w-full rtqi:object-contain;
 }
 
 .qti-ext-choice-option img {
@@ -252,7 +252,7 @@
 .qti-ext-choice-option .qti-ext-image {
   max-height: min(10rem, 35vh);
 
-  @apply overflow-hidden;
+  @apply rtqi:overflow-hidden;
 }
 
 @media (width >= 640px) {
@@ -339,7 +339,7 @@
   /* border-style은 상위에서 상속 (solid) */
   border-color: var(--qti-option-border);
 
-  @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all duration-150;
+  @apply rtqi:flex rtqi:h-6 rtqi:w-6 rtqi:shrink-0 rtqi:items-center rtqi:justify-center rtqi:rounded-full rtqi:transition-all rtqi:duration-150;
 }
 
 /* Option Radio Selected State */
@@ -368,7 +368,7 @@
 
   animation: var(--animate-bounce-in);
 
-  @apply h-3 w-3 rounded-full;
+  @apply rtqi:h-3 rtqi:w-3 rtqi:rounded-full;
 }
 
 /* Option Radio Dot Correct State */
@@ -385,7 +385,7 @@
 .qti-ext-choice-option-content {
   line-height: 1.5;
 
-  @apply flex min-h-0 min-w-0 flex-1 items-center gap-2 overflow-x-auto text-left wrap-break-word;
+  @apply rtqi:flex rtqi:min-h-0 rtqi:min-w-0 rtqi:flex-1 rtqi:items-center rtqi:gap-2 rtqi:overflow-x-auto rtqi:text-left rtqi:wrap-break-word;
 }
 
 /* Option Label (DOM 라벨용; XML class + counter 시에는 ::before 사용) */
@@ -396,7 +396,7 @@
   font-weight: var(--qti-font-weight-bold);
   line-height: var(--qti-line-height-base);
 
-  @apply mr-1;
+  @apply rtqi:mr-1;
 }
 
 /* ========================================
@@ -439,7 +439,7 @@
 }
 
 .qti-choice-interaction-wrapper {
-  @apply flex flex-col gap-4;
+  @apply rtqi:flex rtqi:flex-col rtqi:gap-4;
 }
 
 /* horizontal + stacking: grid 열 수 */
@@ -476,7 +476,7 @@
 .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-3 > div,
 .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-4 > div,
 .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-5 > div {
-  @apply h-full min-h-0;
+  @apply rtqi:h-full rtqi:min-h-0;
 }
 
 .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-2
@@ -487,7 +487,7 @@
   .qti-ext-choice-option,
 .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-5
   .qti-ext-choice-option {
-  @apply h-full min-h-0;
+  @apply rtqi:h-full rtqi:min-h-0;
 }
 
 /* 반응형(뷰포트 < 640px): 실제 규칙은 파일 맨 아래「뷰포트 반응형 (width < 640px)」블록 — 테마 !important보다 뒤에 두어 적용 */
@@ -607,7 +607,7 @@
   /* border-style은 상위에서 상속 (solid) */
   border-color: var(--qti-option-border);
 
-  @apply relative flex h-6 w-6 shrink-0 items-center justify-center rounded transition-all duration-150;
+  @apply rtqi:relative rtqi:flex rtqi:h-6 rtqi:w-6 rtqi:shrink-0 rtqi:items-center rtqi:justify-center rtqi:rounded rtqi:transition-all rtqi:duration-150;
 }
 
 /* Option Checkbox Selected State */
@@ -654,12 +654,12 @@
              TFQ Row - 버튼 내부 flex, 이미지 OX 노출
              ======================================== */
 .tfq-buttons .qti-ext-choice-button {
-  @apply flex items-center gap-2;
+  @apply rtqi:flex rtqi:items-center rtqi:gap-2;
 }
 
 .tfq-buttons .qti-ext-choice-button img,
 .tfq-buttons img.qti-ext-image {
-  @apply h-auto max-w-full object-contain;
+  @apply rtqi:h-auto rtqi:max-w-full rtqi:object-contain;
 }
 
 /* ========================================
@@ -667,18 +667,18 @@
              ======================================== */
 
 .qti-ext-choice-button {
-  @apply flex h-auto items-center justify-center gap-4 whitespace-normal;
+  @apply rtqi:flex rtqi:h-auto rtqi:items-center rtqi:justify-center rtqi:gap-4 rtqi:whitespace-normal;
 }
 
 /* Choice Button 내부 이미지 */
 .qti-ext-choice-button img {
   width: 100% !important;
 
-  @apply h-auto max-w-full rounded-md object-contain;
+  @apply rtqi:h-auto rtqi:max-w-full rtqi:rounded-md rtqi:object-contain;
 }
 
 .qti-ext-choice-button .qti-ext-image {
-  @apply mx-auto p-0;
+  @apply rtqi:mx-auto rtqi:p-0;
 }
 
 /* 태블릿 디바이스: 단일 문항 TFQ OX SVG 이미지 크기 축소 */
@@ -686,7 +686,7 @@
   width: 50% !important;
   max-width: 36px;
 
-  @apply mx-auto;
+  @apply rtqi:mx-auto;
 }
 
 /* 반응형: 단일 문항 TFQ OX — 브레이크포인트는 말단 @media (width < 640px) 와 동일 */
@@ -695,7 +695,7 @@
     width: 50% !important;
     max-width: 36px;
 
-    @apply mx-auto;
+    @apply rtqi:mx-auto;
   }
 
   .qti-ext-question {
@@ -753,7 +753,7 @@
 
 /* Question Container */
 .qti-ext-question {
-  @apply space-y-2 pb-[54px];
+  @apply rtqi:space-y-2 rtqi:pb-[54px];
 
   /* 폰트는 .qti-ext-container에서 상속 */
 }
@@ -794,7 +794,7 @@
   font-size: var(--qti-prompt-font-size, var(--qti-font-size-base, inherit));
   font-weight: var(--qti-prompt-font-weight, var(--qti-font-weight-base, inherit));
 
-  @apply space-y-2 break-words;
+  @apply rtqi:space-y-2 rtqi:break-words;
 }
 
 /* 보기 영역 */
@@ -811,7 +811,7 @@
   font-size: var(--qti-example-stimulus-font-size, var(--qti-font-size-base, inherit));
   font-weight: var(--qti-example-stimulus-font-weight, var(--qti-font-weight-base, inherit));
 
-  @apply relative space-y-2 rounded-lg;
+  @apply rtqi:relative rtqi:space-y-2 rtqi:rounded-lg;
 }
 
 /* 보기 라벨 */
@@ -829,7 +829,7 @@
   font-size: calc(var(--qti-example-stimulus-font-size) * 0.7);
   line-height: 1.2;
 
-  @apply absolute rounded border;
+  @apply rtqi:absolute rtqi:rounded rtqi:border;
 }
 
 /* 지문 영역 */
@@ -842,39 +842,39 @@
   font-size: var(--qti-example-stimulus-font-size, var(--qti-font-size-base, inherit));
   font-weight: var(--qti-example-stimulus-font-weight, var(--qti-font-weight-base, inherit));
 
-  @apply my-3 space-y-2 rounded-md p-3;
+  @apply rtqi:my-3 rtqi:space-y-2 rtqi:rounded-md rtqi:p-3;
 }
 
 .qti-ext-stimulus-dialogue {
   border-color: var(--qti-option-border);
 
-  @apply mx-0 my-5 flex flex-col rounded-md border border-dashed p-5;
+  @apply rtqi:mx-0 rtqi:my-5 rtqi:flex rtqi:flex-col rtqi:rounded-md rtqi:border rtqi:border-dashed rtqi:p-5;
 }
 
 .qti-ext-stimulus-dialogue-item {
-  @apply flex items-center justify-start gap-1;
+  @apply rtqi:flex rtqi:items-center rtqi:justify-start rtqi:gap-1;
 }
 
 .qti-ext-stimulus-dialogue-profile {
-  @apply flex flex-col items-center;
+  @apply rtqi:flex rtqi:flex-col rtqi:items-center;
 }
 
 .qti-ext-stimulus-dialogue-profile > .qti-ext-image {
-  @apply m-1 w-[100px] max-w-none p-0;
+  @apply rtqi:m-1 rtqi:w-[100px] rtqi:max-w-none rtqi:p-0;
 }
 
 .qti-ext-bold {
-  @apply font-bold;
+  @apply rtqi:font-bold;
 }
 
 .qti-ext-italic {
-  @apply italic;
+  @apply rtqi:italic;
 }
 
 .qti-ext-underline {
   text-decoration-color: var(--qti-base-text-color);
 
-  @apply underline underline-offset-[0.25em];
+  @apply rtqi:underline rtqi:underline-offset-[0.25em];
 }
 
 .qti-ext-old-korean,
@@ -893,7 +893,7 @@
 .qti-ext-blank,
 .qti-ext-blank-content,
 .qti-ext-mathfield {
-  @apply indent-0;
+  @apply rtqi:indent-0;
 }
 
 /* 보기 또는 지문에서 빈칸 UI */
@@ -946,7 +946,7 @@
 .qti-ext-dropdown {
   margin-block: 0.25em;
 
-  @apply relative mx-1 inline-block align-middle;
+  @apply rtqi:relative rtqi:mx-1 rtqi:inline-block rtqi:align-middle;
 }
 
 /* Dropdown Trigger (div with role=button: font-size에 맞게 높이 자동 조정) */
@@ -975,7 +975,7 @@
 
   cursor: pointer;
 
-  @apply inline-flex w-full items-center justify-between transition-all duration-100 outline-none focus-visible:ring-2 focus-visible:ring-offset-1;
+  @apply rtqi:inline-flex rtqi:w-full rtqi:items-center rtqi:justify-between rtqi:transition-all rtqi:duration-100 rtqi:outline-none rtqi:focus-visible:ring-2 rtqi:focus-visible:ring-offset-1;
 }
 
 /* 옵션 최대 길이에 따라 너비 자동 조정: sizer가 너비를 결정, trigger가 그 위에 덮음 */
@@ -1014,7 +1014,7 @@
 
   white-space: nowrap;
 
-  @apply inline-flex w-max min-w-[theme(spacing.24)] items-center justify-between rounded-md;
+  @apply rtqi:inline-flex rtqi:w-max rtqi:min-w-[theme(spacing.24)] rtqi:items-center rtqi:justify-between rtqi:rounded-md;
 }
 
 .qti-ext-dropdown-auto-width .qti-ext-dropdown-sizer,
@@ -1071,7 +1071,7 @@
 .qti-ext-dropdown-auto-width
   .qti-ext-dropdown-trigger:not(.qti-ext-dropdown-trigger-has-value)
   .qti-ext-dropdown-rich-label {
-  @apply block max-w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap;
+  @apply rtqi:block rtqi:max-w-full rtqi:min-w-0 rtqi:overflow-hidden rtqi:text-ellipsis rtqi:whitespace-nowrap;
 }
 
 .qti-ext-dropdown-auto-width .qti-ext-dropdown-trigger-has-value .qti-ext-dropdown-rich-label {
@@ -1080,7 +1080,7 @@
   white-space: normal;
   overflow-wrap: break-word;
 
-  @apply block max-w-full min-w-0;
+  @apply rtqi:block rtqi:max-w-full rtqi:min-w-0;
 }
 
 .qti-ext-dropdown-auto-width
@@ -1089,7 +1089,7 @@
   > * {
   vertical-align: middle;
 
-  @apply m-0 inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap;
+  @apply rtqi:m-0 rtqi:inline-block rtqi:max-w-full rtqi:overflow-hidden rtqi:text-ellipsis rtqi:whitespace-nowrap;
 }
 
 .qti-ext-dropdown:has(.qti-ext-dropdown-menu) .qti-ext-dropdown-trigger {
@@ -1127,7 +1127,7 @@
 
 /* Dropdown Content */
 .qti-ext-dropdown-content {
-  @apply block truncate pl-1 text-left;
+  @apply rtqi:block rtqi:truncate rtqi:pl-1 rtqi:text-left;
 }
 
 /* Dropdown Arrow (right를 em으로 해서 font-size 커져도 텍스트와 겹치지 않음) */
@@ -1136,7 +1136,7 @@
 
   color: var(--qti-base-text-color);
 
-  @apply pointer-events-none absolute flex items-center;
+  @apply rtqi:pointer-events-none rtqi:absolute rtqi:flex rtqi:items-center;
 }
 
 .qti-ext-dropdown-arrow-icon {
@@ -1145,7 +1145,7 @@
   width: 1.25em;
   height: 1.25em;
 
-  @apply transition-transform duration-200;
+  @apply rtqi:transition-transform rtqi:duration-200;
 }
 
 .qti-ext-dropdown-arrow-icon-open {
@@ -1164,7 +1164,7 @@
 
   background-color: #ffffff !important;
 
-  @apply absolute left-0 z-50 w-auto min-w-full whitespace-nowrap;
+  @apply rtqi:absolute rtqi:left-0 rtqi:z-50 rtqi:w-auto rtqi:min-w-full rtqi:whitespace-nowrap;
 }
 
 /* auto-width: 메뉴가 container max-width를 넘지 않고 옵션 텍스트 줄바꿈 */
@@ -1187,7 +1187,7 @@
   color: inherit !important;
   font-size: inherit;
 
-  @apply cursor-pointer px-4 py-2 text-left;
+  @apply rtqi:cursor-pointer rtqi:px-4 rtqi:py-2 rtqi:text-left;
 }
 
 .qti-ext-dropdown-option:last-child {
@@ -1214,7 +1214,7 @@
 }
 
 .qti-ext-dropdown-option-content {
-  @apply flex flex-col gap-1;
+  @apply rtqi:flex rtqi:flex-col rtqi:gap-1;
 }
 
 /* ========================================
@@ -1231,13 +1231,13 @@
            ======================================== */
 
 .qti-ext-text-entry {
-  @apply relative m-1;
+  @apply rtqi:relative rtqi:m-1;
 }
 
 .qti-text-entry {
   --qti-text-entry-width: 10ch;
 
-  @apply relative;
+  @apply rtqi:relative;
 }
 
 .qti-text-entry--inline {
@@ -1259,11 +1259,11 @@
 
 .qti-ext-text-entry-cloze {
   /* CLOZE(빈칸 채우기): 본문 문장 안에 인라인으로 들어가는 입력칸 */
-  @apply relative m-1;
+  @apply rtqi:relative rtqi:m-1;
 }
 
 .qti-text-entry__label {
-  @apply sr-only;
+  @apply rtqi:sr-only;
 }
 
 .qti-ext-text-entry-input {
@@ -1288,12 +1288,12 @@
   line-height: 1.5;
   white-space: nowrap;
 
-  @apply px-2 transition-all duration-200 placeholder:text-gray-300;
+  @apply rtqi:px-2 rtqi:transition-all rtqi:duration-200 rtqi:placeholder:text-gray-300;
 }
 
 .qti-ext-text-entry-input-cloze {
   /* CLOZE(빈칸 채우기): inline-choice 드롭다운과 유사한 높이/패딩 */
-  @apply px-3;
+  @apply rtqi:px-3;
 }
 
 .qti-text-entry__field {
@@ -1304,17 +1304,17 @@
 .qti-text-entry__counter {
   font-size: calc(var(--qti-font-size-base) * 0.8);
 
-  @apply mt-1 block text-right text-gray-500;
+  @apply rtqi:mt-1 rtqi:block rtqi:text-right rtqi:text-gray-500;
 }
 
 .qti-ext-text-entry-srq {
   /* SRQ(단답형): 지문/예시 아래 하단 답안 입력 UI */
-  @apply mx-0 mt-10 mb-2 block w-full;
+  @apply rtqi:mx-0 rtqi:mt-10 rtqi:mb-2 rtqi:block rtqi:w-full;
 }
 
 .qti-ext-text-entry-input-srq {
   /* SRQ(단답형): 더 넓고 명확한 입력칸 */
-  @apply mx-auto block w-full px-4 font-medium;
+  @apply rtqi:mx-auto rtqi:block rtqi:w-full rtqi:px-4 rtqi:font-medium;
 }
 
 .qti-ext-text-entry-input:disabled {
@@ -1344,7 +1344,7 @@
 
   background-color: var(--qti-option-bg-correct);
 
-  @apply text-center text-lg;
+  @apply rtqi:text-center rtqi:text-lg;
 }
 
 .qti-ext-text-entry-input-incorrect {
@@ -1352,7 +1352,7 @@
 
   background-color: var(--qti-option-bg-incorrect);
 
-  @apply text-center text-lg;
+  @apply rtqi:text-center rtqi:text-lg;
 }
 
 /* ========================================
@@ -1360,19 +1360,19 @@
            ======================================== */
 
 .qti-ext-fraction {
-  @apply relative mx-1 inline-block align-middle;
+  @apply rtqi:relative rtqi:mx-1 rtqi:inline-block rtqi:align-middle;
 }
 
 .qti-ext-fraction .qti-ext-fraction-inner {
-  @apply flex items-center;
+  @apply rtqi:flex rtqi:items-center;
 }
 
 .qti-ext-fraction .qti-ext-fraction-frac {
-  @apply flex flex-col items-center;
+  @apply rtqi:flex rtqi:flex-col rtqi:items-center;
 }
 
 .qti-ext-fraction .qti-text-entry {
-  @apply m-0 p-1 text-center;
+  @apply rtqi:m-0 rtqi:p-1 rtqi:text-center;
 }
 
 .qti-ext-fraction .qti-text-entry.qti-text-entry--inline {
@@ -1380,7 +1380,7 @@
 }
 
 .qti-ext-fraction .qti-text-entry.qti-text-entry--inline .qti-ext-text-entry-input {
-  @apply text-center;
+  @apply rtqi:text-center;
 }
 
 .qti-ext-fraction .qti-ext-fraction-frac .qti-text-entry:first-of-type {
@@ -1411,7 +1411,7 @@
            ======================================== */
 
 .qti-ext-upload {
-  @apply my-4 space-y-2;
+  @apply rtqi:my-4 rtqi:space-y-2;
 }
 
 .qti-ext-upload-dropzone {
@@ -1422,7 +1422,7 @@
 
   background-color: var(--qti-option-bg);
 
-  @apply flex cursor-pointer flex-col items-center justify-center p-6 transition-colors;
+  @apply rtqi:flex rtqi:cursor-pointer rtqi:flex-col rtqi:items-center rtqi:justify-center rtqi:p-6 rtqi:transition-colors;
 }
 
 .qti-ext-upload-dropzone:hover {
@@ -1434,19 +1434,19 @@
 .qti-ext-upload-icon {
   color: inherit;
 
-  @apply mb-2 h-8 w-8;
+  @apply rtqi:mb-2 rtqi:h-8 rtqi:w-8;
 }
 
 .qti-ext-upload-text {
   color: inherit;
 
-  @apply mb-2 text-sm;
+  @apply rtqi:mb-2 rtqi:text-sm;
 }
 
 .qti-ext-upload-hint {
   color: inherit;
 
-  @apply text-xs opacity-70;
+  @apply rtqi:text-xs rtqi:opacity-70;
 }
 
 .qti-ext-upload-file {
@@ -1458,33 +1458,33 @@
 
   background-color: #ffffff;
 
-  @apply p-3;
+  @apply rtqi:p-3;
 }
 
 .qti-ext-upload-file-info {
-  @apply flex items-center justify-between;
+  @apply rtqi:flex rtqi:items-center rtqi:justify-between;
 }
 
 .qti-ext-upload-file-details {
-  @apply flex items-center space-x-2;
+  @apply rtqi:flex rtqi:items-center rtqi:space-x-2;
 }
 
 .qti-ext-upload-file-icon {
-  @apply h-5 w-5 text-gray-400;
+  @apply rtqi:h-5 rtqi:w-5 rtqi:text-gray-400;
 }
 
 .qti-ext-upload-file-name {
   color: inherit;
 
-  @apply text-sm font-medium;
+  @apply rtqi:text-sm rtqi:font-medium;
 }
 
 .qti-ext-upload-file-size {
-  @apply text-xs text-gray-500;
+  @apply rtqi:text-xs rtqi:text-gray-500;
 }
 
 .qti-ext-upload-remove {
-  @apply flex items-center gap-1 text-sm text-red-600 transition-colors hover:text-red-800;
+  @apply rtqi:flex rtqi:items-center rtqi:gap-1 rtqi:text-sm rtqi:text-red-600 rtqi:transition-colors rtqi:hover:text-red-800;
 }
 
 /* ========================================
@@ -1494,7 +1494,7 @@
 .qti-ext-gap-choices {
   border-color: var(--qti-option-border);
 
-  @apply my-4 flex flex-wrap items-center justify-center gap-4 rounded-md border p-4;
+  @apply rtqi:my-4 rtqi:flex rtqi:flex-wrap rtqi:items-center rtqi:justify-center rtqi:gap-4 rtqi:rounded-md rtqi:border rtqi:p-4;
 }
 
 /* Gap Choice (선택지 버튼) */
@@ -1514,7 +1514,7 @@
   cursor: default;
   user-select: none;
 
-  @apply px-3 py-1.5 transition-all duration-150;
+  @apply rtqi:px-3 rtqi:py-1.5 rtqi:transition-all rtqi:duration-150;
 }
 
 .qti-ext-gap-choice-draggable {
@@ -1552,7 +1552,7 @@
   color: var(--qti-option-text);
   font-size: inherit;
 
-  @apply mx-1 my-1 inline-block min-h-8 min-w-20 px-2 py-1 text-center align-middle transition-all duration-150;
+  @apply rtqi:mx-1 rtqi:my-1 rtqi:inline-block rtqi:min-h-8 rtqi:min-w-20 rtqi:px-2 rtqi:py-1 rtqi:text-center rtqi:align-middle rtqi:transition-all rtqi:duration-150;
 }
 
 /* 콘텐츠가 있는 Gap */
@@ -1598,7 +1598,7 @@
              ======================================== */
 
 .qti-ext-textarea {
-  @apply min-h-[200px] w-full resize-y p-4 transition-all duration-150;
+  @apply rtqi:min-h-[200px] rtqi:w-full rtqi:resize-y rtqi:p-4 rtqi:transition-all rtqi:duration-150;
 }
 
 .qti-ext-textarea:focus {
@@ -1607,14 +1607,14 @@
 }
 
 .qti-ext-textarea-wrapper {
-  @apply flex flex-1 flex-col pb-10;
+  @apply rtqi:flex rtqi:flex-1 rtqi:flex-col rtqi:pb-10;
 }
 
 .qti-ext-textarea-count {
   color: var(--qti-base-text-color);
   font-size: calc(var(--qti-font-size-base) * 0.8);
 
-  @apply mt-4 ml-auto;
+  @apply rtqi:mt-4 rtqi:ml-auto;
 }
 
 /* gap-match-interaction 보기 조각 UI */
@@ -1717,7 +1717,7 @@
   /* min-height는 useMatchHeightSync 측정값과 겹치면 레이아웃이 어긋나 보일 수 있어 전환에서 제외 */
   transition-property: border-color, background-color;
 
-  @apply relative flex h-auto min-h-[60px] min-w-0 items-center justify-center bg-clip-padding bg-origin-border whitespace-normal duration-100 ease-out;
+  @apply rtqi:relative rtqi:flex rtqi:h-auto rtqi:min-h-[60px] rtqi:min-w-0 rtqi:items-center rtqi:justify-center rtqi:bg-clip-padding rtqi:bg-origin-border rtqi:whitespace-normal rtqi:duration-100 rtqi:ease-out;
 }
 
 /* Match Option Hover State */
@@ -1788,11 +1788,11 @@
 .qti-ext-match-option-content {
   overflow: hidden;
 
-  @apply flex w-full min-w-0 flex-1 flex-col items-stretch justify-center gap-2 text-left;
+  @apply rtqi:flex rtqi:w-full rtqi:min-w-0 rtqi:flex-1 rtqi:flex-col rtqi:items-stretch rtqi:justify-center rtqi:gap-2 rtqi:text-left;
 }
 
 .qti-ext-match-option-content > span {
-  @apply w-full max-w-full wrap-break-word;
+  @apply rtqi:w-full rtqi:max-w-full rtqi:wrap-break-word;
 }
 
 /* Match Option 내 수식(mathfield)이 영역을 초과하지 않도록 제한 */
@@ -1854,7 +1854,7 @@
 
   background-color: var(--qti-option-bg, var(--background));
 
-  @apply absolute top-1/2 z-10 h-3 w-3 -translate-y-1/2 rounded-full;
+  @apply rtqi:absolute rtqi:top-1/2 rtqi:z-10 rtqi:h-3 rtqi:w-3 rtqi:-translate-y-1/2 rtqi:rounded-full;
 }
 
 .qti-ext-match-point-left {
@@ -1897,7 +1897,7 @@
 .qti-ext-match-svg {
   z-index: 1;
 
-  @apply pointer-events-none absolute inset-0 h-full w-full;
+  @apply rtqi:pointer-events-none rtqi:absolute rtqi:inset-0 rtqi:h-full rtqi:w-full;
 }
 
 /* Match Connection Line */
@@ -1927,7 +1927,7 @@
              ======================================== */
 
 .qti-ext-order-choice {
-  @apply relative mb-2 select-none sm:mb-3;
+  @apply rtqi:relative rtqi:mb-2 rtqi:select-none rtqi:sm:mb-3;
 }
 
 /* Order Choice Dragging State */
@@ -1970,7 +1970,7 @@
 
 /* Order Choice Content */
 .qti-ext-order-choice-content {
-  @apply flex items-center gap-2 sm:gap-3 md:gap-4;
+  @apply rtqi:flex rtqi:items-center rtqi:gap-2 rtqi:sm:gap-3 rtqi:md:gap-4;
 }
 
 /* Order Number Circle */
@@ -1982,14 +1982,14 @@
 
   background-color: var(--qti-option-bg);
 
-  @apply flex h-5 w-5 shrink-0 items-center justify-center rounded-full sm:h-6 sm:w-6 md:h-7 md:w-7;
+  @apply rtqi:flex rtqi:h-5 rtqi:w-5 rtqi:shrink-0 rtqi:items-center rtqi:justify-center rtqi:rounded-full rtqi:sm:h-6 rtqi:sm:w-6 rtqi:md:h-7 rtqi:md:w-7;
 }
 
 /* Order Number Text */
 .qti-ext-order-number-text {
   color: var(--qti-option-border);
 
-  @apply leading-none font-extrabold;
+  @apply rtqi:leading-none rtqi:font-extrabold;
 }
 
 /* Order Number Dropped State */
@@ -2027,14 +2027,14 @@
 
 /* Order Choice Text Content */
 .qti-ext-order-choice-text {
-  @apply flex flex-1 flex-col gap-1.5 sm:gap-2;
+  @apply rtqi:flex rtqi:flex-1 rtqi:flex-col rtqi:gap-1.5 rtqi:sm:gap-2;
 }
 
 /* Order Drag Indicator Line */
 .qti-ext-order-drag-indicator {
   background-color: var(--qti-option-border-selected);
 
-  @apply absolute right-0 left-0 z-10 h-[3px];
+  @apply rtqi:absolute rtqi:right-0 rtqi:left-0 rtqi:z-10 rtqi:h-[3px];
 }
 
 .qti-ext-order-drag-indicator-top {
@@ -2055,11 +2055,11 @@
 
 .qti-ext-feedback-wrapper {
   /* TODO: 피드백 컨테이너 스타일 */
-  @apply whitespace-pre-line;
+  @apply rtqi:whitespace-pre-line;
 }
 
 .qti-ext-feedback-footer {
-  @apply mt-auto flex w-full flex-col gap-2 p-0;
+  @apply rtqi:mt-auto rtqi:flex rtqi:w-full rtqi:flex-col rtqi:gap-2 rtqi:p-0;
 }
 
 /* ========================================
@@ -2067,7 +2067,7 @@
              ======================================== */
 
 .qti-ext-feedback-buttons {
-  @apply flex w-full justify-center gap-5 pt-5;
+  @apply rtqi:flex rtqi:w-full rtqi:justify-center rtqi:gap-5 rtqi:pt-5;
 }
 
 .qti-ext-feedback-button {
@@ -2096,7 +2096,7 @@
     transform 0.15s ease-in-out,
     font-weight 0.15s ease-in-out !important;
 
-  @apply cursor-pointer border-0 font-normal transition-all;
+  @apply rtqi:cursor-pointer rtqi:border-0 rtqi:font-normal rtqi:transition-all;
 }
 
 .qti-ext-feedback-button:hover {
@@ -2112,7 +2112,7 @@
   color: var(--qti-feedback-title-color, var(--qti-ext-base-text-color, inherit)) !important;
   font-size: var(--qti-feedback-title-font-size, var(--qti-feedback-font-size, 20px)) !important;
 
-  @apply mb-2 font-bold;
+  @apply rtqi:mb-2 rtqi:font-bold;
 }
 
 .qti-ext-feedback-title-correct {
@@ -2147,7 +2147,7 @@
   ) !important;
   font-weight: var(--qti-feedback-description-font-weight, 400) !important;
 
-  @apply pb-8;
+  @apply rtqi:pb-8;
 }
 
 .qti-ext-feedback-correct .qti-ext-feedback-description {
@@ -2175,18 +2175,18 @@
 }
 
 .qti-ext-feedback-inline .qti-ext-feedback-sections {
-  @apply pb-0;
+  @apply rtqi:pb-0;
 }
 
 /* Feedback Section - 모달/시트/인라인 공통 (레이아웃·간격 동일, 테마는 상위 .qti-ext-feedback-* 로) */
 .qti-ext-feedback-sections {
-  @apply flex flex-col gap-4;
+  @apply rtqi:flex rtqi:flex-col rtqi:gap-4;
 }
 
 .qti-ext-feedback-section {
   background-color: var(--qti-feedback-section-bg, transparent);
 
-  @apply p-1;
+  @apply rtqi:p-1;
 }
 
 .qti-ext-feedback-section-head {
@@ -2222,11 +2222,11 @@
   font-size: inherit;
   font-weight: inherit;
 
-  @apply flex-shrink-0 whitespace-nowrap;
+  @apply rtqi:flex-shrink-0 rtqi:whitespace-nowrap;
 }
 
 .qti-ext-feedback-section-answer {
-  @apply ml-4 flex gap-1;
+  @apply rtqi:ml-4 rtqi:flex rtqi:gap-1;
 }
 
 .qti-ext-feedback-section-content {
@@ -2234,7 +2234,7 @@
   font-size: inherit;
   font-weight: inherit;
 
-  @apply px-6 pb-5 whitespace-pre-line;
+  @apply rtqi:px-6 rtqi:pb-5 rtqi:whitespace-pre-line;
 }
 
 .qti-ext-feedback-section-content p:first-child {
@@ -2332,7 +2332,7 @@
   );
   font-size: var(--qti-feedback-description-font-size);
 
-  @apply mx-auto flex w-full flex-col rounded-md px-4 py-5;
+  @apply rtqi:mx-auto rtqi:flex rtqi:w-full rtqi:flex-col rtqi:rounded-md rtqi:px-4 rtqi:py-5;
 }
 
 .qti-ext-feedback-inline .qti-ext-feedback-description
@@ -2342,7 +2342,7 @@
              ======================================== */
 
 .qti-ext-feedback-icon {
-  @apply absolute top-[-10px] right-[-10px] h-[22px] w-[22px] rounded-full;
+  @apply rtqi:absolute rtqi:top-[-10px] rtqi:right-[-10px] rtqi:h-[22px] rtqi:w-[22px] rtqi:rounded-full;
 }
 
 .qti-ext-feedback-icon-correct {
@@ -2443,7 +2443,7 @@
              ======================================== */
 
 .qti-ext-feedback-sheet-wrapper {
-  @apply absolute right-0 bottom-0 left-0 z-50;
+  @apply rtqi:absolute rtqi:right-0 rtqi:bottom-0 rtqi:left-0 rtqi:z-50;
 }
 
 /* 피드백 시트 - 공통 및 상태별 스타일 */
@@ -2459,19 +2459,19 @@
   );
   font-size: var(--qti-feedback-font-size);
 
-  @apply absolute right-0 bottom-0 left-0 z-50 flex w-full flex-col justify-center p-8 transition duration-500 ease-in-out;
+  @apply rtqi:absolute rtqi:right-0 rtqi:bottom-0 rtqi:left-0 rtqi:z-50 rtqi:flex rtqi:w-full rtqi:flex-col rtqi:justify-center rtqi:p-8 rtqi:transition rtqi:duration-500 rtqi:ease-in-out;
 }
 
 .qti-ext-feedback-wrapper-mobile .qti-ext-feedback-sheet {
-  @apply p-5;
+  @apply rtqi:p-5;
 }
 
 .qti-ext-feedback-sheet[data-state="closed"] {
-  @apply animate-out slide-out-to-bottom hidden;
+  @apply rtqi:animate-out rtqi:slide-out-to-bottom rtqi:hidden;
 }
 
 .qti-ext-feedback-sheet[data-state="open"] {
-  @apply animate-in slide-in-from-bottom;
+  @apply rtqi:animate-in rtqi:slide-in-from-bottom;
 }
 
 /* ========================================
@@ -2573,7 +2573,7 @@
              ======================================== */
 
 .qti-ext-feedback-wrapper-mobile .qti-ext-feedback-modal {
-  @apply slide-in-from-bottom fade-in-0 zoom-in-100 inset-0 top-0 left-0 h-full max-h-none w-full max-w-none translate-x-0 translate-y-0 rounded-none duration-300;
+  @apply rtqi:slide-in-from-bottom rtqi:fade-in-0 rtqi:zoom-in-100 rtqi:inset-0 rtqi:top-0 rtqi:left-0 rtqi:h-full rtqi:max-h-none rtqi:w-full rtqi:max-w-none rtqi:translate-x-0 rtqi:translate-y-0 rtqi:rounded-none rtqi:duration-300;
 }
 
 .qti-ext-feedback-modal {
@@ -2591,17 +2591,17 @@
   font-size: var(--qti-feedback-font-size);
 
   /* 공통 속성 */
-  @apply absolute flex flex-col bg-white shadow-xl;
+  @apply rtqi:absolute rtqi:flex rtqi:flex-col rtqi:bg-white rtqi:shadow-xl;
 
   /* 모바일: 전체 화면 + 하단에서 슬라이드업 */
-  @apply animate-in slide-in-from-bottom inset-0 h-full w-full overflow-y-auto rounded-none duration-300;
+  @apply rtqi:animate-in rtqi:slide-in-from-bottom rtqi:inset-0 rtqi:h-full rtqi:w-full rtqi:overflow-y-auto rtqi:rounded-none rtqi:duration-300;
 
   /* 데스크톱 (sm: 640px 이상): 중앙 팝업 + 페이드/줌 */
-  @apply sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-auto sm:max-h-[80%] sm:w-[calc(100%-2rem)] sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:duration-200;
+  @apply rtqi:sm:slide-in-from-bottom-0 rtqi:sm:fade-in rtqi:sm:zoom-in-95 rtqi:sm:inset-auto rtqi:sm:top-1/2 rtqi:sm:left-1/2 rtqi:sm:h-auto rtqi:sm:max-h-[80%] rtqi:sm:w-[calc(100%-2rem)] rtqi:sm:max-w-lg rtqi:sm:-translate-x-1/2 rtqi:sm:-translate-y-1/2 rtqi:sm:rounded-2xl rtqi:sm:duration-200;
 }
 
 .qti-ext-feedback-modal-content {
-  @apply p-5;
+  @apply rtqi:p-5;
 }
 
 /* ========================================
@@ -2609,7 +2609,7 @@
              ======================================== */
 
 .qti-ext-submit-button-wrapper {
-  @apply sticky right-0 bottom-5 left-0 flex items-center justify-center;
+  @apply rtqi:sticky rtqi:right-0 rtqi:bottom-5 rtqi:left-0 rtqi:flex rtqi:items-center rtqi:justify-center;
 }
 
 /* 제출 버튼 - 공통 및 상태별 스타일 */
@@ -2630,7 +2630,7 @@
 
   /* font-weight는 상위에서 상속 */
 
-  @apply font-medium transition-all active:scale-[0.98];
+  @apply rtqi:font-medium rtqi:transition-all rtqi:active:scale-[0.98];
 }
 
 .qti-ext-submit-button:disabled {
@@ -2662,7 +2662,7 @@
   color: var(--qti-button-text) !important;
   font-size: var(--qti-font-size-base, 16px);
 
-  @apply font-medium transition-all active:scale-[0.98];
+  @apply rtqi:font-medium rtqi:transition-all rtqi:active:scale-[0.98];
 }
 
 .qti-ext-prev-next-button:disabled {
@@ -2687,7 +2687,7 @@
 .qti-ext-prev-next-icon-button {
   color: var(--qti-button-bg) !important;
 
-  @apply transition-colors;
+  @apply rtqi:transition-colors;
 }
 
 .qti-ext-prev-next-icon-button:disabled {
@@ -2707,7 +2707,7 @@
 .qti-ext-assessment-set-wrapper {
   background-color: var(--qti-container-bg, #ffffff);
 
-  @apply h-full w-full max-w-4xl overflow-y-auto;
+  @apply rtqi:h-full rtqi:w-full rtqi:max-w-4xl rtqi:overflow-y-auto;
 }
 
 .qti-ext-assessment-wrapper {
@@ -2731,21 +2731,21 @@
   font-weight: var(--font-weight-normal, 400);
   line-height: var(--qti-line-height-base, 1.5);
 
-  @apply relative flex h-full flex-col overflow-hidden;
+  @apply rtqi:relative rtqi:flex rtqi:h-full rtqi:flex-col rtqi:overflow-hidden;
 }
 
 .qti-ext-assessment-header {
-  @apply shrink-0 p-5;
+  @apply rtqi:shrink-0 rtqi:p-5;
 }
 
 .qti-ext-assessment-content {
-  @apply flex-1;
+  @apply rtqi:flex-1;
 }
 
 .qti-ext-assessment-nav {
   border-color: var(--qti-option-border, #e5e7eb);
 
-  @apply flex shrink-0 items-center justify-between gap-4 border-t pt-4 pb-8;
+  @apply rtqi:flex rtqi:shrink-0 rtqi:items-center rtqi:justify-between rtqi:gap-4 rtqi:border-t rtqi:pt-4 rtqi:pb-8;
 }
 
 /* 이전, 다음 버튼 */
@@ -2774,7 +2774,7 @@
 
   cursor: pointer !important;
 
-  @apply flex items-center gap-1;
+  @apply rtqi:flex rtqi:items-center rtqi:gap-1;
 }
 
 .qti-ext-nav-button:disabled {
@@ -2798,46 +2798,46 @@
 
 /* Progress Bar - 진행률 표시 */
 .qti-ext-progress {
-  @apply flex flex-col gap-2;
+  @apply rtqi:flex rtqi:flex-col rtqi:gap-2;
 }
 
 .qti-ext-progress-header {
-  @apply flex items-center justify-between;
+  @apply rtqi:flex rtqi:items-center rtqi:justify-between;
 }
 
 .qti-ext-progress-label {
-  @apply text-sm font-medium;
+  @apply rtqi:text-sm rtqi:font-medium;
 }
 
 .qti-ext-progress-count {
   color: inherit;
 
-  @apply flex items-center text-sm;
+  @apply rtqi:flex rtqi:items-center rtqi:text-sm;
 }
 
 .qti-ext-progress-answered {
   color: var(--qti-button-enabled-bg);
 
-  @apply font-bold;
+  @apply rtqi:font-bold;
 }
 
 .qti-ext-progress-separator {
-  @apply mx-0.5;
+  @apply rtqi:mx-0.5;
 }
 
 .qti-ext-progress-total {
-  @apply font-medium;
+  @apply rtqi:font-medium;
 }
 
 .qti-ext-progress-unit {
   color: inherit;
 
-  @apply ml-1 text-xs;
+  @apply rtqi:ml-1 rtqi:text-xs;
 }
 
 /* Progress Bar - 진행률 바 형태 */
 .qti-ext-progress-bar {
-  @apply flex flex-col gap-2;
+  @apply rtqi:flex rtqi:flex-col rtqi:gap-2;
 }
 
 /* LayoutC 좌측 스테퍼 컬럼: 스크롤 가능하되 스크롤바 UI 숨김 */
@@ -2862,36 +2862,36 @@
 
 /* Progress Stepper - 스테퍼 형태 (1번부터 차례대로 보이도록 start 정렬) */
 .qti-ext-progress-stepper {
-  @apply flex items-center justify-start px-1 pt-1 pb-6;
+  @apply rtqi:flex rtqi:items-center rtqi:justify-start rtqi:px-1 rtqi:pt-1 rtqi:pb-6;
 }
 
 /* 세로 스테퍼: 1번부터 위에서 차례대로 보이도록 flex-start, 20개여도 스크롤로 모두 확인 가능 */
 .qti-ext-progress-stepper-vertical {
-  @apply flex flex-col items-center justify-start;
+  @apply rtqi:flex rtqi:flex-col rtqi:items-center rtqi:justify-start;
 }
 
 /* Progress Dot - 점 형태 컨테이너 */
 .qti-ext-progress-dot-container {
-  @apply flex items-center justify-center gap-2;
+  @apply rtqi:flex rtqi:items-center rtqi:justify-center rtqi:gap-2;
 }
 
 /* Progress Dot - 개별 점 요소 */
 .qti-ext-progress-dot {
-  @apply h-3 w-3 rounded-full bg-gray-300 transition-all duration-200;
+  @apply rtqi:h-3 rtqi:w-3 rtqi:rounded-full rtqi:bg-gray-300 rtqi:transition-all rtqi:duration-200;
 }
 
 .qti-ext-progress-step {
-  @apply relative flex items-center;
+  @apply rtqi:relative rtqi:flex rtqi:items-center;
 }
 
 .qti-ext-progress-step-vertical {
-  @apply flex-col;
+  @apply rtqi:flex-col;
 }
 
 .qti-ext-progress-line {
   background-color: var(--qti-option-border);
 
-  @apply h-0.5 w-8 shrink-0 transition-colors duration-300;
+  @apply rtqi:h-0.5 rtqi:w-8 rtqi:shrink-0 rtqi:transition-colors rtqi:duration-300;
 }
 
 .qti-ext-progress-line-correct {
@@ -2907,7 +2907,7 @@
 }
 
 .qti-ext-progress-line-vertical {
-  @apply h-8 w-0.5;
+  @apply rtqi:h-8 rtqi:w-0.5;
 }
 
 .qti-ext-progress-item {
@@ -2920,8 +2920,8 @@
 
   color: inherit;
 
-  @apply relative z-10 flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200;
-  @apply focus:outline-none;
+  @apply rtqi:relative rtqi:z-10 rtqi:flex rtqi:h-9 rtqi:w-9 rtqi:items-center rtqi:justify-center rtqi:rounded-full rtqi:text-sm rtqi:font-semibold rtqi:transition-all rtqi:duration-200;
+  @apply rtqi:focus:outline-none;
 }
 
 .qti-ext-progress-item:hover:not(:disabled) {
@@ -2970,7 +2970,7 @@
 
 /* Progress Indicator - 인디케이터 형태 (원형 bullet만 표시) */
 .qti-ext-progress-indicator {
-  @apply flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-sm font-semibold transition-all duration-200;
+  @apply rtqi:flex rtqi:h-8 rtqi:w-8 rtqi:items-center rtqi:justify-center rtqi:rounded-full rtqi:border-2 rtqi:border-gray-300 rtqi:bg-white rtqi:text-sm rtqi:font-semibold rtqi:transition-all rtqi:duration-200;
 }
 
 .qti-ext-progress-indicator-current {
@@ -3008,7 +3008,7 @@
 .qti-ext-progress-dot-current {
   background-color: var(--qti-option-border-selected);
 
-  @apply w-10;
+  @apply rtqi:w-10;
 }
 
 .qti-ext-progress-dot-answered {
@@ -3025,7 +3025,7 @@
 
 /* Assessment Complete - 평가 완료 화면 */
 .qti-ext-assessment-complete {
-  @apply flex flex-col items-center justify-center gap-6 py-16;
+  @apply rtqi:flex rtqi:flex-col rtqi:items-center rtqi:justify-center rtqi:gap-6 rtqi:py-16;
 }
 
 .qti-ext-complete-icon {
@@ -3033,19 +3033,19 @@
 
   color: var(--qti-option-border-correct);
 
-  @apply flex h-24 w-24 items-center justify-center rounded-full;
+  @apply rtqi:flex rtqi:h-24 rtqi:w-24 rtqi:items-center rtqi:justify-center rtqi:rounded-full;
 }
 
 .qti-ext-complete-title {
   color: var(--text-color);
 
-  @apply text-2xl font-bold;
+  @apply rtqi:text-2xl rtqi:font-bold;
 }
 
 .qti-ext-complete-message {
   color: var(--text-color);
 
-  @apply opacity-70;
+  @apply rtqi:opacity-70;
 }
 
 /* 01-26 시연용 코드 추후 개선 필요 */
@@ -3055,7 +3055,7 @@
 
   background: var(--qti-container-bg, #f7f9fc);
 
-  @apply my-8 rounded-md p-4;
+  @apply rtqi:my-8 rtqi:rounded-md rtqi:p-4;
 }
 
 @keyframes qti-ext-draw-line {
@@ -3078,7 +3078,7 @@
 ======================================== */
 
 .qti-ext-grid {
-  @apply mt-8 w-full;
+  @apply rtqi:mt-8 rtqi:w-full;
 }
 
 /* 그리드 body 안 선택지: 콘텐츠 영역이 라디오/체크박스 제외한 나머지 공간을 전부 쓰도록 */
@@ -3087,26 +3087,26 @@
 
   min-width: 0;
 
-  @apply w-full;
+  @apply rtqi:w-full;
 }
 
 .qti-ext-grid-body .qti-ext-choice-option > div:first-of-type .qti-ext-grid-row {
   min-width: 0;
 
-  @apply w-full;
+  @apply rtqi:w-full;
 }
 
 .qti-ext-grid-header {
-  @apply grid grid-cols-[40px_1fr_1fr] p-4 pr-13 font-bold;
+  @apply rtqi:grid rtqi:grid-cols-[40px_1fr_1fr] rtqi:p-4 rtqi:pr-13 rtqi:font-bold;
 }
 
 .qti-ext-grid-header-cell,
 .qti-ext-grid-cell {
-  @apply text-center;
+  @apply rtqi:text-center;
 }
 
 .qti-ext-choice-label {
-  @apply px-1;
+  @apply rtqi:px-1;
 }
 
 /* 그리드에 list-style-type이 있을 때: counter-reset/increment + .qti-ext-choice-label::before */
@@ -3180,26 +3180,26 @@
 }
 
 .qti-list-style-type-hangul-consonant-paren .qti-ext-choice-label {
-  @apply px-2;
+  @apply rtqi:px-2;
 }
 
 .qti-ext-grid-row {
-  @apply grid w-full items-center;
+  @apply rtqi:grid rtqi:w-full rtqi:items-center;
 }
 
 .qti-ext-grid-2 .qti-ext-grid-header,
 .qti-ext-grid-2 .qti-ext-grid-row {
-  @apply grid-cols-[40px_repeat(2,_1fr)];
+  @apply rtqi:grid-cols-[40px_repeat(2,_1fr)];
 }
 
 .qti-ext-grid-3 .qti-ext-grid-header,
 .qti-ext-grid-3 .qti-ext-grid-row {
-  @apply grid-cols-[40px_repeat(3,_1fr)];
+  @apply rtqi:grid-cols-[40px_repeat(3,_1fr)];
 }
 
 .qti-ext-grid-4 .qti-ext-grid-header,
 .qti-ext-grid-4 .qti-ext-grid-row {
-  @apply grid-cols-[repeat(4,_1fr)];
+  @apply rtqi:grid-cols-[repeat(4,_1fr)];
 }
 
 /* ========================================
@@ -3279,11 +3279,11 @@
 ======================================== */
 
 .qti-ext-template-prev-button {
-  @apply absolute top-1/2 left-0 z-10 -translate-y-1/2;
+  @apply rtqi:absolute rtqi:top-1/2 rtqi:left-0 rtqi:z-10 rtqi:-translate-y-1/2;
 }
 
 .qti-ext-template-next-button {
-  @apply absolute top-1/2 right-0 z-10 -translate-y-1/2;
+  @apply rtqi:absolute rtqi:top-1/2 rtqi:right-0 rtqi:z-10 rtqi:-translate-y-1/2;
 }
 
 /* Plate.js column — 그룹은 가로 배치, 컬럼은 문항(.qti-ext-question)과 동일한 수직 간격.
@@ -3295,7 +3295,7 @@
 
   width: 100%;
 
-  @apply gap-3;
+  @apply rtqi:gap-3;
 }
 
 .qti-ext-column {
@@ -3303,7 +3303,7 @@
 
   min-width: 0;
 
-  @apply space-y-2 p-2;
+  @apply rtqi:space-y-2 rtqi:p-2;
 }
 
 /* 컬럼 내부: width 100% 시 .qti-ext-text-entry m-1 가로 마진이 더해져 넘치므로 가로 마진 제거 */
@@ -3360,7 +3360,7 @@
     width: 30% !important;
     max-width: 36px;
 
-    @apply mx-auto;
+    @apply rtqi:mx-auto;
   }
 
   .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-4,
@@ -3477,7 +3477,7 @@
   width: 30% !important;
   max-width: 36px;
 
-  @apply mx-auto;
+  @apply rtqi:mx-auto;
 }
 
 [data-device="mobile"]

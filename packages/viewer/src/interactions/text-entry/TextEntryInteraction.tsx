@@ -23,10 +23,10 @@ function getTextEntryResponseString(
 }
 
 const PATTERNS = {
-  korean: "[가-힣\\s]+",
-  english: "[a-zA-Z\\s]+",
-  number: "[0-9]+",
-  mixed: "[가-힣a-zA-Z0-9\\s]+",
+  korean: "rtqi:[가-힣\\s]+",
+  english: "rtqi:[a-zA-Z\\s]+",
+  number: "rtqi:[0-9]+",
+  mixed: "rtqi:[가-힣a-zA-Z0-9\\s]+",
   free: ".*",
 };
 
@@ -48,7 +48,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
   const patternMask = element.getAttribute("pattern-mask");
   const placeholderText = element.getAttribute("placeholder-text");
   const expectedLengthAttr = element.getAttribute("expected-length");
-  const maxLengthAttr = element.getAttribute("maxlength") || element.getAttribute("max-length");
+  const maxLengthAttr = element.getAttribute("maxlength") || element.getAttribute("rtqi:max-length");
 
   // pattern-mask 속성 처리
   const getPattern = (mask: string | null): string | undefined => {
@@ -90,7 +90,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
 
   const isSRQ = options.questionType === ITEM_TYPE.SRQ;
   const isCLOZE = options.questionType === ITEM_TYPE.CLOZE;
-  const layout = isSRQ ? "block" : "inline";
+  const layout = isSRQ ? "rtqi:block" : "rtqi:inline";
 
   /**
    * CLOZE 타입은 input 영역 피드백 로직 미적용
@@ -140,7 +140,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
       layout={layout}
       maxLength={Number.isFinite(maxLength) ? maxLength : undefined}
       ariaLabel={`${responseIdentifier} 입력`}
-      // showCharacterCounter={layout === "block" && Number.isFinite(effectiveMaxLength)}
+      // showCharacterCounter={layout === "rtqi:block" && Number.isFinite(effectiveMaxLength)}
       variant={isSRQ ? "srq" : isCLOZE ? "cloze" : "default"}
     />
   );

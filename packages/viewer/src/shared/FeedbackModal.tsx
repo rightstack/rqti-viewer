@@ -80,10 +80,10 @@ export const FeedbackModal = ({
     if (!open) return null;
 
     return (
-      <div className="absolute inset-0 z-100">
+      <div className="rtqi:absolute rtqi:inset-0 rtqi:z-100">
         {/* Backdrop */}
         <div
-          className="absolute inset-0 bg-black/50"
+          className="rtqi:absolute rtqi:inset-0 rtqi:bg-black/50"
           role="button"
           tabIndex={0}
           aria-label="Close modal"
@@ -106,7 +106,7 @@ export const FeedbackModal = ({
           style={themeVariables as React.CSSProperties}
         >
           <div className="qti-ext-feedback-modal-content">
-            <div className="flex-shrink-0">
+            <div className="rtqi:flex-shrink-0">
               <h2 className={cn("qti-ext-feedback-title")}>{title}</h2>
             </div>
 
@@ -114,20 +114,20 @@ export const FeedbackModal = ({
             {typeof description === "string" ? (
               <div
                 id="feedback-description"
-                className="qti-ext-feedback-description flex-1 overflow-y-auto"
+                className="qti-ext-feedback-description rtqi:flex-1 rtqi:overflow-y-auto"
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: description || "해설 내용입니다." }}
               />
             ) : (
               <div
                 id="feedback-description"
-                className="qti-ext-feedback-description flex-1 overflow-y-auto"
+                className="qti-ext-feedback-description rtqi:flex-1 rtqi:overflow-y-auto"
               >
                 {description ?? "해설 내용입니다."}
               </div>
             )}
             {/* 버튼 영역 - flex-shrink-0으로 고정 */}
-            <div className="flex-shrink-0">{renderButtons()}</div>
+            <div className="rtqi:flex-shrink-0">{renderButtons()}</div>
           </div>
         </div>
       </div>
@@ -137,7 +137,7 @@ export const FeedbackModal = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={cn("qti-ext-feedback-modal", "max-w-lg")}
+        className={cn("qti-ext-feedback-modal", "rtqi:max-w-lg")}
         style={themeVariables as React.CSSProperties}
       >
         <DialogHeader>

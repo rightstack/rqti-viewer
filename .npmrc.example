@@ -1,0 +1,5 @@
+# 고객용 npm registry 설정 예시
+# 이 파일을 프로젝트 루트의 .npmrc 로 복사하여 사용한다.
+
+@rightstack:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=SHARED_READ_ONLY_TOKEN

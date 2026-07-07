@@ -7,9 +7,9 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
       type={type}
       data-slot="input"
       className={cn(
-        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+        "rtqi:file:text-foreground rtqi:placeholder:text-muted-foreground rtqi:selection:bg-primary rtqi:selection:text-primary-foreground rtqi:dark:bg-input/30 rtqi:border-input rtqi:h-9 rtqi:w-full rtqi:min-w-0 rtqi:rounded-md rtqi:border rtqi:bg-transparent rtqi:px-3 rtqi:py-1 rtqi:text-base rtqi:shadow-xs rtqi:transition-[color,box-shadow] rtqi:outline-none rtqi:file:inline-flex rtqi:file:h-7 rtqi:file:border-0 rtqi:file:bg-transparent rtqi:file:text-sm rtqi:file:font-medium rtqi:disabled:pointer-events-none rtqi:disabled:cursor-not-allowed rtqi:disabled:opacity-50 rtqi:md:text-sm",
+        "rtqi:focus-visible:border-ring rtqi:focus-visible:ring-ring/50 rtqi:focus-visible:ring-[3px]",
+        "rtqi:aria-invalid:ring-destructive/20 rtqi:dark:aria-invalid:ring-destructive/40 rtqi:aria-invalid:border-destructive",
         className
       )}
       {...props}

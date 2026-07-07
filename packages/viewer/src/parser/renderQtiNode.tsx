@@ -165,7 +165,7 @@ export function renderQtiNode(node: ChildNode, options?: QTIParserOptions): Reac
       }
       props[attr.name] = attr.value;
       if (attr.name === "identifier") {
-        props.className = [props.className, "w-full min-w-0"].filter(Boolean).join(" ");
+        props.className = [props.className, "rtqi:w-full rtqi:min-w-0"].filter(Boolean).join(" ");
       }
     }
 

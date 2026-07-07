@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import {
-  DALDAL_THEME,
   Question,
   type QuestionMode,
   type ResponseValueMap,

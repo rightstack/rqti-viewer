@@ -16,7 +16,7 @@ interface TextEntryInputProps {
   placeholder?: string;
   pattern?: string;
   expectedLength?: number;
-  layout?: "inline" | "block";
+  layout?: "rtqi:inline" | "rtqi:block";
   maxLength?: number;
   label?: string;
   ariaLabel?: string;
@@ -35,7 +35,7 @@ export const TextEntryInput = ({
   placeholder,
   pattern,
   expectedLength,
-  layout = "inline",
+  layout = "rtqi:inline",
   maxLength,
   label,
   ariaLabel,
@@ -46,15 +46,15 @@ export const TextEntryInput = ({
   const isAnswerCorrect = isSubmit && isCorrect === true;
   // const reactId = useId();
   // const counterId = showCharacterCounter ? `${inputId}-${index}-${reactId}-counter` : undefined;
-  const widthStyle = layout === "inline" ? getTextEntryWidthStyle(expectedLength) : undefined;
+  const widthStyle = layout === "rtqi:inline" ? getTextEntryWidthStyle(expectedLength) : undefined;
 
   const containerClassName = cn(
     "qti-ext-text-entry",
     "qti-text-entry",
-    layout === "inline" ? "qti-text-entry--inline" : "qti-text-entry--block",
+    layout === "rtqi:inline" ? "qti-text-entry--inline" : "qti-text-entry--block",
     variant === "cloze" && "qti-ext-text-entry-cloze",
     variant === "srq" && "qti-ext-text-entry-srq",
-    isPreview && "pointer-events-none"
+    isPreview && "rtqi:pointer-events-none"
   );
   /**
    * CLOZE 타입은 input 영역 피드백 로직 미적용

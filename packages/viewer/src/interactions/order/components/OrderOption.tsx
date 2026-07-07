@@ -211,7 +211,7 @@ const OrderOption: React.FC<OrderOptionProps> = ({
         const isCorrect = isSubmit && correctOrder[idx] === choiceId;
 
         return (
-          <div key={choice.identifier} className="relative">
+          <div key={choice.identifier} className="rtqi:relative">
             {/* 드래그 오버 시 요소 위 중간 영역에 선 표시 */}
             {isDragOver && (
               <div className="qti-ext-order-drag-indicator qti-ext-order-drag-indicator-top" />
@@ -222,7 +222,7 @@ const OrderOption: React.FC<OrderOptionProps> = ({
               <div className="qti-ext-order-drag-indicator qti-ext-order-drag-indicator-bottom" />
             )}
 
-            <div className="transition-all duration-200">
+            <div className="rtqi:transition-all rtqi:duration-200">
               <OrderChoice
                 choice={choice}
                 index={idx}

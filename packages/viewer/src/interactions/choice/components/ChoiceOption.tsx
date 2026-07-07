@@ -53,21 +53,21 @@ export const ChoiceOption = ({
   }, [onSelect, choice.identifier, disabled]);
 
   return (
-    <div className="relative">
+    <div className="rtqi:relative">
       <div
         role="button"
         tabIndex={0}
         className={cn(
           "qti-ext-option-base",
           "qti-ext-choice-option",
-          "focus-visible:ring-ring flex w-full cursor-pointer items-center gap-2 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+          "rtqi:focus-visible:ring-ring rtqi:flex rtqi:w-full rtqi:cursor-pointer rtqi:items-center rtqi:gap-2 rtqi:rounded-md rtqi:text-left rtqi:outline-none rtqi:focus-visible:ring-2 rtqi:focus-visible:ring-offset-2",
           isSelected && "qti-ext-choice-option-selected",
           isCorrect && "qti-ext-choice-option-correct",
           isIncorrect && "qti-ext-choice-option-incorrect",
           isAnswerReveal && "qti-ext-choice-option-answer-reveal",
           isSubmit && "qti-ext-option-disabled",
-          isPreview && "pointer-events-none",
-          disabled && "pointer-events-none"
+          isPreview && "rtqi:pointer-events-none",
+          disabled && "rtqi:pointer-events-none"
         )}
         onClick={handleClick}
         onKeyDown={(e) => {

@@ -30,7 +30,7 @@ export const ChoiceButtons = ({
   const effectiveOrientation = orientation || (choices.length <= 2 ? "horizontal" : "vertical");
 
   return (
-    <div className="my-4 flex gap-4" style={getOrientationStyle(effectiveOrientation, stacking)}>
+    <div className="rtqi:my-4 rtqi:flex rtqi:gap-4" style={getOrientationStyle(effectiveOrientation, stacking)}>
       {choices.map((choice) => {
         const selected = isSelected(choice.identifier);
         const selectedIds = submitResponse?.response?.[responseIdentifier];
@@ -97,7 +97,7 @@ const ChoiceButtonItem = ({
   isPreview?: boolean;
   onSelect: (identifier: string) => void;
 }) => (
-  <div className={cn("relative min-w-0 flex-1", isPreview && "pointer-events-none")}>
+  <div className={cn("rtqi:relative rtqi:min-w-0 rtqi:flex-1", isPreview && "rtqi:pointer-events-none")}>
     <div
       role="button"
       tabIndex={0}
@@ -112,12 +112,12 @@ const ChoiceButtonItem = ({
       className={cn(
         "qti-ext-option-base",
         "qti-ext-choice-button",
-        "focus-visible:ring-ring inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        "rtqi:focus-visible:ring-ring rtqi:inline-flex rtqi:w-full rtqi:cursor-pointer rtqi:items-center rtqi:justify-center rtqi:gap-2 rtqi:rounded-md rtqi:outline-none rtqi:focus-visible:ring-2 rtqi:focus-visible:ring-offset-2",
         isSelected && "qti-ext-choice-button-selected",
         isCorrect && "qti-ext-choice-button-correct",
         isIncorrect && "qti-ext-choice-button-incorrect",
         showDisabledStyle && "qti-ext-option-disabled",
-        disabled && "pointer-events-none"
+        disabled && "rtqi:pointer-events-none"
       )}
     >
       {choice.content}

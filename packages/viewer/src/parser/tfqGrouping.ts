@@ -52,16 +52,16 @@ export function getTfqLayoutClasses(tfqCount: number): {
 } {
   if (tfqCount <= 1) {
     return {
-      row: "tfq-row tfq-single flex flex-col gap-3",
-      prompt: "tfq-prompt w-full",
-      buttons: "tfq-buttons w-full flex justify-start gap-2 flex-shrink-0",
+      row: "tfq-row tfq-single rtqi:flex rtqi:flex-col rtqi:gap-3",
+      prompt: "tfq-prompt rtqi:w-full",
+      buttons: "tfq-buttons rtqi:w-full rtqi:flex rtqi:justify-start rtqi:gap-2 rtqi:shrink-0",
     };
   }
   return {
-    row: "tfq-row flex flex-col gap-3 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-6",
-    prompt: "tfq-prompt w-full min-w-0 min-[480px]:w-[60%]",
+    row: "tfq-row rtqi:flex rtqi:flex-col rtqi:gap-3 rtqi:min-[480px]:flex-row rtqi:min-[480px]:items-center rtqi:min-[480px]:justify-between rtqi:min-[480px]:gap-6",
+    prompt: "tfq-prompt rtqi:w-full rtqi:min-w-0 rtqi:min-[480px]:w-[60%]",
     buttons:
-      "tfq-buttons w-full flex justify-start gap-2 min-[480px]:w-[40%] min-[480px]:justify-end min-w-[120px] flex-shrink-0",
+      "tfq-buttons rtqi:w-full rtqi:flex rtqi:justify-start rtqi:gap-2 rtqi:min-[480px]:w-[40%] rtqi:min-[480px]:justify-end rtqi:min-w-[120px] rtqi:shrink-0",
   };
 }
 

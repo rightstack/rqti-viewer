@@ -45,7 +45,7 @@ function FileUploadInput({
         }
         aria-label={promptText || "파일 업로드"}
       >
-        <div className="flex flex-col items-center justify-center">
+        <div className="rtqi:flex rtqi:flex-col rtqi:items-center rtqi:justify-center">
           <svg
             className="qti-ext-upload-icon"
             fill="none"
@@ -60,14 +60,14 @@ function FileUploadInput({
             />
           </svg>
           <p className="qti-ext-upload-text">
-            <span className="font-semibold">파일을 클릭하거나 드래그하여 업로드</span>
+            <span className="rtqi:font-semibold">파일을 클릭하거나 드래그하여 업로드</span>
           </p>
           <p className="qti-ext-upload-hint">파일 형식 제한 없음</p>
         </div>
         <input
           id={inputId}
           type="file"
-          className="hidden"
+          className="rtqi:hidden"
           onChange={handleFileChange}
           disabled={disabled}
         />
@@ -101,7 +101,7 @@ function FileUploadInput({
               aria-label="파일 제거"
             >
               <svg
-                className="h-4 w-4"
+                className="rtqi:h-4 rtqi:w-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

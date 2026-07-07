@@ -18,7 +18,7 @@ export const ExtendedTextInteraction: React.FC<ExtendedTextInteractionProps> = (
 }) => {
   const responseIdentifier = element.getAttribute("response-identifier") || "";
   const placeholderText = element.getAttribute("placeholder-text");
-  const maxStrings = element.getAttribute("max-strings");
+  const maxStrings = element.getAttribute("rtqi:max-strings");
 
   // 내부 상태 관리
   const initialValue = useMemo(() => {

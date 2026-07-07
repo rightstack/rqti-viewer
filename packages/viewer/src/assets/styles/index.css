@@ -2,6 +2,8 @@
    @rightstack/rqti-viewer styles
    ======================================== */
 
+@config "../../../tailwind.config.ts";
+
 @import "tailwindcss";
 @import "tw-animate-css";
 

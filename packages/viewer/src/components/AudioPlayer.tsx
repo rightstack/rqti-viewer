@@ -103,8 +103,8 @@ export function AudioPlayer({ src, theme }: AudioPlayerProps) {
   // };
 
   return (
-    <div className="qti-ext-audio-player flex flex-col items-start gap-3">
-      <div className="inline-flex w-fit items-center justify-center p-1" style={wrapperStyle}>
+    <div className="qti-ext-audio-player rtqi:flex rtqi:flex-col rtqi:items-start rtqi:gap-3">
+      <div className="rtqi:inline-flex rtqi:w-fit rtqi:items-center rtqi:justify-center rtqi:p-1" style={wrapperStyle}>
         <audio
           ref={audioRef}
           src={src}
@@ -118,32 +118,32 @@ export function AudioPlayer({ src, theme }: AudioPlayerProps) {
           type="button"
           aria-label={isPlaying ? "일시정지" : "재생"}
           onClick={togglePlay}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+          className="rtqi:flex rtqi:h-10 rtqi:w-10 rtqi:shrink-0 rtqi:items-center rtqi:justify-center rtqi:rounded-full"
           style={controlStyle}
         >
           {isPlaying ? (
             <Pause
-              className="h-5 w-5"
+              className="rtqi:h-5 rtqi:w-5"
               style={controlStyle}
               fill={theme?.questionOptionConfig?.state?.selected?.borderColor}
             />
           ) : (
             <Play
-              className="h-5 w-5"
+              className="rtqi:h-5 rtqi:w-5"
               style={controlStyle}
               fill={theme?.questionOptionConfig?.state?.selected?.borderColor}
             />
           )}
         </button>
       </div>
-      {/* <div className="flex items-center gap-3">
-        <div className="min-w-0 flex-1">
+      {/* <div className="rtqi:flex rtqi:items-center rtqi:gap-3">
+        <div className="rtqi:min-w-0 rtqi:flex-1">
           <div
-            className="relative h-2 w-full overflow-hidden rounded-full"
+            className="rtqi:relative rtqi:h-2 rtqi:w-full rtqi:overflow-hidden rtqi:rounded-full"
             style={progressTrackStyle}
           >
             <div
-              className="absolute inset-y-0 left-0 rounded-full"
+              className="rtqi:absolute rtqi:inset-y-0 rtqi:left-0 rtqi:rounded-full"
               style={{ ...progressFillStyle, width: `${progress}%` }}
             />
             <input
@@ -152,20 +152,20 @@ export function AudioPlayer({ src, theme }: AudioPlayerProps) {
               max={100}
               value={progress}
               onChange={handleSeek}
-              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              className="rtqi:absolute rtqi:inset-0 rtqi:h-full rtqi:w-full rtqi:cursor-pointer rtqi:opacity-0"
               aria-label="재생 위치"
             />
           </div>
         </div>
-        <div className="flex items-center justify-between gap-2">
+        <div className="rtqi:flex rtqi:items-center rtqi:justify-between rtqi:gap-2">
           {title !== null && title !== "" ? (
-            <span className="min-w-0 truncate text-sm" style={textStyle}>
+            <span className="rtqi:min-w-0 rtqi:truncate rtqi:text-sm" style={textStyle}>
               {title}
             </span>
           ) : (
             <span />
           )}
-          <span className="shrink-0 text-sm tabular-nums" style={textStyle}>
+          <span className="rtqi:shrink-0 rtqi:text-sm rtqi:tabular-nums" style={textStyle}>
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
         </div>

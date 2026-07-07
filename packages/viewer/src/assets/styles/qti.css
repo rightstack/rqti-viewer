@@ -2220,7 +2220,7 @@
 .qti-underline {
   text-decoration-color: var(--qti-base-text-color);
 
-  @apply underline underline-offset-[0.25em];
+  @apply rtqi:underline rtqi:underline-offset-[0.25em];
 }
 
 .qti-italic {
