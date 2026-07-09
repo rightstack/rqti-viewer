@@ -13,6 +13,6 @@ export const DEFAULT_THEME_ID = "default";
 
 export const THEME_MAP = {
   default: DEFAULT_THEME,
-  // duolingo: DUOLINGO_THEME,
+  duolingo: DUOLINGO_THEME,
   daldal: DALDAL_THEME,
 } as const;

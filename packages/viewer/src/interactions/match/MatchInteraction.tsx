@@ -543,7 +543,7 @@ export const MatchInteraction: React.FC<MatchInteractionProps> = ({ element, opt
 
   // 그리드 클래스 (2 or 3)
   const gridColsClass = matchSetCount === 3 ? "rtqi:grid-cols-3" : "rtqi:grid-cols-2";
-  const colSpanClass = matchSetCount === 3 ? "col-span-3" : "col-span-2";
+  const colSpanClass = matchSetCount === 3 ? "rtqi:col-span-3" : "rtqi:col-span-2";
 
   // side 결정 함수
   const getSide = (setIndex: number): "left" | "center" | "right" => {

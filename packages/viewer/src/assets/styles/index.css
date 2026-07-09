@@ -16,3 +16,7 @@
 /* qti components */
 @import "./qti.css";
 @import "./qti-ext.css";
+
+/* MathLive (LaTeX) — viewer.css에 번들됨 */
+@import "mathlive/fonts.css";
+@import "mathlive/static.css";

@@ -19,7 +19,8 @@
     "./styles.css": "./dist/viewer.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",

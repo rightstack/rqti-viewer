@@ -151,6 +151,10 @@ function Question({
     setInternalIsSubmit(isSubmit);
   }, [isSubmit]);
 
+  useEffect(() => {
+    if (responsesProp !== undefined) setResponses(responsesProp);
+  }, [responsesProp]);
+
   const handleResponseChange = (identifier: string, value: ResponseValue) => {
     const newResponses = { ...responses, [identifier]: value } as ResponseValueMap;
     setResponses(newResponses);

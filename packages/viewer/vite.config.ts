@@ -32,7 +32,11 @@ export default defineConfig({
     },
     sourcemap: true,
     rollupOptions: {
-      external: (id) => external.some((dep) => id === dep || id.startsWith(`${dep}/`)),
+      external: (id) => {
+        // CSS는 viewer.css에 번들 (mathlive 스타일 포함)
+        if (id.endsWith(".css")) return false;
+        return external.some((dep) => id === dep || id.startsWith(`${dep}/`));
+      },
       output: {
         globals: { react: "React", "react-dom": "ReactDOM" },
       },

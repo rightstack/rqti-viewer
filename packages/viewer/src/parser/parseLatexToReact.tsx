@@ -4,8 +4,6 @@
  */
 import React, { type ElementType } from "react";
 import "mathlive";
-import "mathlive/fonts.css";
-import "mathlive/static.css";
 import { normalizeHline } from "../utils/latex";
 
 const MathField = "math-field" as unknown as ElementType;
