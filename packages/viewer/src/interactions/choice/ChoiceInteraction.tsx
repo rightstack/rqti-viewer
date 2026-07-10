@@ -25,9 +25,11 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
   index,
 }) => {
   const responseIdentifier = element.getAttribute("response-identifier") || "";
-  const maxChoices = Number(element.getAttribute("rtqi:max-choices"));
+  // QTI max-choices: 미지정 시 단일 선택(1). "0"은 무제한(다중).
+  const maxChoicesAttr = element.getAttribute("max-choices");
+  const maxChoices = maxChoicesAttr === null ? 1 : Number(maxChoicesAttr);
   const xmlClass = element.getAttribute("class") || "";
-  const isMultiple = maxChoices !== 1;
+  const isMultiple = Number.isFinite(maxChoices) && maxChoices !== 1;
 
   const [value, setValue] = useState<ResponseValue>("");
 

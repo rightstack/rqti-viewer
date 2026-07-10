@@ -23,10 +23,10 @@ function getTextEntryResponseString(
 }
 
 const PATTERNS = {
-  korean: "rtqi:[가-힣\\s]+",
-  english: "rtqi:[a-zA-Z\\s]+",
-  number: "rtqi:[0-9]+",
-  mixed: "rtqi:[가-힣a-zA-Z0-9\\s]+",
+  korean: "[가-힣\\s]+",
+  english: "[a-zA-Z\\s]+",
+  number: "[0-9]+",
+  mixed: "[가-힣a-zA-Z0-9\\s]+",
   free: ".*",
 };
 
@@ -48,7 +48,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
   const patternMask = element.getAttribute("pattern-mask");
   const placeholderText = element.getAttribute("placeholder-text");
   const expectedLengthAttr = element.getAttribute("expected-length");
-  const maxLengthAttr = element.getAttribute("maxlength") || element.getAttribute("rtqi:max-length");
+  const maxLengthAttr = element.getAttribute("maxlength");
 
   // pattern-mask 속성 처리
   const getPattern = (mask: string | null): string | undefined => {
