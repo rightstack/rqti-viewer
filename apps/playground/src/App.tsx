@@ -136,7 +136,7 @@ export default function App() {
             <Question
               key={questionProps.itemKey}
               theme="daldal"
-              showInlineFeedback
+              showInlineFeedback={false}
               {...questionProps}
             />
           )}
