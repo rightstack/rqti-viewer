@@ -40,4 +40,12 @@ export type {
   ResponseValueMap,
   FeedbackSubmitResponse,
   FeedbackItem,
+  ViewerPreviewItem,
+  ViewerPreviewFeedback,
+  ViewerPreviewEditorNode,
 } from "./types";
+
+export {
+  mapViewerPreviewToQuestionProps,
+  type ViewerPreviewQuestionProps,
+} from "./utils/mapViewerPreviewToQuestionProps";

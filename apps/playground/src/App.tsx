@@ -1,7 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Question,
+  type FeedbackItem,
+  type ItemsType,
   type QuestionMode,
+  type ResponseValue,
   type ResponseValueMap,
 } from "@rightstack/rqti-viewer";
 import { SAMPLES } from "./samples";
@@ -12,16 +15,108 @@ const MODE_OPTIONS: { value: QuestionMode; label: string }[] = [
   { value: "preview", label: "review" },
 ];
 
+const API_SAMPLE_ID = "api-preview";
+const PREVIEW_QTI_ID = "i_nsc3b1pz3ruordoa";
+const PREVIEW_TOKEN = "1786114799~Eg4k3QFE";
+const PREVIEW_URL = `/qms-api/api/v3/viewer/preview/${PREVIEW_QTI_ID}?t=${encodeURIComponent(
+  PREVIEW_TOKEN,
+)}`;
+
+interface PreviewFeedback {
+  feedbackType: string;
+  feedbackTypeLabel?: string;
+  title?: string;
+  content: string;
+}
+
+interface PreviewResponse {
+  qtiIdentifier: string;
+  title: string;
+  type: ItemsType;
+  qtiXml: string;
+  correctAnswer?: Record<string, ResponseValue>;
+  feedbacks?: PreviewFeedback[];
+}
+
+function mapFeedbacks(
+  feedbacks?: PreviewFeedback[],
+): FeedbackItem[] | undefined {
+  if (!feedbacks?.length) return undefined;
+  return feedbacks.map((f) => ({
+    type: f.feedbackType,
+    typeLabel: f.feedbackTypeLabel,
+    title: f.title,
+    content: f.content,
+  }));
+}
+
 export default function App() {
-  const [selectedId, setSelectedId] = useState(SAMPLES[0].id);
+  const [selectedId, setSelectedId] = useState(API_SAMPLE_ID);
   const [mode, setMode] = useState<QuestionMode>("practice");
   const [responses, setResponses] = useState<ResponseValueMap>({});
   const [submitted, setSubmitted] = useState<ResponseValueMap | null>(null);
+
+  const [apiItem, setApiItem] = useState<PreviewResponse | null>(null);
+  const [apiStatus, setApiStatus] = useState<
+    "idle" | "loading" | "error" | "ready"
+  >("idle");
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setApiStatus("loading");
+    setApiError(null);
+
+    fetch(PREVIEW_URL, { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`preview API ${res.status}: ${await res.text()}`);
+        }
+        return res.json() as Promise<PreviewResponse>;
+      })
+      .then((data) => {
+        setApiItem(data);
+        setApiStatus("ready");
+      })
+      .catch((err: unknown) => {
+        if (controller.signal.aborted) return;
+        setApiItem(null);
+        setApiStatus("error");
+        setApiError(err instanceof Error ? err.message : String(err));
+      });
+
+    return () => controller.abort();
+  }, []);
 
   const sample = useMemo(
     () => SAMPLES.find((s) => s.id === selectedId) ?? SAMPLES[0],
     [selectedId],
   );
+
+  const isApiSelected = selectedId === API_SAMPLE_ID;
+
+  const questionProps = useMemo(() => {
+    if (isApiSelected && apiItem) {
+      return {
+        id: apiItem.qtiIdentifier,
+        data: apiItem.qtiXml,
+        type: apiItem.type,
+        correctAnswers: apiItem.correctAnswer,
+        feedbacks: mapFeedbacks(apiItem.feedbacks),
+        solution: undefined as string | undefined,
+        passageFeedbacks: undefined as string | undefined,
+      };
+    }
+    return {
+      id: sample.id,
+      data: sample.data,
+      type: sample.type,
+      correctAnswers: sample.correctAnswers,
+      feedbacks: sample.feedbacks,
+      solution: sample.solution,
+      passageFeedbacks: sample.passageFeedbacks,
+    };
+  }, [isApiSelected, apiItem, sample]);
 
   const handleSelect = (id: string) => {
     setSelectedId(id);
@@ -36,6 +131,15 @@ export default function App() {
         <p style={styles.subtitle}>playground</p>
 
         <nav style={styles.nav}>
+          <button
+            onClick={() => handleSelect(API_SAMPLE_ID)}
+            style={{
+              ...styles.navItem,
+              ...(isApiSelected ? styles.navItemActive : null),
+            }}
+          >
+            API Preview ({PREVIEW_QTI_ID})
+          </button>
           {SAMPLES.map((s) => (
             <button
               key={s.id}
@@ -73,25 +177,43 @@ export default function App() {
               <pre style={styles.pre}>{JSON.stringify(submitted, null, 2)}</pre>
             </>
           )}
+          {isApiSelected && (
+            <>
+              <h2 style={styles.stateTitle}>API</h2>
+              <pre style={styles.pre}>
+                {apiStatus === "loading" && "loading…"}
+                {apiStatus === "error" && apiError}
+                {apiStatus === "ready" && apiItem?.title}
+              </pre>
+            </>
+          )}
         </section>
       </aside>
 
       <main style={styles.main}>
         <div style={styles.card}>
-          <Question
-            key={`${sample.id}-${mode}`}
-            theme="daldal"
-            data={sample.data}
-            type={sample.type}
-            mode={mode}
-            correctAnswers={sample.correctAnswers}
-            showFeedback
-            solution={sample.solution}
-            feedbacks={sample.feedbacks}
-            passageFeedbacks={sample.passageFeedbacks}
-            onResponse={setResponses}
-            onSubmit={setSubmitted}
-          />
+          {isApiSelected && apiStatus === "loading" && (
+            <p style={styles.statusText}>API 불러오는 중…</p>
+          )}
+          {isApiSelected && apiStatus === "error" && (
+            <p style={styles.statusText}>API 오류: {apiError}</p>
+          )}
+          {(!isApiSelected || apiStatus === "ready") && (
+            <Question
+              key={`${questionProps.id}-${mode}`}
+              // theme="daldal"
+              data={questionProps.data}
+              type={questionProps.type}
+              // mode={mode}
+              correctAnswers={questionProps.correctAnswers}
+              // showFeedback
+              solution={questionProps.solution}
+              feedbacks={questionProps.feedbacks}
+              passageFeedbacks={questionProps.passageFeedbacks}
+              onResponse={setResponses}
+              onSubmit={setSubmitted}
+            />
+          )}
         </div>
       </main>
     </div>
@@ -147,6 +269,7 @@ const styles: Record<string, React.CSSProperties> = {
     overflowX: "auto",
     margin: 0,
   },
+  statusText: { margin: 0, color: "#666", fontSize: 14 },
   main: {
     flex: 1,
     padding: 40,

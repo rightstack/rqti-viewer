@@ -2,6 +2,9 @@
 
 QTI 문항(Viewer) 렌더링 라이브러리. React 앱에서 문항 단위로 QTI XML을 렌더링합니다.
 
+현재 가이드는 **상세(Preview) API + `mode="preview"`** 기준입니다.
+문항을 조회·표시만 하며, 제출·채점 연동은 포함하지 않습니다.
+
 ## 요구사항
 
 - React >= 18
@@ -46,121 +49,152 @@ npm install @rightstack/rqti-viewer
 
 스타일은 반드시 별도로 import 합니다.
 
-```tsx
-import { Question, ITEM_TYPE } from "@rightstack/rqti-viewer";
-import "@rightstack/rqti-viewer/styles.css";
-
-export function ItemViewer({ qtiXml }: { qtiXml: string }) {
-  return (
-    <Question
-      data={qtiXml}
-      type={ITEM_TYPE.MCQ}
-      mode="practice"
-      onResponse={(responses) => console.log(responses)}
-    />
-  );
-}
-```
-
-## 문항 렌더링
-
-`Question` 컴포넌트 하나로 문항 단위 렌더링을 수행합니다.
-
-### 모드
-
-| mode | 설명 |
-|------|------|
-| `practice` | 인터랙티브 풀이 모드 (기본값). 제출 버튼·응답 입력 활성 |
-| `preview` | 리뷰/정답 확인 모드. 인터랙션 비활성, 하단에 정답·해설 표시 가능 |
-
-### 문항 전환
-
-문항이 바뀔 때 응답·내부 캐시를 초기화하려면 React `key`와 `itemKey`를 함께 사용하는 것을 권장합니다.
+상세 API 응답(`ViewerPreviewItem`)을 `mapViewerPreviewToQuestionProps`로 변환해 `Question`에 전달합니다.
 
 ```tsx
-<Question
-  key={itemId}
-  itemKey={itemId}
-  data={qtiXml}
-  type={itemType}
-  mode="practice"
-/>
-```
-
-- `key` — React 리마운트로 컴포넌트 상태 초기화
-- `itemKey` — 매칭(MATCH) 등 내부 캐시·높이 동기화 키
-
-### 권장 통합 예시
-
-```tsx
-import { useState } from "react";
 import {
   Question,
-  ITEM_TYPE,
-  type ItemsType,
-  type ResponseValueMap,
+  mapViewerPreviewToQuestionProps,
+  type ViewerPreviewItem,
 } from "@rightstack/rqti-viewer";
 import "@rightstack/rqti-viewer/styles.css";
 
-interface ItemViewerProps {
-  itemId: string;
-  qtiXml: string;
-  itemType: ItemsType;
-  mediaToken?: string;
-  apiBaseUrl?: string;
-}
-
-export function ItemViewer({
-  itemId,
-  qtiXml,
-  itemType,
-  mediaToken,
-  apiBaseUrl,
-}: ItemViewerProps) {
-  const [responses, setResponses] = useState<ResponseValueMap>({});
-
-  return (
-    <Question
-      key={itemId}
-      itemKey={itemId}
-      data={qtiXml}
-      type={itemType}
-      token={mediaToken}
-      baseUrl={apiBaseUrl}
-      theme="daldal"
-      mode="practice"
-      showFeedback
-      correctAnswers={correctAnswers}
-      onResponse={setResponses}
-      onSubmit={(submitted) => sendToServer(submitted)}
-    />
-  );
+export function PreviewItem({ item }: { item: ViewerPreviewItem }) {
+  return <Question theme="daldal" {...mapViewerPreviewToQuestionProps(item)} />;
 }
 ```
 
-## Question API
+## 상세 API
 
-### 필수 props
+현재 연동하는 API는 문항 상세(Preview) 조회 하나뿐입니다.
 
-| prop | 타입 | 설명 |
+```
+GET /api/v3/viewer/preview/{qtiIdentifier}?t={token}
+```
+
+응답 본문 타입: `ViewerPreviewItem`
+
+### 응답 필드
+
+| 필드 | 타입 | 설명 |
 |------|------|------|
-| `data` | `string` | QTI XML 문자열 |
-| `type` | `ItemsType` | 문항 유형 (`ITEM_TYPE` 상수 사용 권장). 없으면 제출 버튼이 비활성화됩니다 |
+| `id` | `number` | assessment id |
+| `qtiIdentifier` | `string` | QTI identifier |
+| `title` | `string` | 문항 제목 |
+| `type` | `ItemsType` | 문항 유형 (`scq`, `mcq`, …) |
+| `qtiXml` | `string` | QTI XML |
+| `correctAnswer` | `Record<string, ResponseValue> \| null` | 정답 맵 |
+| `settings` | `unknown \| null` | 설정 (현재 미사용) |
+| `feedbacks` | `ViewerPreviewFeedback[]` | 피드백 목록 |
+
+### feedbacks[] 필드
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `feedbackType` | `string` | `HINT`, `TRANSLATION`, `SOLUTION`, … |
+| `feedbackTypeLabel` | `string` | 표시 라벨 |
+| `title` | `string` | 제목 |
+| `content` | `string` | 본문 HTML (뷰어가 렌더) |
+| `editorJson` | `ViewerPreviewEditorNode[]` | 에디터 JSON (타입만 보존, 렌더 미사용) |
+| `effectiveCondition` | `string` | 표시 조건식 (현재 뷰어는 평가하지 않음) |
+| `displayOrder` | `number` | 정렬 순서 |
+| `conditionPresetId` | `string \| null` | 조건 프리셋 |
+| … | | `id`, `assessmentId`, `createdAt`, `updatedAt` 등 |
+
+> `effectiveCondition` 필터링은 호스트 앱 책임입니다. 매퍼는 전달된 `feedbacks`를 모두 Question에 넘깁니다.
+
+### API → Question 매핑
+
+`mapViewerPreviewToQuestionProps(item)`:
+
+| API | Question prop | 비고 |
+|-----|---------------|------|
+| `qtiXml` | `data` | |
+| `type` | `type` | |
+| `qtiIdentifier` | `itemKey` | |
+| `correctAnswer` | `correctAnswers` | `null`이면 생략 |
+| `feedbacks[].feedbackType` | `feedbacks[].type` | `displayOrder`로 정렬 |
+| `feedbacks[].feedbackTypeLabel` | `feedbacks[].typeLabel` | |
+| `feedbacks[].title` | `feedbacks[].title` | |
+| `feedbacks[].content` | `feedbacks[].content` | |
+| — | `mode` | 항상 `"preview"` |
+| — | `showInlineFeedback` | 항상 `true` |
+
+```tsx
+import {
+  Question,
+  mapViewerPreviewToQuestionProps,
+  type ViewerPreviewItem,
+} from "@rightstack/rqti-viewer";
+import "@rightstack/rqti-viewer/styles.css";
+
+async function loadPreview(qtiId: string, token: string) {
+  const res = await fetch(
+    `/api/v3/viewer/preview/${qtiId}?t=${encodeURIComponent(token)}`,
+  );
+  const item = (await res.json()) as ViewerPreviewItem;
+  return mapViewerPreviewToQuestionProps(item);
+}
+
+export function PreviewPage({ qtiId, token }: { qtiId: string; token: string }) {
+  const [props, setProps] = useState<ReturnType<
+    typeof mapViewerPreviewToQuestionProps
+  > | null>(null);
+
+  useEffect(() => {
+    loadPreview(qtiId, token).then(setProps);
+  }, [qtiId, token]);
+
+  if (!props) return null;
+  return <Question key={props.itemKey} theme="daldal" {...props} />;
+}
+```
+
+### export
+
+| export | 설명 |
+|--------|------|
+| `ViewerPreviewItem` | 상세 API 응답 본문 |
+| `ViewerPreviewFeedback` | `feedbacks[]` 항목 |
+| `ViewerPreviewEditorNode` | `editorJson` 노드 |
+| `ViewerPreviewQuestionProps` | 매퍼 반환 타입 (`mode: "preview"`) |
+| `mapViewerPreviewToQuestionProps` | API → Question props |
+
+## Question (preview)
+
+매퍼를 쓰면 아래 props가 채워집니다. 문항은 읽기 전용으로 렌더되고, 하단에 정답·피드백이 표시됩니다.
+
+| prop | 설명 |
+|------|------|
+| `data` | QTI XML |
+| `type` | 문항 유형 |
+| `itemKey` | 문항 식별 키 (캐시·전환용) |
+| `mode` | `"preview"` 고정 |
+| `showInlineFeedback` | `true` — 하단 FeedbackInline 표시 |
+| `correctAnswers` | 정답 |
+| `feedbacks` | 해설/해석/힌트 등 |
+
+문항이 바뀔 때는 `key`와 `itemKey`를 함께 두는 것을 권장합니다.
+
+```tsx
+<Question key={props.itemKey} theme="daldal" {...props} />
+```
 
 ### 미디어 / 인증
 
+상세 API의 `t` 토큰과 별도로, 문항 내 미디어 URL용 토큰이 필요하면 `token` / `baseUrl`을 추가합니다.
+
 | prop | 타입 | 설명 |
 |------|------|------|
-| `token` | `string` | 미디어 URL에 `?t={token}` 쿼리로 추가되는 인증 토큰 (SVG 제외) |
-| `baseUrl` | `string` | 상대 경로 미디어를 절대 URL로 변환할 때 사용하는 베이스 URL |
+| `token` | `string` | 미디어 URL에 `?t={token}` 추가 (SVG 제외) |
+| `baseUrl` | `string` | 상대 경로 미디어를 절대 URL로 변환할 베이스 |
 
 ```tsx
-// 상대 경로: /media/image.png → https://api.example.com/media/image.png?t=TOKEN
 <Question
-  data={qtiXml}
-  type={ITEM_TYPE.SCQ}
-  baseUrl="https://api.example.com"
-  token={sessionMediaToken}
+  theme="daldal"
+  token={mediaToken}
+  baseUrl={apiBaseUrl}
+  {...mapViewerPreviewToQuestionProps(item)}
 />
 ```
 
@@ -168,71 +202,19 @@ export function ItemViewer({
 
 | prop | 타입 | 설명 |
 |------|------|------|
-| `theme` | `Theme \| string` | 프리셋 id (`"default"`, `"daldal"`, `"duolingo"`) 또는 커스텀 `Theme` 객체 |
-
-### 응답 / 제출 / 채점
-
-| prop | 타입 | 설명 |
-|------|------|------|
-| `mode` | `"practice" \| "preview"` | 동작 모드 (기본: `practice`) |
-| `onResponse` | `(responses) => void` | 응답 변경 콜백 |
-| `onSubmit` | `(responses) => void` | 제출 버튼 클릭 콜백 |
-| `responses` | `ResponseValueMap` | 제어형 응답 (preview 모드에서 외부 state 연동) |
-| `correctAnswers` | `Record<string, ResponseValue>` | 정답 데이터 |
-| `submitResponse` | `FeedbackSubmitResponse` | 외부 채점 결과 주입 |
-| `showFeedback` | `boolean` | practice 모드에서 내장 피드백 시트 표시 |
-| `showSubmitButton` | `boolean` | 제출 버튼 표시 (기본: `true`) |
-
-### 리뷰(preview) 모드
-
-| prop | 타입 | 설명 |
-|------|------|------|
-| `correct` | `boolean` | 정오답 표시 |
-| `feedbacks` | `FeedbackItem[]` | 하단 해설/해석/힌트 섹션 |
-| `passageFeedbacks` | `string` | 지문 해설 HTML |
-| `showInlineFeedback` | `boolean` | 하단 FeedbackInline 표시 (기본: `true`) |
-| `questionIndex` | `number` | 문항 번호 (1-based) |
-
-### 기타
-
-| prop | 타입 | 설명 |
-|------|------|------|
-| `itemKey` | `string` | 문항 식별 키 (내부 캐시용) |
-| `placeholder` | `string` | 텍스트 입력 placeholder |
-| `solution` | `ReactNode` | 정답 피드백 시 "풀이보기" 모달 내용 |
-| `className` | `string` | `.rtqi-viewer` 루트에 추가할 클래스 |
-
-## 테마 설정
-
-### 프리셋
-
-| id | 이름 |
-|----|------|
-| `default` | 기본 테마 |
-| `daldal` | 달달독해 |
-| `duolingo` | Duolingo 스타일 |
+| `theme` | `Theme \| string` | 프리셋 id (`"default"`, `"daldal"`, `"duolingo"`) 또는 커스텀 `Theme` |
 
 ```tsx
 import { Question, DALDAL_THEME } from "@rightstack/rqti-viewer";
 
-// 문자열 id
-<Question theme="daldal" ... />
-
-// Theme 객체 직접 전달
-<Question theme={DALDAL_THEME} ... />
+<Question theme="daldal" {...props} />
+<Question theme={DALDAL_THEME} {...props} />
 ```
 
-### 커스텀 테마
-
-`Theme` 객체를 직접 전달하거나 `DEFAULT_THEME`을 기반으로 오버라이드합니다.
+커스텀 테마는 `DEFAULT_THEME`을 기반으로 오버라이드합니다.
 
 ```tsx
-import {
-  Question,
-  DEFAULT_THEME,
-  getThemeCSSVariables,
-  type Theme,
-} from "@rightstack/rqti-viewer";
+import { DEFAULT_THEME, type Theme } from "@rightstack/rqti-viewer";
 
 const myTheme: Theme = {
   ...DEFAULT_THEME,
@@ -241,20 +223,11 @@ const myTheme: Theme = {
   containerConfig: {
     ...DEFAULT_THEME.containerConfig,
     maxWidth: "640px",
-    backgroundColor: "#FAFAFA",
-  },
-  typography: {
-    ...DEFAULT_THEME.typography,
-    baseFontSize: "18px",
   },
 };
-
-<Question theme={myTheme} ... />
 ```
 
-테마는 `.rtqi-viewer` 루트에 CSS 변수로 적용됩니다. 폰트는 `typography.fontFamily` 설정 시 자동 로드됩니다.
-
-문항 번호는 `theme.questionNumberConfig`로 제어합니다.
+문항 번호는 `theme.questionNumberConfig` + `questionIndex`로 제어합니다.
 
 ```tsx
 const themeWithNumber: Theme = {
@@ -268,13 +241,13 @@ const themeWithNumber: Theme = {
   },
 };
 
-<Question theme={themeWithNumber} questionIndex={3} ... />
-// → "Q03." 표시
+<Question theme={themeWithNumber} questionIndex={3} {...props} />
+// → "Q03."
 ```
 
 ## 지원 문항 유형
 
-`ITEM_TYPE` 상수로 전달합니다.
+`ITEM_TYPE` / 상세 API의 `type` 값입니다.
 
 | 상수 | 값 | 설명 |
 |------|-----|------|
@@ -298,26 +271,26 @@ const themeWithNumber: Theme = {
 ## LaTeX
 
 LaTeX 수식은 [MathLive](https://cortexjs.io/mathlive/)로 렌더링됩니다.
-`styles.css` import 시 MathLive 스타일이 `viewer.css`에 포함되므로 **별도 CSS import는 필요 없습니다**.
+`styles.css` import 시 MathLive 스타일이 포함되므로 **별도 CSS import는 필요 없습니다**.
 
 ## 스타일 격리
 
 모든 스타일은 `.rtqi-viewer` root 아래에서만 적용됩니다.
 Tailwind preflight는 비활성화되어 host app CSS와 충돌하지 않습니다.
+클래스 util은 `rtqi:` prefix로 스코프됩니다.
 
 ## 추가 export
 
-커스텀 UX가 필요할 때 아래를 직접 사용할 수 있습니다.
-
 ```tsx
 import {
-  FeedbackSheet,
-  FeedbackModal,
+  mapViewerPreviewToQuestionProps,
+  type ViewerPreviewItem,
+  type ViewerPreviewFeedback,
+  type ViewerPreviewQuestionProps,
   FeedbackInline,
-  getFeedbackTitle,
   getThemeCSSVariables,
+  ITEM_TYPE,
   type Theme,
-  type ResponseValueMap,
   type FeedbackItem,
 } from "@rightstack/rqti-viewer";
 ```

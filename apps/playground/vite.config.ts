@@ -5,5 +5,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    proxy: {
+      "/qms-api": {
+        target: "https://stgqms.mirae-n.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/qms-api/, ""),
+      },
+    },
   },
 });

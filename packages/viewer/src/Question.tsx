@@ -89,7 +89,8 @@ export interface QuestionProps {
   passageFeedbacks?: string | null;
   /**
    * preview(리뷰) 모드에서 문항 하단에 정답·피드백 블록(FeedbackInline)을 표시한다.
-   * 기본값 true. (정답·피드백 정보가 없으면 자동으로 렌더되지 않음)
+   * 기본값 false. (정답·피드백 정보가 없으면 자동으로 렌더되지 않음)
+   * Preview API 매퍼(`mapViewerPreviewToQuestionProps`)는 true로 설정한다.
    */
   showInlineFeedback?: boolean;
   className?: string;
@@ -108,7 +109,7 @@ function Question({
   isSubmit = false,
   showSubmitButton = true,
   submitButtonLabel = "제출",
-  mode = "practice",
+  mode = "preview",
   correctAnswers,
   responses: responsesProp,
   submitResponse,
@@ -121,10 +122,12 @@ function Question({
   correct,
   feedbacks,
   passageFeedbacks,
-  showInlineFeedback = true,
+  showInlineFeedback = false,
   className,
 }: QuestionProps) {
-  const [responses, setResponses] = useState<ResponseValueMap>(responsesProp ?? {});
+  const [responses, setResponses] = useState<ResponseValueMap>(
+    responsesProp ?? {},
+  );
   const [internalIsSubmit, setInternalIsSubmit] = useState(isSubmit);
   // showFeedback 사용 시 자체 채점 결과 (submitResponse 미주입 시)
   const [internalSubmitResponse, setInternalSubmitResponse] = useState<
@@ -138,8 +141,8 @@ function Question({
 
   const theme =
     typeof themeProp === "string"
-      ? (THEME_MAP[themeProp as keyof typeof THEME_MAP] ?? THEME_MAP["default"])
-      : (themeProp ?? THEME_MAP["default"]);
+      ? THEME_MAP[themeProp as keyof typeof THEME_MAP] ?? THEME_MAP["default"]
+      : themeProp ?? THEME_MAP["default"];
 
   const themeVariables = getThemeCSSVariables(theme);
 
@@ -156,7 +159,10 @@ function Question({
   }, [responsesProp]);
 
   const handleResponseChange = (identifier: string, value: ResponseValue) => {
-    const newResponses = { ...responses, [identifier]: value } as ResponseValueMap;
+    const newResponses = {
+      ...responses,
+      [identifier]: value,
+    } as ResponseValueMap;
     setResponses(newResponses);
     onResponse?.(newResponses);
   };
@@ -172,13 +178,15 @@ function Question({
 
   // 정오답을 가릴 수 없는 유형(서술형/업로드 등 또는 정답 정보 부재)은 "제출 완료"만 표시
   const hasGrading =
-    !!submitResponse || (!!correctAnswers && Object.keys(correctAnswers).length > 0);
-  const isCompletionOnly = type === ITEM_TYPE.ESSAY || type === ITEM_TYPE.UPLOAD || !hasGrading;
+    !!submitResponse ||
+    (!!correctAnswers && Object.keys(correctAnswers).length > 0);
+  const isCompletionOnly =
+    type === ITEM_TYPE.ESSAY || type === ITEM_TYPE.UPLOAD || !hasGrading;
   const feedbackType: FeedbackType = isCompletionOnly
     ? "SOLUTION"
     : effectiveSubmitResponse?.correct
-      ? "CORRECT"
-      : "INCORRECT";
+    ? "CORRECT"
+    : "INCORRECT";
 
   // 채점 결과 도착 시 피드백 시그널 발생 + 내장 시트 오픈 (practice 모드)
   useEffect(() => {
@@ -186,7 +194,13 @@ function Question({
     setInternalIsSubmit(true);
     onFeedbackOpen?.(feedbackType);
     if (showFeedback) setFeedbackOpen(true);
-  }, [effectiveSubmitResponse, mode, onFeedbackOpen, feedbackType, showFeedback]);
+  }, [
+    effectiveSubmitResponse,
+    mode,
+    onFeedbackOpen,
+    feedbackType,
+    showFeedback,
+  ]);
 
   const canSubmitOptions = useMemo<CanSubmitOptions>(() => {
     if (!data || !type) return {};
@@ -201,12 +215,15 @@ function Question({
 
     if (type === ITEM_TYPE.CLOZE) {
       expectedResponseCount =
-        (data.match(/<qti-text-entry-interaction\b/g) ?? []).length || undefined;
+        (data.match(/<qti-text-entry-interaction\b/g) ?? []).length ||
+        undefined;
     } else if (type === ITEM_TYPE.DDQ) {
       expectedResponseCount =
-        (data.match(/<qti-inline-choice-interaction\b/g) ?? []).length || undefined;
+        (data.match(/<qti-inline-choice-interaction\b/g) ?? []).length ||
+        undefined;
     } else if (type === ITEM_TYPE.GMQ) {
-      expectedResponseCount = (data.match(/<qti-gap[\s>/]/g) ?? []).length || undefined;
+      expectedResponseCount =
+        (data.match(/<qti-gap[\s>/]/g) ?? []).length || undefined;
     }
 
     return { type, maxChoices, expectedResponseCount };
@@ -215,7 +232,8 @@ function Question({
   const canSubmit = canSubmitUtil(responses, canSubmitOptions);
 
   // preview(리뷰) 하단 FeedbackInline에 표시할 정답: prop 우선, 없으면 채점 응답의 correctAnswer
-  const inlineCorrectAnswer = correctAnswers ?? effectiveSubmitResponse?.correctAnswer;
+  const inlineCorrectAnswer =
+    correctAnswers ?? effectiveSubmitResponse?.correctAnswer;
 
   const parserOptions: QTIParserOptions = {
     token,
@@ -236,9 +254,13 @@ function Question({
   // 문항 번호: questionNumberConfig가 있을 때만 표시
   const qnConfig = theme?.questionNumberConfig;
   const enabled =
-    !!qnConfig && !(qnConfig?.enabled === false || String(qnConfig?.enabled) === "false");
+    !!qnConfig &&
+    !(qnConfig?.enabled === false || String(qnConfig?.enabled) === "false");
   const showQuestionNumber =
-    enabled && questionIndex !== undefined && questionIndex !== null && questionIndex >= 1;
+    enabled &&
+    questionIndex !== undefined &&
+    questionIndex !== null &&
+    questionIndex >= 1;
   const position = qnConfig?.position === "top" ? "top" : "rtqi:inline";
   const digits = Number(qnConfig?.digits) || 1;
   const prefix = qnConfig?.prefix ?? "";
@@ -254,7 +276,8 @@ function Question({
       ? internalIsSubmit && correct !== undefined
       : !!effectiveSubmitResponse);
 
-  const isCorrectBadge = mode === "preview" ? !!correct : !!effectiveSubmitResponse?.correct;
+  const isCorrectBadge =
+    mode === "preview" ? !!correct : !!effectiveSubmitResponse?.correct;
   const correctIconUrl = theme?.feedbackConfig?.common?.correctIconUrl;
   const incorrectIconUrl = theme?.feedbackConfig?.common?.incorrectIconUrl;
 
@@ -264,12 +287,20 @@ function Question({
     <span className="qti-ext-feedback-badge" aria-hidden>
       {isCorrectBadge ? (
         correctIconUrl ? (
-          <img src={correctIconUrl} alt="" className="qti-ext-feedback-badge-img" />
+          <img
+            src={correctIconUrl}
+            alt=""
+            className="qti-ext-feedback-badge-img"
+          />
         ) : (
           <CorrectIcon />
         )
       ) : incorrectIconUrl ? (
-        <img src={incorrectIconUrl} alt="" className="qti-ext-feedback-badge-img" />
+        <img
+          src={incorrectIconUrl}
+          alt=""
+          className="qti-ext-feedback-badge-img"
+        />
       ) : (
         <IncorrectIcon />
       )}
@@ -303,27 +334,41 @@ function Question({
       className={cn("rtqi-viewer", className)}
       style={themeVariables as React.CSSProperties}
     >
-      <div className={cn("qti-ext-wrapper", stackInlineFeedback && "rtqi:flex-col")}>
-      <div className={cn("qti-ext-container", stackInlineFeedback && "rtqi:mx-auto rtqi:w-full")}>
-        {showQuestionNumber &&
-          position === "top" &&
-          (showFeedbackBadge ? (
-            <div className="qti-ext-question-number-region">
-              {renderFeedbackBadge()}
-              <QuestionNumber label={questionNumberLabel} position="top" />
-            </div>
-          ) : (
-            <QuestionNumber label={questionNumberLabel} position="top" />
-          ))}
-
-        {contentBlock}
-
-        {mode !== "preview" && showSubmitButton && (
-          <div className="rtqi:mt-auto rtqi:pb-8">
-            <SubmitButton canSubmit={canSubmit} onSubmit={handleSubmit} label={submitButtonLabel} />
-          </div>
+      <div
+        className={cn(
+          "qti-ext-wrapper",
+          stackInlineFeedback && "rtqi:flex-col",
         )}
-      </div>
+      >
+        <div
+          className={cn(
+            "qti-ext-container",
+            stackInlineFeedback && "rtqi:mx-auto rtqi:w-full",
+          )}
+        >
+          {showQuestionNumber &&
+            position === "top" &&
+            (showFeedbackBadge ? (
+              <div className="qti-ext-question-number-region">
+                {renderFeedbackBadge()}
+                <QuestionNumber label={questionNumberLabel} position="top" />
+              </div>
+            ) : (
+              <QuestionNumber label={questionNumberLabel} position="top" />
+            ))}
+
+          {contentBlock}
+
+          {mode !== "preview" && showSubmitButton && (
+            <div className="rtqi:mt-auto rtqi:pb-8">
+              <SubmitButton
+                canSubmit={canSubmit}
+                onSubmit={handleSubmit}
+                label={submitButtonLabel}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {mode === "preview" && showInlineFeedback && (
@@ -352,8 +397,8 @@ function Question({
               feedbackType === "CORRECT"
                 ? "correct"
                 : feedbackType === "SOLUTION"
-                  ? "explanation"
-                  : "incorrect"
+                ? "explanation"
+                : "incorrect"
             ]?.description?.text
           }
           buttons={[
