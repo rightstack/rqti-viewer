@@ -11,6 +11,11 @@ export type { QuestionProps, QuestionMode } from "./Question";
 
 // 문항 유형
 export { ITEM_TYPE, type ItemsType } from "./constants/itemType";
+export {
+  SAMPLE_ITEMS,
+  SAMPLE_IDS,
+  type SampleItem,
+} from "./constants/sampleItems";
 
 // 테마
 export {
@@ -40,12 +45,12 @@ export type {
   ResponseValueMap,
   FeedbackSubmitResponse,
   FeedbackItem,
-  ViewerPreviewItem,
-  ViewerPreviewFeedback,
-  ViewerPreviewEditorNode,
+  QuestionItem,
+  QuestionFeedback,
+  QuestionEditorNode,
 } from "./types";
 
 export {
-  mapViewerPreviewToQuestionProps,
-  type ViewerPreviewQuestionProps,
-} from "./utils/mapViewerPreviewToQuestionProps";
+  toQuestionProps,
+  type QuestionItemProps,
+} from "./utils/toQuestionProps";

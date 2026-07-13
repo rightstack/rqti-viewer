@@ -90,7 +90,6 @@ export interface QuestionProps {
   /**
    * preview(리뷰) 모드에서 문항 하단에 정답·피드백 블록(FeedbackInline)을 표시한다.
    * 기본값 false. (정답·피드백 정보가 없으면 자동으로 렌더되지 않음)
-   * Preview API 매퍼(`mapViewerPreviewToQuestionProps`)는 true로 설정한다.
    */
   showInlineFeedback?: boolean;
   className?: string;
