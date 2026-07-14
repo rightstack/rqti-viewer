@@ -4,11 +4,20 @@
 
 @config "../../../tailwind.config.ts";
 
-@import "tailwindcss";
+/*
+ * 기본 preflight(base 레이어)는 전역 오염을 유발하므로 제외하고,
+ * theme/utilities만 가져온 뒤 preflight-scoped.css로 .rtqi-viewer에 스코프한다.
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
 @import "tw-animate-css";
 
 /* 패키지 소스의 클래스명을 스캔 대상으로 지정 */
 @source "../../**/*.{ts,tsx}";
+
+/* preflight을 .rtqi-viewer 범위로 스코프 (호스트 앱 전역 오염 방지) */
+@import "./preflight-scoped.css" layer(base);
 
 /* base tokens (@theme + :root variables) */
 @import "./base.css";

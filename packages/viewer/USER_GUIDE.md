@@ -1,7 +1,9 @@
 # @rightstack/rqti-viewer 사용자 가이드
 
 QTI 문항을 **상세 API**로 조회해 읽기 전용으로 렌더링하는 가이드입니다.  
-제출·채점 연동은 포함하지 않습니다. (`Question`의 `mode="preview"` 사용)
+제출·채점 연동은 포함하지 않습니다. (`Question`의 기본 모드 `preview` 사용)
+
+> `mode`는 `Question`이 기본값 `"preview"`(읽기 전용)로 처리합니다. `toQuestionProps`는 `mode`를 지정하지 않으므로, 인터랙션이 필요하면 호출측에서 `mode="practice"`를 직접 전달하세요.
 
 현재 패키지 버전: **0.1.2** (리네임 반영 시 버전 bump 예정)
 
@@ -46,7 +48,7 @@ import "@rightstack/rqti-viewer/styles.css";
     ↓
 toQuestionProps(item)
     ↓
-<Question {...props} />   // mode="preview"
+<Question {...props} />   // 기본 mode="preview" (practice는 호출측에서 지정)
 ```
 
 라이브러리는 **데이터(`SAMPLE_ITEMS`) + 매퍼 + Question**만 제공합니다.  
@@ -130,15 +132,15 @@ GET /api/v3/viewer/preview/{qtiIdentifier}
 
 `toQuestionProps(item)` 결과:
 
-| API             | Question prop        | 비고                                         |
-| --------------- | -------------------- | -------------------------------------------- |
-| `qtiXml`        | `data`               |                                              |
-| `type`          | `type`               |                                              |
-| `qtiIdentifier` | `itemKey`            |                                              |
-| `correctAnswer` | `correctAnswers`     | `null`이면 생략                              |
-| `feedbacks`     | `feedbacks`          | `displayOrder` 정렬, `feedbackType` → `type` |
-| —               | `mode`               | 항상 `"preview"`                             |
-| —               | `showInlineFeedback` | 기본 `false` (필요 시 호출측에서 `true`) |
+| API             | Question prop        | 비고                                                                        |
+| --------------- | -------------------- | --------------------------------------------------------------------------- |
+| `qtiXml`        | `data`               |                                                                             |
+| `type`          | `type`               |                                                                             |
+| `qtiIdentifier` | `itemKey`            |                                                                             |
+| `correctAnswer` | `correctAnswers`     | `null`이면 생략                                                             |
+| `feedbacks`     | `feedbacks`          | `displayOrder` 정렬, `feedbackType` → `type`                                |
+| —               | `mode`               | 매퍼는 지정 안 함 → Question 기본값 `"preview"` (필요 시 `mode="practice"`) |
+| —               | `showInlineFeedback` | 기본 `false` (필요 시 호출측에서 `true`)                                    |
 
 ---
 
@@ -157,29 +159,20 @@ import "@rightstack/rqti-viewer/styles.css";
 
 async function fetchItem(qtiIdentifier: string) {
   const res = await fetch(`/api/v3/viewer/preview/${qtiIdentifier}`);
-  if (!res.ok) throw new Error(`detail ${res.status}`);
   return res.json() as Promise<QuestionItem>;
 }
 
 export function ItemViewer() {
   const [selectedId, setSelectedId] = useState(SAMPLE_ITEMS[0].qtiIdentifier);
   const [props, setProps] = useState<QuestionItemProps | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setProps(null);
-    setError(null);
 
-    fetchItem(selectedId)
-      .then((item) => {
-        if (!cancelled) setProps(toQuestionProps(item));
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : String(e));
-        }
-      });
+    fetchItem(selectedId).then((item) => {
+      if (!cancelled) setProps(toQuestionProps(item));
+    });
 
     return () => {
       cancelled = true;
@@ -188,10 +181,11 @@ export function ItemViewer() {
 
   return (
     <div>
-      <select
-        value={selectedId}
-        onChange={(e) => setSelectedId(e.target.value)}
-      >
+      {/*
+        아래 select는 문항 "유형 가이드"(SAMPLE_ITEMS)를 확인하기 위한 데모 UI입니다.
+        실제 서비스 연동과는 무관하며, 호스트 앱에서는 자체 문항 목록/네비게이션으로 대체하세요.
+      */}
+      <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
         {SAMPLE_ITEMS.map((item) => (
           <option key={item.qtiIdentifier} value={item.qtiIdentifier}>
             {item.label}
@@ -199,25 +193,27 @@ export function ItemViewer() {
         ))}
       </select>
 
-      {error && <p>{error}</p>}
+      {/* theme prop은 THEME_GUIDE.md를 참고해 커스텀 테마 객체/JSON으로 넘길 수 있습니다. */}
       {props && <Question key={props.itemKey} theme="default" {...props} />}
     </div>
   );
 }
 ```
 
-## 7. Question (`mode="preview"`) 요약
+---
 
-| prop                 | 설명                                                   |
-| -------------------- | ------------------------------------------------------ |
-| `data`               | QTI XML                                                |
-| `type`               | 문항 유형                                              |
-| `itemKey`            | 문항 식별 키                                           |
-| `mode`               | `"preview"` (읽기 전용)                                |
-| `showInlineFeedback` | 하단 정답·피드백 표시 (기본: `false`) |
-| `correctAnswers`     | 정답                                                   |
-| `feedbacks`          | 해설/해석/힌트 등                                      |
-| `theme`              | `"default"` \| `"daldal"` \| `"duolingo"` 또는 `Theme` |
+## 7. Question props 요약
+
+| prop                 | 설명                                                      |
+| -------------------- | --------------------------------------------------------- |
+| `data`               | QTI XML                                                   |
+| `type`               | 문항 유형                                                 |
+| `itemKey`            | 문항 식별 키                                              |
+| `mode`               | 기본 `"preview"`(읽기 전용). `"practice"`로 인터랙션 활성 |
+| `showInlineFeedback` | 하단 정답·피드백 표시 (기본: `false`)                     |
+| `correctAnswers`     | 정답                                                      |
+| `feedbacks`          | 해설/해석/힌트 등                                         |
+| `theme`              | `"default"` \| `"daldal"` \| `"duolingo"` 또는 `Theme`    |
 
 문항 전환 시 `key={props.itemKey}`를 권장합니다.
 

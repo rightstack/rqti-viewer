@@ -66,6 +66,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
+          "rtqi-viewer",
           "rtqi:bg-background rtqi:data-[state=open]:animate-in rtqi:data-[state=closed]:animate-out rtqi:data-[state=closed]:fade-out-0 rtqi:data-[state=open]:fade-in-0 rtqi:data-[state=closed]:zoom-out-95 rtqi:data-[state=open]:zoom-in-95 rtqi:fixed rtqi:top-[50%] rtqi:left-[50%] rtqi:z-50 rtqi:grid rtqi:w-full rtqi:max-w-[calc(100%-2rem)] rtqi:translate-x-[-50%] rtqi:translate-y-[-50%] rtqi:gap-4 rtqi:rounded-lg rtqi:border rtqi:p-6 rtqi:shadow-lg rtqi:duration-200 rtqi:sm:max-w-lg",
           className
         )}

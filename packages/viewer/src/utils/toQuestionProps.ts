@@ -4,20 +4,14 @@ import type { QuestionFeedback, QuestionItem } from "../types/questionItem";
 
 /**
  * `toQuestionProps` 반환값 — Question에 바로 spread 가능.
- * mode는 `"preview"`로 고정.
+ * mode는 지정하지 않는다 — Question 컴포넌트 기본값(`"preview"`)을 따르며,
+ * 필요 시 호출측에서 `mode`를 직접 지정한다.
  * showInlineFeedback은 Question 기본값(false)을 따름 — 필요 시 호출측에서 덮어쓴다.
  */
 export type QuestionItemProps = Pick<
   QuestionProps,
-  | "data"
-  | "type"
-  | "mode"
-  | "itemKey"
-  | "correctAnswers"
-  | "feedbacks"
-> & {
-  mode: "preview";
-};
+  "data" | "type" | "itemKey" | "correctAnswers" | "feedbacks"
+>;
 
 function mapFeedbacks(feedbacks: QuestionFeedback[]): FeedbackItem[] {
   return [...feedbacks]
@@ -45,7 +39,6 @@ export function toQuestionProps(item: QuestionItem): QuestionItemProps {
   return {
     data: item.qtiXml,
     type: item.type,
-    mode: "preview",
     itemKey: item.qtiIdentifier,
     correctAnswers: item.correctAnswer ?? undefined,
     feedbacks: mapFeedbacks(item.feedbacks ?? []),

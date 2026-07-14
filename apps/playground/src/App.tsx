@@ -133,12 +133,7 @@ export default function App() {
             <p style={styles.statusText}>API 오류: {apiError}</p>
           )}
           {apiStatus === "ready" && questionProps && (
-            <Question
-              key={questionProps.itemKey}
-              theme="daldal"
-              showInlineFeedback={false}
-              {...questionProps}
-            />
+            <Question key={questionProps.itemKey} {...questionProps} />
           )}
         </div>
       </main>

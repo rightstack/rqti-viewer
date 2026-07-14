@@ -65,6 +65,7 @@ function SheetContent({
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
+          "rtqi-viewer",
           "rtqi:bg-background rtqi:data-[state=open]:animate-in rtqi:data-[state=closed]:animate-out rtqi:fixed rtqi:z-50 rtqi:flex rtqi:flex-col rtqi:gap-4 rtqi:shadow-lg rtqi:transition rtqi:ease-in-out rtqi:data-[state=closed]:duration-300 rtqi:data-[state=open]:duration-500",
           side === "right" &&
             "rtqi:data-[state=closed]:slide-out-to-right rtqi:data-[state=open]:slide-in-from-right rtqi:inset-y-0 rtqi:right-0 rtqi:h-full rtqi:w-3/4 rtqi:border-l rtqi:sm:max-w-sm",

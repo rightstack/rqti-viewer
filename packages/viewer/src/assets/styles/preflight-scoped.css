@@ -1,0 +1,237 @@
+/* ========================================
+   Scoped Preflight
+   ----------------------------------------
+   Tailwind v4 기본 preflight는 전역(`*`, `html`, `body`, `h1`, `ul` …)에
+   적용되어, 라이브러리 소비자의 호스트 앱 스타일을 오염시킨다.
+   이 파일은 preflight를 `.rtqi-viewer` 컨테이너 하위로만 스코프해,
+   뷰어 내부의 리셋 기준선(참조 앱과 동일)은 유지하면서 전역 오염을 막는다.
+
+   원본: node_modules/tailwindcss/preflight.css (v4)
+   - `html, :host`  → `.rtqi-viewer`
+   - 전역 셀렉터    → `.rtqi-viewer` 하위로 프리픽스
+   - `--theme(...)` 함수는 이식성을 위해 명시 fallback 값으로 대체
+   ======================================== */
+
+/*
+  1. box-sizing 통일
+  2. margin/padding 제거
+  3. border 리셋(0 solid) — QTI 컴포넌트들이 border-style: solid 전역값에 의존
+*/
+.rtqi-viewer,
+.rtqi-viewer *,
+.rtqi-viewer ::after,
+.rtqi-viewer ::before,
+.rtqi-viewer ::backdrop,
+.rtqi-viewer ::file-selector-button {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0 solid;
+}
+
+/* 루트 기준선 (원본 html, :host) */
+.rtqi-viewer {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rtqi-viewer hr {
+  height: 0;
+  color: inherit;
+  border-top-width: 1px;
+}
+
+.rtqi-viewer abbr:where([title]) {
+  -webkit-text-decoration: underline dotted;
+  text-decoration: underline dotted;
+}
+
+.rtqi-viewer h1,
+.rtqi-viewer h2,
+.rtqi-viewer h3,
+.rtqi-viewer h4,
+.rtqi-viewer h5,
+.rtqi-viewer h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.rtqi-viewer a {
+  color: inherit;
+  -webkit-text-decoration: inherit;
+  text-decoration: inherit;
+}
+
+.rtqi-viewer b,
+.rtqi-viewer strong {
+  font-weight: bolder;
+}
+
+.rtqi-viewer code,
+.rtqi-viewer kbd,
+.rtqi-viewer samp,
+.rtqi-viewer pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-feature-settings: normal;
+  font-variation-settings: normal;
+  font-size: 1em;
+}
+
+.rtqi-viewer small {
+  font-size: 80%;
+}
+
+.rtqi-viewer sub,
+.rtqi-viewer sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+.rtqi-viewer sub {
+  bottom: -0.25em;
+}
+
+.rtqi-viewer sup {
+  top: -0.5em;
+}
+
+.rtqi-viewer table {
+  text-indent: 0;
+  border-color: inherit;
+  border-collapse: collapse;
+}
+
+.rtqi-viewer :-moz-focusring {
+  outline: auto;
+}
+
+.rtqi-viewer progress {
+  vertical-align: baseline;
+}
+
+.rtqi-viewer summary {
+  display: list-item;
+}
+
+.rtqi-viewer ol,
+.rtqi-viewer ul,
+.rtqi-viewer menu {
+  list-style: none;
+}
+
+.rtqi-viewer img,
+.rtqi-viewer svg,
+.rtqi-viewer video,
+.rtqi-viewer canvas,
+.rtqi-viewer audio,
+.rtqi-viewer iframe,
+.rtqi-viewer embed,
+.rtqi-viewer object {
+  display: block;
+  vertical-align: middle;
+}
+
+.rtqi-viewer img,
+.rtqi-viewer video {
+  max-width: 100%;
+  height: auto;
+}
+
+.rtqi-viewer button,
+.rtqi-viewer input,
+.rtqi-viewer select,
+.rtqi-viewer optgroup,
+.rtqi-viewer textarea,
+.rtqi-viewer ::file-selector-button {
+  font: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  border-radius: 0;
+  background-color: transparent;
+  opacity: 1;
+}
+
+.rtqi-viewer :where(select:is([multiple], [size])) optgroup {
+  font-weight: bolder;
+}
+
+.rtqi-viewer :where(select:is([multiple], [size])) optgroup option {
+  padding-inline-start: 20px;
+}
+
+.rtqi-viewer ::file-selector-button {
+  margin-inline-end: 4px;
+}
+
+.rtqi-viewer ::placeholder {
+  opacity: 1;
+}
+
+@supports (not (-webkit-appearance: -apple-pay-button)) or (contain-intrinsic-size: 1px) {
+  .rtqi-viewer ::placeholder {
+    color: color-mix(in oklab, currentcolor 50%, transparent);
+  }
+}
+
+.rtqi-viewer textarea {
+  resize: vertical;
+}
+
+.rtqi-viewer ::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+.rtqi-viewer ::-webkit-date-and-time-value {
+  min-height: 1lh;
+  text-align: inherit;
+}
+
+.rtqi-viewer ::-webkit-datetime-edit {
+  display: inline-flex;
+}
+
+.rtqi-viewer ::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+
+.rtqi-viewer ::-webkit-datetime-edit,
+.rtqi-viewer ::-webkit-datetime-edit-year-field,
+.rtqi-viewer ::-webkit-datetime-edit-month-field,
+.rtqi-viewer ::-webkit-datetime-edit-day-field,
+.rtqi-viewer ::-webkit-datetime-edit-hour-field,
+.rtqi-viewer ::-webkit-datetime-edit-minute-field,
+.rtqi-viewer ::-webkit-datetime-edit-second-field,
+.rtqi-viewer ::-webkit-datetime-edit-millisecond-field,
+.rtqi-viewer ::-webkit-datetime-edit-meridiem-field {
+  padding-block: 0;
+}
+
+.rtqi-viewer ::-webkit-calendar-picker-indicator {
+  line-height: 1;
+}
+
+.rtqi-viewer :-moz-ui-invalid {
+  box-shadow: none;
+}
+
+.rtqi-viewer button,
+.rtqi-viewer input:where([type="button"], [type="reset"], [type="submit"]),
+.rtqi-viewer ::file-selector-button {
+  appearance: button;
+}
+
+.rtqi-viewer ::-webkit-inner-spin-button,
+.rtqi-viewer ::-webkit-outer-spin-button {
+  height: auto;
+}
+
+.rtqi-viewer [hidden]:where(:not([hidden="until-found"])) {
+  display: none !important;
+}
