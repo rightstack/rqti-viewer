@@ -17,15 +17,8 @@ export {
   type SampleItem,
 } from "./constants/sampleItems";
 
-// 테마
-export {
-  DEFAULT_THEME,
-  DUOLINGO_THEME,
-  DALDAL_THEME,
-  ALL_THEMES,
-  THEME_MAP,
-  DEFAULT_THEME_ID,
-} from "./themes";
+// 테마 (기본 테마 + 커스텀 테마 작성용 — THEME_GUIDE.md 참고)
+export { DEFAULT_THEME, DEFAULT_THEME_ID } from "./themes";
 export { getThemeCSSVariables } from "./utils/themeToCSS";
 
 // 피드백 (컨트롤드 컴포넌트 — open 상태는 소비자가 관리)

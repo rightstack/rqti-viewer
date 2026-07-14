@@ -1,6 +1,6 @@
 {
   "name": "@rightstack/rqti-viewer",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "description": "QTI 문제(Viewer) 렌더링 라이브러리",
   "license": "MIT",
   "type": "module",
@@ -22,7 +22,8 @@
     "dist",
     "README.md",
     "USER_GUIDE.md",
-    "THEME_GUIDE.md"
+    "THEME_GUIDE.md",
+    "font-preview.html"
   ],
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",

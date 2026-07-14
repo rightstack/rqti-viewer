@@ -64,7 +64,7 @@ import {
 import "@rightstack/rqti-viewer/styles.css";
 
 export function ItemView({ item }: { item: QuestionItem }) {
-  return <Question theme="daldal" {...toQuestionProps(item)} />;
+  return <Question theme="default" {...toQuestionProps(item)} />;
 }
 ```
 
@@ -150,7 +150,7 @@ export function ItemPage({ qtiId, token }: { qtiId: string; token: string }) {
   }, [qtiId, token]);
 
   if (!props) return null;
-  return <Question key={props.itemKey} theme="daldal" {...props} />;
+  return <Question key={props.itemKey} theme="default" {...props} />;
 }
 ```
 
@@ -178,7 +178,7 @@ import {
 const sample = SAMPLE_ITEMS[0];
 const res = await fetch(`/api/v3/viewer/preview/${sample.qtiIdentifier}?t=${token}`);
 const item = (await res.json()) as QuestionItem;
-<Question theme="daldal" {...toQuestionProps(item)} />;
+<Question theme="default" {...toQuestionProps(item)} />;
 ```
 
 ## Question (preview)
@@ -198,7 +198,7 @@ const item = (await res.json()) as QuestionItem;
 문항이 바뀔 때는 `key`와 `itemKey`를 함께 두는 것을 권장합니다.
 
 ```tsx
-<Question key={props.itemKey} theme="daldal" {...props} />
+<Question key={props.itemKey} theme="default" {...props} />
 ```
 
 ### 미디어 / 인증
@@ -212,7 +212,7 @@ const item = (await res.json()) as QuestionItem;
 
 ```tsx
 <Question
-  theme="daldal"
+  theme="default"
   token={mediaToken}
   baseUrl={apiBaseUrl}
   {...toQuestionProps(item)}
@@ -223,13 +223,16 @@ const item = (await res.json()) as QuestionItem;
 
 | prop | 타입 | 설명 |
 |------|------|------|
-| `theme` | `Theme \| string` | 프리셋 id (`"default"`, `"daldal"`, `"duolingo"`) 또는 커스텀 `Theme` |
+| `theme` | `Theme \| "default"` | 기본 테마 `"default"` 또는 커스텀 `Theme`(JSON/객체) |
 
 ```tsx
-import { Question, DALDAL_THEME } from "@rightstack/rqti-viewer";
+import { Question } from "@rightstack/rqti-viewer";
 
-<Question theme="daldal" {...props} />
-<Question theme={DALDAL_THEME} {...props} />
+// 기본 테마
+<Question theme="default" {...props} />
+
+// 커스텀 테마 (JSON/객체) — THEME_GUIDE.md 참고
+<Question theme={myTheme} {...props} />
 ```
 
 커스텀 테마는 `DEFAULT_THEME`을 기반으로 오버라이드합니다.

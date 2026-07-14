@@ -5,6 +5,7 @@ import {
   toQuestionProps,
   type SampleItem,
   type QuestionItem,
+  type QuestionItemProps,
 } from "@rightstack/rqti-viewer";
 
 const DETAIL_TOKEN = "1786114799~Eg4k3QFE";
@@ -15,19 +16,19 @@ function detailUrl(qtiIdentifier: string) {
   )}`;
 }
 
+type Status = "idle" | "loading" | "error" | "ready";
+
 export default function App() {
   const [selected, setSelected] = useState<SampleItem>(SAMPLE_ITEMS[0]);
-  const [apiItem, setApiItem] = useState<QuestionItem | null>(null);
-  const [apiStatus, setApiStatus] = useState<
-    "idle" | "loading" | "error" | "ready"
-  >("idle");
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [item, setItem] = useState<QuestionItem | null>(null);
+  const [status, setStatus] = useState<Status>("idle");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    setApiStatus("loading");
-    setApiError(null);
-    setApiItem(null);
+    setStatus("loading");
+    setError(null);
+    setItem(null);
 
     fetch(detailUrl(selected.qtiIdentifier), { signal: controller.signal })
       .then(async (res) => {
@@ -37,88 +38,67 @@ export default function App() {
         return res.json() as Promise<QuestionItem>;
       })
       .then((data) => {
-        setApiItem(data);
-        setApiStatus("ready");
+        setItem(data);
+        setStatus("ready");
       })
       .catch((err: unknown) => {
         if (controller.signal.aborted) return;
-        setApiItem(null);
-        setApiStatus("error");
-        setApiError(err instanceof Error ? err.message : String(err));
+        setStatus("error");
+        setError(err instanceof Error ? err.message : String(err));
       });
 
     return () => controller.abort();
   }, [selected.qtiIdentifier]);
 
-  const questionProps = useMemo(
-    () => (apiItem ? toQuestionProps(apiItem) : null),
-    [apiItem],
+  const props = useMemo<QuestionItemProps | null>(
+    () => (item ? toQuestionProps(item) : null),
+    [item],
   );
 
   return (
     <div style={styles.page}>
       <aside style={styles.sidebar}>
         <h1 style={styles.title}>@rightstack/rqti-viewer</h1>
-        <p style={styles.subtitle}>유형별 상세 API · mode=preview</p>
-
-        <label style={styles.selectLabel}>
-          문항 유형
-          <select
-            value={selected.qtiIdentifier}
-            onChange={(e) => {
-              const next = SAMPLE_ITEMS.find(
-                (item) => item.qtiIdentifier === e.target.value,
-              );
-              if (next) setSelected(next);
-            }}
-            style={styles.select}
-          >
-            {SAMPLE_ITEMS.map((item) => (
-              <option key={item.qtiIdentifier} value={item.qtiIdentifier}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <p style={styles.subtitle}>상세 API 연동 테스트 · mode=preview</p>
 
         <nav style={styles.nav} aria-label="문항 유형">
-          {SAMPLE_ITEMS.map((item) => {
-            const active = item.qtiIdentifier === selected.qtiIdentifier;
+          {SAMPLE_ITEMS.map((s) => {
+            const active = s.qtiIdentifier === selected.qtiIdentifier;
             return (
               <button
-                key={item.qtiIdentifier}
+                key={s.qtiIdentifier}
                 type="button"
-                onClick={() => setSelected(item)}
+                onClick={() => setSelected(s)}
                 style={{
                   ...styles.navItem,
                   ...(active ? styles.navItemActive : null),
                 }}
               >
-                <span>{item.label}</span>
-                <span style={styles.navId}>{item.qtiIdentifier}</span>
+                <span>{s.label}</span>
+                <span style={styles.navId}>{s.qtiIdentifier}</span>
               </button>
             );
           })}
         </nav>
 
         <section style={styles.state}>
-          <h2 style={styles.stateTitle}>선택</h2>
+          <h2 style={styles.stateTitle}>상태</h2>
           <pre style={styles.pre}>
             {JSON.stringify(
               {
                 type: selected.type,
                 qtiIdentifier: selected.qtiIdentifier,
-                status: apiStatus,
-                title: apiItem?.title ?? null,
+                status,
+                title: item?.title ?? null,
               },
               null,
               2,
             )}
           </pre>
-          {apiStatus === "error" && (
+          {status === "error" && (
             <>
               <h2 style={styles.stateTitle}>오류</h2>
-              <pre style={styles.pre}>{apiError}</pre>
+              <pre style={styles.pre}>{error}</pre>
             </>
           )}
         </section>
@@ -126,14 +106,14 @@ export default function App() {
 
       <main style={styles.main}>
         <div style={styles.card}>
-          {apiStatus === "loading" && (
+          {status === "loading" && (
             <p style={styles.statusText}>API 불러오는 중…</p>
           )}
-          {apiStatus === "error" && (
-            <p style={styles.statusText}>API 오류: {apiError}</p>
+          {status === "error" && (
+            <p style={styles.statusText}>API 오류: {error}</p>
           )}
-          {apiStatus === "ready" && questionProps && (
-            <Question key={questionProps.itemKey} {...questionProps} />
+          {status === "ready" && props && (
+            <Question key={props.itemKey} theme="default" {...props} />
           )}
         </div>
       </main>
@@ -157,21 +137,6 @@ const styles: Record<string, React.CSSProperties> = {
   },
   title: { fontSize: 18, fontWeight: 700, margin: 0 },
   subtitle: { fontSize: 12, color: "#888", marginTop: 2 },
-  selectLabel: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-    marginTop: 20,
-    fontSize: 12,
-    color: "#666",
-  },
-  select: {
-    padding: "8px 10px",
-    borderRadius: 8,
-    border: "1px solid #ddd",
-    fontSize: 14,
-    background: "#fff",
-  },
   nav: { display: "flex", flexDirection: "column", gap: 6, marginTop: 16 },
   navItem: {
     display: "flex",

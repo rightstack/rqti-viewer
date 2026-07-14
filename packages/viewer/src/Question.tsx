@@ -46,8 +46,8 @@ export interface QuestionProps {
   /** 미디어 상대 경로 해석용 베이스 URL */
   baseUrl?: string;
   placeholder?: string;
-  /** 테마 객체 또는 프리셋 id */
-  theme?: Theme | string;
+  /** 기본 테마 `"default"` 또는 커스텀 테마 객체(JSON) */
+  theme?: Theme | "default";
   itemKey?: string;
   /** 응답 변경 콜백 */
   onResponse?: (responses: ResponseValueMap) => void;

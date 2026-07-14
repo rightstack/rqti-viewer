@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@rightstack/rqti-viewer · 폰트 프리셋 미리보기</title>
+    <style>
+      :root {
+        --bg: #f6f7f9;
+        --card: #ffffff;
+        --border: #e5e7eb;
+        --text: #1a1a1a;
+        --muted: #6b7280;
+        --accent: #6366f1;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        line-height: 1.5;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--border);
+        padding: 20px 24px;
+      }
+      header h1 {
+        margin: 0 0 4px;
+        font-size: 18px;
+      }
+      header p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        margin-top: 14px;
+      }
+      .controls label {
+        font-size: 12px;
+        color: var(--muted);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .controls input[type="text"] {
+        width: min(520px, 70vw);
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+      }
+      .controls input[type="range"] {
+        width: 200px;
+      }
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 24px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      }
+      .card .meta {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .card .key {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        color: var(--accent);
+        background: #eef2ff;
+        padding: 2px 8px;
+        border-radius: 6px;
+      }
+      .card .family {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .sample {
+        margin: 0;
+        color: var(--text);
+        word-break: keep-all;
+      }
+      .sample + .sample {
+        margin-top: 8px;
+      }
+      .sample.small {
+        font-size: 0.7em;
+        color: var(--muted);
+      }
+      .card .url {
+        margin-top: 14px;
+        font-size: 11px;
+        color: var(--muted);
+        word-break: break-all;
+      }
+      .card .url a {
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>폰트 프리셋 미리보기</h1>
+      <p>
+        <code>@rightstack/rqti-viewer</code> · <code>typography.fontFamily</code>에 넣을 수 있는 내장 프리셋
+      </p>
+      <div class="controls">
+        <label>
+          미리보기 문구
+          <input id="sampleText" type="text" value="다람쥐 헌 쳇바퀴에 타고파 0123456789" />
+        </label>
+        <label>
+          글자 크기 <span id="sizeLabel">28px</span>
+          <input id="sizeRange" type="range" min="14" max="56" value="28" />
+        </label>
+      </div>
+    </header>
+
+    <main id="grid"></main>
+
+    <script>
+      // fontLoader.ts의 FONT_PRESETS와 동일하게 유지하세요.
+      const FONT_PRESETS = [
+        { key: "noto-sans-kr", family: "Noto Sans KR", category: "산세리프(고딕)", url: "https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" },
+        { key: "noto-serif-kr", family: "Noto Serif KR", category: "세리프(명조)", url: "https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap" },
+        { key: "ibm-plex-sans-kr", family: "IBM Plex Sans KR", category: "산세리프(고딕)", url: "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" },
+        { key: "nanum-gothic", family: "Nanum Gothic", category: "산세리프(고딕)", url: "https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" },
+        { key: "nanum-myeongjo", family: "Nanum Myeongjo", category: "세리프(명조)", url: "https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&display=swap" },
+        { key: "nanum-square-round", family: "NanumSquareRound", category: "산세리프(둥근)", url: "https://cdn.jsdelivr.net/gh/innks/NanumSquareRound@master/nanumsquareround.min.css" },
+        { key: "jua", family: "Jua", category: "디스플레이(둥근)", url: "https://fonts.googleapis.com/css2?family=Jua&display=swap" },
+        { key: "do-hyeon", family: "Do Hyeon", category: "디스플레이", url: "https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" },
+        { key: "gamja-flower", family: "Gamja Flower", category: "손글씨", url: "https://fonts.googleapis.com/css2?family=Gamja+Flower&display=swap" },
+        { key: "poor-story", family: "Poor Story", category: "손글씨", url: "https://fonts.googleapis.com/css2?family=Poor+Story&display=swap" },
+      ];
+
+      // 프리셋별 폰트 CSS 로드
+      for (const preset of FONT_PRESETS) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = preset.url;
+        link.crossOrigin = "anonymous";
+        document.head.appendChild(link);
+      }
+
+      const grid = document.getElementById("grid");
+      const sampleInput = document.getElementById("sampleText");
+      const sizeRange = document.getElementById("sizeRange");
+      const sizeLabel = document.getElementById("sizeLabel");
+
+      const cards = FONT_PRESETS.map((preset) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const fontStack = `'${preset.family}', system-ui, sans-serif`;
+
+        card.innerHTML = `
+          <div class="meta">
+            <span class="key">${preset.key}</span>
+            <span class="family">${preset.family} · ${preset.category}</span>
+          </div>
+          <p class="sample" data-role="main" style="font-family: ${fontStack};"></p>
+          <p class="sample small" style="font-family: ${fontStack};">
+            가나다라마바사 ABCDEFG abcdefg 0123456789
+          </p>
+          <div class="url"><a href="${preset.url}" target="_blank" rel="noreferrer">${preset.url}</a></div>
+        `;
+        grid.appendChild(card);
+        return card.querySelector('[data-role="main"]');
+      });
+
+      function render() {
+        const text = sampleInput.value || "다람쥐 헌 쳇바퀴에 타고파";
+        const size = sizeRange.value + "px";
+        sizeLabel.textContent = size;
+        for (const el of cards) {
+          el.textContent = text;
+          el.style.fontSize = size;
+        }
+      }
+
+      sampleInput.addEventListener("input", render);
+      sizeRange.addEventListener("input", render);
+      render();
+    </script>
+  </body>
+</html>

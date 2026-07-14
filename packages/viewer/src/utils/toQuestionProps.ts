@@ -30,9 +30,9 @@ function mapFeedbacks(feedbacks: QuestionFeedback[]): FeedbackItem[] {
  * @example
  * ```tsx
  * const item = await res.json() as QuestionItem;
- * <Question theme="daldal" {...toQuestionProps(item)} />
+ * <Question theme="default" {...toQuestionProps(item)} />
  * // 인라인 피드백이 필요하면:
- * <Question theme="daldal" {...toQuestionProps(item)} showInlineFeedback />
+ * <Question theme="default" {...toQuestionProps(item)} showInlineFeedback />
  * ```
  */
 export function toQuestionProps(item: QuestionItem): QuestionItemProps {

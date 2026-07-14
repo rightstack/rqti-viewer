@@ -13,8 +13,4 @@ export default defineConfig({
       },
     },
   },
-  // workspace 패키지 dist 변경이 Vite prebundle 캐시에 묻히지 않도록
-  optimizeDeps: {
-    exclude: ["@rightstack/rqti-viewer"],
-  },
 });
