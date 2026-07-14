@@ -44,7 +44,8 @@ import "@rightstack/rqti-viewer/styles.css";
 ```
 유형 선택 (SAMPLE_ITEMS)
     ↓
-상세 API 조회  GET /api/v3/viewer/preview/{qtiIdentifier}
+상세 API 조회  GET https://stgqms.mirae-n.com/api/v3/viewer/preview/{qtiIdentifier}
+             (Authorization: Bearer {token})
     ↓
 toQuestionProps(item)
     ↓
@@ -104,9 +105,21 @@ const id = SAMPLE_IDS[ITEM_TYPE.SCQ]; // "i_k0jw4eqye8u7i2pz"
 
 ## 4. 상세 API
 
+### 4.1 엔드포인트
+
 ```
-GET /api/v3/viewer/preview/{qtiIdentifier}
+GET https://stgqms.mirae-n.com/api/v3/viewer/preview/{qtiIdentifier}
 ```
+
+### 4.2 인증
+
+`Authorization` header에 **Bearer 토큰**으로 전달합니다.
+
+```
+Authorization: Bearer 1786114799~Eg4k3QFE
+```
+
+### 4.3 응답
 
 응답 타입: `QuestionItem`
 
@@ -151,8 +164,18 @@ import {
 } from "@rightstack/rqti-viewer";
 import "@rightstack/rqti-viewer/styles.css";
 
+const API_BASE_URL = "https://stgqms.mirae-n.com";
+const API_TOKEN = "1786114799~Eg4k3QFE";
+
 async function fetchItem(qtiIdentifier: string) {
-  const res = await fetch(`/api/v3/viewer/preview/${qtiIdentifier}`);
+  const res = await fetch(
+    `${API_BASE_URL}/api/v3/viewer/preview/${qtiIdentifier}`,
+    {
+      headers: {
+        Authorization: `Bearer ${API_TOKEN}`,
+      },
+    },
+  );
   return res.json() as Promise<QuestionItem>;
 }
 
@@ -179,7 +202,10 @@ export function ItemViewer() {
         아래 select는 문항 "유형 가이드"(SAMPLE_ITEMS)를 확인하기 위한 데모 UI입니다.
         실제 서비스 연동과는 무관하며, 호스트 앱에서는 자체 문항 목록/네비게이션으로 대체하세요.
       */}
-      <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
+      <select
+        value={selectedId}
+        onChange={(e) => setSelectedId(e.target.value)}
+      >
         {SAMPLE_ITEMS.map((item) => (
           <option key={item.qtiIdentifier} value={item.qtiIdentifier}>
             {item.label}
@@ -198,15 +224,15 @@ export function ItemViewer() {
 
 ## 7. Question props 요약
 
-| prop                 | 설명                                                      |
-| -------------------- | --------------------------------------------------------- |
-| `data`               | QTI XML                                                   |
-| `type`               | 문항 유형                                                 |
-| `itemKey`            | 문항 식별 키                                              |
-| `mode`               | 기본 `"preview"`(읽기 전용). `"practice"`로 인터랙션 활성 |
-| `showInlineFeedback` | 하단 정답·피드백 표시 (기본: `false`)                     |
-| `correctAnswers`     | 정답                                                      |
-| `feedbacks`          | 해설/해석/힌트 등                                         |
+| prop                 | 설명                                                               |
+| -------------------- | ------------------------------------------------------------------ |
+| `data`               | QTI XML                                                            |
+| `type`               | 문항 유형                                                          |
+| `itemKey`            | 문항 식별 키                                                       |
+| `mode`               | 기본 `"preview"`(읽기 전용). `"practice"`로 인터랙션 활성          |
+| `showInlineFeedback` | 하단 정답·피드백 표시 (기본: `false`)                              |
+| `correctAnswers`     | 정답                                                               |
+| `feedbacks`          | 해설/해석/힌트 등                                                  |
 | `theme`              | `"default"` 또는 커스텀 `Theme`(JSON/객체) — `THEME_GUIDE.md` 참고 |
 
 문항 전환 시 `key={props.itemKey}`를 권장합니다.

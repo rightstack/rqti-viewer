@@ -8,12 +8,10 @@ import {
   type QuestionItemProps,
 } from "@rightstack/rqti-viewer";
 
-const DETAIL_TOKEN = "1786114799~Eg4k3QFE";
+const QMS_API_TOKEN = "1786114799~Eg4k3QFE";
 
 function detailUrl(qtiIdentifier: string) {
-  return `/qms-api/api/v3/viewer/preview/${qtiIdentifier}?t=${encodeURIComponent(
-    DETAIL_TOKEN,
-  )}`;
+  return `/qms-api/api/v3/viewer/preview/${qtiIdentifier}`;
 }
 
 type Status = "idle" | "loading" | "error" | "ready";
@@ -30,7 +28,12 @@ export default function App() {
     setError(null);
     setItem(null);
 
-    fetch(detailUrl(selected.qtiIdentifier), { signal: controller.signal })
+    fetch(detailUrl(selected.qtiIdentifier), {
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${QMS_API_TOKEN}`,
+      },
+    })
       .then(async (res) => {
         if (!res.ok) {
           throw new Error(`detail API ${res.status}: ${await res.text()}`);
