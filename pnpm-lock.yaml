@@ -18,8 +18,8 @@ importers:
   apps/playground:
     dependencies:
       '@rightstack/rqti-viewer':
-        specifier: ^0.3.0
-        version: 0.3.0(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^0.3.1
+        version: 0.3.1(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -509,8 +509,8 @@ packages:
       '@types/react':
         optional: true
 
-  '@rightstack/rqti-viewer@0.3.0':
-    resolution: {integrity: sha512-iHtrXuF18wDQyHt2usJ2v2FsHR1vd8P1b2A6+LGjzIylGGJcrxtdAvZFWDOUUSwanateZAe4rpKcG7Gp8br+rw==, tarball: https://npm.pkg.github.com/download/@rightstack/rqti-viewer/0.3.0/f0fa3c968f1ccb295e617b83135a578e5dc04064}
+  '@rightstack/rqti-viewer@0.3.1':
+    resolution: {integrity: sha512-oTf+U+jQuCt2Aypwo8Hj4SfTFCJGxFlgQpNUEXodyDL5NF0Rys5CBYoYevSt0J0uomGNR2OFKrZdEqKBWtoNLQ==, tarball: https://npm.pkg.github.com/download/@rightstack/rqti-viewer/0.3.1/9c3ed5323a269b8e726bd4b0526c2afa82ba970b}
     peerDependencies:
       react: '>=18'
       react-dom: '>=18'
@@ -1778,7 +1778,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.31
 
-  '@rightstack/rqti-viewer@0.3.0(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@rightstack/rqti-viewer@0.3.1(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@radix-ui/react-dialog': 1.1.17(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-separator': 1.1.11(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
