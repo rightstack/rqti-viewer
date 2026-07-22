@@ -5,9 +5,10 @@
 
 /* ---------------------------------------------------------------------------
    모바일 UI — 두 조건을 같은 수치로 유지합니다 (순수 CSS라 선언은 이중 배치).
-   • 조상 [data-device="mobile"] : 넓은 뷰포트에서 모바일 디바이스 미리보기
-   • @media (width < 640px)        : 좁은 뷰포트 (Tailwind sm 미만)
-   하단「모바일 미러 [data-device="mobile"]」블록 = 말단 @media 와 동기화.
+   • 조상 [data-device="mobile"]      : 넓은 뷰포트에서 모바일 디바이스 미리보기
+   • @container rtqi (width < 640px)  : 뷰어 컨테이너 폭이 좁을 때 (Tailwind sm 미만)
+     — 뷰포트가 아닌 .rtqi-viewer 자기 폭 기준이라 sizing="fixed"에선 발동하지 않음.
+   하단「모바일 미러 [data-device="mobile"]」블록 = 말단 @container 와 동기화.
    --------------------------------------------------------------------------- */
 
 /* ========================================
@@ -255,7 +256,7 @@
   @apply rtqi:overflow-hidden;
 }
 
-@media (width >= 640px) {
+@container rtqi (width >= 640px) {
   .qti-ext-choice-option img {
     max-height: min(12rem, 40vh);
   }
@@ -265,7 +266,7 @@
   }
 }
 
-@media (width >= 768px) {
+@container rtqi (width >= 768px) {
   .qti-ext-choice-option img {
     max-height: min(14rem, 45vh);
   }
@@ -275,7 +276,7 @@
   }
 }
 
-@media (width >= 1024px) {
+@container rtqi (width >= 1024px) {
   .qti-ext-choice-option img {
     max-height: min(16rem, 50vh);
   }
@@ -689,8 +690,8 @@
   @apply rtqi:mx-auto;
 }
 
-/* 반응형: 단일 문항 TFQ OX — 브레이크포인트는 말단 @media (width < 640px) 와 동일 */
-@media (width < 640px) {
+/* 반응형: 단일 문항 TFQ OX — 브레이크포인트는 말단 @container (width < 640px) 와 동일 */
+@container rtqi (width < 640px) {
   .tfq-single .qti-ext-choice-button img {
     width: 50% !important;
     max-width: 36px;
@@ -703,7 +704,7 @@
   }
 }
 
-@media (width >= 640px) and (width < 768px) {
+@container rtqi (width >= 640px) and (width < 768px) {
   .qti-ext-passage,
   .qti-ext-container,
   .qti-ext-feedback-inline {
@@ -3318,13 +3319,16 @@
 }
 
 /* ========================================
-   뷰포트 반응형 (width < 640px) — 파일 말단 고정
+   컨테이너 반응형 (width < 640px) — 파일 말단 고정
+   뷰어 컨테이너(.rtqi-viewer, container-name: rtqi) 폭 기준으로 동작한다.
+   뷰포트가 아닌 컨테이너 폭에 반응하므로 sizing="fixed"(designWidth 고정)에서는
+   폭이 항상 designWidth라 이 규칙이 흔들리지 않는다.
    테마·컴포넌트 기본 스타일에 !important가 많아, 동일 특이도에서는
    출현 순서가 우선합니다. 반응형 전용 값은 반드시 이 블록 이전의
    모든 해당 선택자 규칙보다 뒤에 둡니다.
    바로 아래 블록과 동일 선언은「모바일 미러 [data-device="mobile"]」에 복제합니다.
    ======================================== */
-@media (width < 640px) {
+@container rtqi (width < 640px) {
   /* 래퍼·지문 동일 토큰 (지문은 세로 분할 시 래퍼 밖에 있을 수 있음) */
   .qti-ext-wrapper,
   .qti-ext-passage {
@@ -3562,3 +3566,141 @@
   top: 0;
   left: 0;
 } */
+
+/* ========================================================================
+   고정폭(Scale) 모드 — sizing="fixed" 의 qti.css 레이아웃 그리드 정합
+   콘텐츠를 designWidth 고정 폭으로 렌더한 뒤 transform: scale()로만 크기를
+   조절한다.
+
+   qti-ext.css 자체 반응형은 이제 @container rtqi(뷰어 컨테이너 폭) 기반이라,
+   고정폭 모드에선 컨테이너 폭이 항상 designWidth로 고정되어 뷰포트가 바뀌어도
+   흔들리지 않는다. 따라서 예전의 데스크톱 되돌림 블록은 더 이상 필요 없다.
+
+   다만 qti.css(QTI 규격 파일, 수정 금지)의 부트스트랩식 레이아웃 그리드
+   (.qti-layout-row / .qti-layout-col* / .qti-layout-offset*)는 여전히 뷰포트
+   기준 @media 로 동작한다. 고정폭 모드에서 뷰포트에 따라 컬럼이 세로로 스택되거나
+   (≤767px) 고정 px 폭으로 커져 오버플로(≥1200px)되면 오버레이(화이트보드 필기)
+   정합이 깨진다. 그래서 여기서 그리드를 뷰포트와 무관한 fluid(%) 모델로 고정한다.
+
+   qti.css 그리드 규칙에는 !important 가 없으므로, 여기 !important 선언이 특이도와
+   무관하게 항상 이긴다. 값은 qti.css의 `.container-fluid` fluid 기본값과 동일하다.
+   ======================================================================== */
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row [class*="qti-layout-col"] {
+  display: block !important;
+  float: left !important;
+
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-height: 30px !important;
+  margin-left: 2.0745% !important;
+}
+
+.rtqi-viewer[data-sizing="fixed"]
+  .qti-layout-row
+  [class*="qti-layout-col"]:first-child {
+  margin-left: 0 !important;
+}
+
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col12 {
+  width: 99.9468% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col11 {
+  width: 91.4362% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col10 {
+  width: 82.9255% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col9 {
+  width: 74.4149% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col8 {
+  width: 65.9043% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col7 {
+  width: 57.3936% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col6 {
+  width: 48.883% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col5 {
+  width: 40.3723% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col4 {
+  width: 31.8617% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col3 {
+  width: 23.3511% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col2 {
+  width: 14.8404% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col1 {
+  width: 6.3298% !important;
+}
+
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset11 {
+  margin-left: 95.6383% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset11:first-child {
+  margin-left: 93.5106% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset10 {
+  margin-left: 87.1277% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset10:first-child {
+  margin-left: 85% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset9 {
+  margin-left: 78.617% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset9:first-child {
+  margin-left: 76.4894% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset8 {
+  margin-left: 70.1064% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset8:first-child {
+  margin-left: 67.9787% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset7 {
+  margin-left: 61.5957% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset7:first-child {
+  margin-left: 59.4681% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset6 {
+  margin-left: 53.0851% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset6:first-child {
+  margin-left: 50.9574% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset5 {
+  margin-left: 44.5745% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset5:first-child {
+  margin-left: 42.4468% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset4 {
+  margin-left: 36.0638% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset4:first-child {
+  margin-left: 33.9362% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset3 {
+  margin-left: 27.5532% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset3:first-child {
+  margin-left: 25.4255% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset2 {
+  margin-left: 19.0426% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset2:first-child {
+  margin-left: 16.9149% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset1 {
+  margin-left: 10.5319% !important;
+}
+.rtqi-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset1:first-child {
+  margin-left: 8.4043% !important;
+}

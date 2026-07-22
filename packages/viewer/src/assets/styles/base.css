@@ -66,6 +66,12 @@
 }
 
 .rtqi-viewer {
+  /* 컨테이너 쿼리 컨텍스트: 내부 반응형(@container rtqi)이 뷰포트가 아닌
+     뷰어 자기 폭에 반응한다. sizing="fixed"에선 폭이 항상 designWidth라
+     반응형이 흔들리지 않고, responsive에선 실제 가용 폭에 반응한다. */
+  container-type: inline-size;
+  container-name: rtqi;
+
   --radius: 0.625rem;
   --background: oklch(100% 0 0);
   --foreground: #3c323e;

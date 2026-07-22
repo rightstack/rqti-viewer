@@ -77,6 +77,14 @@ export interface ResponseValueMap {
 /** Question/파서 동작 모드. preview: 정적 미리보기(인터랙션 비활성) */
 export type QuestionMode = "practice" | "preview";
 
+/**
+ * 레이아웃 사이징 모드.
+ * - responsive: 컨테이너 폭에 맞춰 콘텐츠가 재배치(reflow)되는 기존 반응형(기본값)
+ * - fixed: 저작 기준 고정 폭(designWidth)으로 렌더 후 transform: scale()로 축소/확대.
+ *   폭이 변해도 내부 상대 좌표가 고정되어 화이트보드 필기 등 오버레이 정합이 유지된다.
+ */
+export type QuestionSizing = "responsive" | "fixed";
+
 export interface QTIParserOptions {
   token?: string;
   itemKey?: string;

@@ -7,7 +7,13 @@
 
 // 메인 Viewer
 export { default as Question } from "./Question";
-export type { QuestionProps, QuestionMode } from "./Question";
+export type { QuestionProps, QuestionMode, QuestionSizing } from "./Question";
+
+// 고정폭(Scale) 컨테이너 — 화이트보드 등 오버레이 정합용 (Question sizing="fixed" 내부에서도 사용)
+export {
+  FixedScaleContainer,
+  type FixedScaleContainerProps,
+} from "./components/FixedScaleContainer";
 
 // 문항 유형
 export { ITEM_TYPE, type ItemsType } from "./constants/itemType";

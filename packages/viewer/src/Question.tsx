@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./assets/styles/index.css";
+import { FixedScaleContainer } from "./components/FixedScaleContainer";
 import { QuestionNumber } from "./components/QuestionNumber";
 import { ITEM_TYPE, type ItemsType } from "./constants/itemType";
 import { cn } from "./lib/utils";
@@ -19,6 +20,7 @@ import type {
   FeedbackType,
   QTIParserOptions,
   QuestionMode,
+  QuestionSizing,
   ResponseValue,
   ResponseValueMap,
   Theme,
@@ -34,7 +36,7 @@ import {
 } from "./utils/questionUtils";
 import { getThemeCSSVariables } from "./utils/themeToCSS";
 
-export type { QuestionMode } from "./types";
+export type { QuestionMode, QuestionSizing } from "./types";
 
 export interface QuestionProps {
   /** QTI XML 문자열 */
@@ -93,6 +95,22 @@ export interface QuestionProps {
    */
   showInlineFeedback?: boolean;
   className?: string;
+  /**
+   * 레이아웃 사이징 모드. 기본 `"responsive"`.
+   * - `"responsive"`: 컨테이너 폭에 맞춰 콘텐츠가 재배치되는 기존 반응형
+   * - `"fixed"`: `designWidth` 고정 폭으로 렌더 후 scale 처리. 폭이 변해도
+   *   내부 상대 좌표가 고정되어 화이트보드 필기 등 오버레이 정합이 유지된다.
+   */
+  sizing?: QuestionSizing;
+  /** `sizing="fixed"`일 때 저작 기준 고정 폭(px). 기본 720. */
+  designWidth?: number;
+  /** `sizing="fixed"`일 때 확대 상한. 예: 1 = 원본 이상 확대 금지. */
+  maxScale?: number;
+  /**
+   * `sizing="fixed"`일 때 designWidth 좌표계 위에 겹칠 오버레이(예: 화이트보드).
+   * 콘텐츠와 동일한 스케일 안에 놓여 좌표가 함께 변환된다.
+   */
+  annotationOverlay?: React.ReactNode;
 }
 
 function Question({
@@ -123,6 +141,10 @@ function Question({
   passageFeedbacks,
   showInlineFeedback = false,
   className,
+  sizing = "responsive",
+  designWidth = 720,
+  maxScale,
+  annotationOverlay,
 }: QuestionProps) {
   const [responses, setResponses] = useState<ResponseValueMap>(
     responsesProp ?? {},
@@ -328,10 +350,16 @@ function Question({
   // preview(리뷰) 모드에서 인라인 피드백은 문항 하단에 쌓이도록 세로 배치
   const stackInlineFeedback = mode === "preview" && showInlineFeedback;
 
-  return (
+  const isFixed = sizing === "fixed";
+  const rootStyle: React.CSSProperties = isFixed
+    ? { ...(themeVariables as React.CSSProperties), ["--qti-design-width" as string]: `${designWidth}px` }
+    : (themeVariables as React.CSSProperties);
+
+  const viewer = (
     <div
       className={cn("rtqi-viewer", className)}
-      style={themeVariables as React.CSSProperties}
+      data-sizing={sizing}
+      style={rootStyle}
     >
       <div
         className={cn(
@@ -448,6 +476,21 @@ function Question({
       )}
     </div>
   );
+
+  if (isFixed) {
+    return (
+      <FixedScaleContainer
+        designWidth={designWidth}
+        maxScale={maxScale}
+        overlay={annotationOverlay}
+        className="rtqi-viewer-scale"
+      >
+        {viewer}
+      </FixedScaleContainer>
+    );
+  }
+
+  return viewer;
 }
 
 export default Question;
