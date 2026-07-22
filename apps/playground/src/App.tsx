@@ -7,6 +7,13 @@ import {
   type QuestionItem,
   type QuestionItemProps,
 } from "@rightstack/rqti-viewer";
+import { LOCAL_ITEMS, LOCAL_SAMPLE_ITEMS } from "./localItems";
+
+/** API 문항 + 로컬(XML 직접 주입) 문항 통합 목록 */
+const NAV_ITEMS: readonly SampleItem[] = [
+  ...SAMPLE_ITEMS,
+  ...LOCAL_SAMPLE_ITEMS,
+];
 
 const QMS_API_TOKEN = "1786114799~Eg4k3QFE";
 const DESIGN_WIDTH = 720;
@@ -107,7 +114,11 @@ export default function App() {
   const saveAnnotations = () => {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ qtiIdentifier: selected.qtiIdentifier, designWidth: DESIGN_WIDTH, strokes }),
+      JSON.stringify({
+        qtiIdentifier: selected.qtiIdentifier,
+        designWidth: DESIGN_WIDTH,
+        strokes,
+      }),
     );
   };
 
@@ -127,6 +138,14 @@ export default function App() {
     setStatus("loading");
     setError(null);
     setItem(null);
+
+    // 로컬(XML 직접 주입) 문항은 API 호출 없이 바로 렌더
+    const local = LOCAL_ITEMS[selected.qtiIdentifier];
+    if (local) {
+      setItem(local);
+      setStatus("ready");
+      return () => controller.abort();
+    }
 
     fetch(detailUrl(selected.qtiIdentifier), {
       signal: controller.signal,
@@ -165,7 +184,7 @@ export default function App() {
         <p style={styles.subtitle}>상세 API 연동 테스트 · mode=preview</p>
 
         <nav style={styles.nav} aria-label="문항 유형">
-          {SAMPLE_ITEMS.map((s) => {
+          {NAV_ITEMS.map((s) => {
             const active = s.qtiIdentifier === selected.qtiIdentifier;
             return (
               <button
@@ -204,8 +223,7 @@ export default function App() {
 
           <label style={styles.sliderRow}>
             <span style={styles.sliderLabel}>
-              컨테이너 폭
-              <b style={styles.sliderValue}>{previewWidth}px</b>
+              컨테이너 폭<b style={styles.sliderValue}>{previewWidth}px</b>
             </span>
             <input
               type="range"
@@ -234,13 +252,25 @@ export default function App() {
                 필기 모드 (드래그해서 그리기)
               </label>
               <div style={styles.toggleRow}>
-                <button type="button" style={styles.toggleBtn} onClick={saveAnnotations}>
+                <button
+                  type="button"
+                  style={styles.toggleBtn}
+                  onClick={saveAnnotations}
+                >
                   저장
                 </button>
-                <button type="button" style={styles.toggleBtn} onClick={loadAnnotations}>
+                <button
+                  type="button"
+                  style={styles.toggleBtn}
+                  onClick={loadAnnotations}
+                >
                   불러오기
                 </button>
-                <button type="button" style={styles.toggleBtn} onClick={() => setStrokes([])}>
+                <button
+                  type="button"
+                  style={styles.toggleBtn}
+                  onClick={() => setStrokes([])}
+                >
                   지우기
                 </button>
               </div>
@@ -286,12 +316,17 @@ export default function App() {
             <Question
               key={props.itemKey}
               theme="default"
+              mode="practice"
               {...props}
               sizing={sizing}
               designWidth={DESIGN_WIDTH}
               annotationOverlay={
                 sizing === "fixed" ? (
-                  <Whiteboard strokes={strokes} onChange={setStrokes} enabled={drawing} />
+                  <Whiteboard
+                    strokes={strokes}
+                    onChange={setStrokes}
+                    enabled={drawing}
+                  />
                 ) : undefined
               }
             />

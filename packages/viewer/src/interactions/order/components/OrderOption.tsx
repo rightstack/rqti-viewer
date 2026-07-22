@@ -7,6 +7,8 @@ interface OrderOptionProps {
   selectedOrder: string[];
   responseIdentifier: string;
   options: Omit<QTIParserOptions, "onOrderChange" | "onDragStart" | "onDragEnd" | "selectedOrder">;
+  /** 순번 라벨 스타일 (qti-list-style-type-*) */
+  listStyleType?: string | null;
   onOrderChange: (order: string[]) => void;
 }
 
@@ -15,6 +17,7 @@ const OrderOption: React.FC<OrderOptionProps> = ({
   selectedOrder,
   responseIdentifier,
   options,
+  listStyleType,
   onOrderChange,
 }) => {
   const isSubmit = options.isSubmit ?? false;
@@ -226,6 +229,7 @@ const OrderOption: React.FC<OrderOptionProps> = ({
               <OrderChoice
                 choice={choice}
                 index={idx}
+                listStyleType={listStyleType}
                 isSelected={isSelected}
                 isDropped={isDropped}
                 isCorrect={isCorrect}

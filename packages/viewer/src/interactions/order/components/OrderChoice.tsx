@@ -2,10 +2,13 @@ import { useRef, useState } from "react";
 import { cn } from "../../../lib/utils";
 import { MediaContent } from "../../../shared";
 import type { OrderChoiceType } from "../../../types";
+import { getListStyleLabel } from "../../../utils/listStyleLabel";
 
 interface OrderChoiceProps {
   choice: OrderChoiceType;
   index: number;
+  /** 순번 라벨 스타일 (qti-list-style-type-*) */
+  listStyleType?: string | null;
   isSelected: boolean;
   isCorrect: boolean;
   isSubmit: boolean;
@@ -22,6 +25,7 @@ interface OrderChoiceProps {
 const OrderChoice = ({
   choice,
   index,
+  listStyleType,
   isSelected: _isSelected,
   isCorrect,
   isSubmit,
@@ -195,7 +199,7 @@ const OrderChoice = ({
         {/* 순서 번호 */}
         <div className={numberClassName}>
           <span className="qti-ext-order-number-text" data-order-number="true">
-            {index + 1}
+            {getListStyleLabel(listStyleType, index + 1)}
           </span>
         </div>
         {/* 선택지 콘텐츠 */}
