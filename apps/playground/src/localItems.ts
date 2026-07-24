@@ -63,7 +63,7 @@ function hanselGretelXml(interactionClass: string) {
     <qti-item-body>
         <qti-order-interaction response-identifier="RESPONSE"
           class="${interactionClass}"
-          shuffle="false">
+          shuffle="true">
             <qti-prompt>헨젤과 그레텔에게 일어난 일을 순서대로 놓아 보세요.</qti-prompt>
             <qti-simple-choice identifier="CHOICE_1">헨젤과 그레텔이 과자 집을 발견했어요.</qti-simple-choice>
             <qti-simple-choice identifier="CHOICE_2">헨젤이 조약돌을 떨어뜨렸어요.</qti-simple-choice>
