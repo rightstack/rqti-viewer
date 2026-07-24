@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { cn } from "../../../lib/utils";
 import type { OrderChoiceType, QTIParserOptions } from "../../../types";
 import OrderChoice from "./OrderChoice";
 
@@ -6,20 +7,26 @@ interface OrderOptionProps {
   choices: OrderChoiceType[];
   selectedOrder: string[];
   responseIdentifier: string;
-  options: Omit<QTIParserOptions, "onOrderChange" | "onDragStart" | "onDragEnd" | "selectedOrder">;
+  options: Omit<
+    QTIParserOptions,
+    "onOrderChange" | "onDragStart" | "onDragEnd" | "selectedOrder"
+  >;
   /** 순번 라벨 스타일 (qti-list-style-type-*) */
   listStyleType?: string | null;
+  /** 나열 방식 클래스 (qti-orientation-* / qti-choices-stacking-*) */
+  layoutClass?: string;
   onOrderChange: (order: string[]) => void;
 }
 
-const OrderOption: React.FC<OrderOptionProps> = ({
+const OrderOption = ({
   choices,
   selectedOrder,
   responseIdentifier,
   options,
   listStyleType,
+  layoutClass,
   onOrderChange,
-}) => {
+}: OrderOptionProps) => {
   const isSubmit = options.isSubmit ?? false;
   const isPreview = options.mode === "preview";
 
@@ -33,26 +40,29 @@ const OrderOption: React.FC<OrderOptionProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 타겟 인덱스 계산
-  const calculateTargetIndex = useCallback((clientY: number, container: HTMLElement) => {
-    const children = Array.from(container.children);
-    if (children.length === 0) return 0;
+  const calculateTargetIndex = useCallback(
+    (clientY: number, container: HTMLElement) => {
+      const children = Array.from(container.children);
+      if (children.length === 0) return 0;
 
-    const firstChild = children[0] as HTMLElement;
-    const firstChildRect = firstChild.getBoundingClientRect();
-    const firstChildMiddle = firstChildRect.top + firstChildRect.height / 2;
+      const firstChild = children[0] as HTMLElement;
+      const firstChildRect = firstChild.getBoundingClientRect();
+      const firstChildMiddle = firstChildRect.top + firstChildRect.height / 2;
 
-    if (clientY < firstChildMiddle) return 0;
+      if (clientY < firstChildMiddle) return 0;
 
-    for (let i = 0; i < children.length; i++) {
-      const child = children[i] as HTMLElement;
-      const rect = child.getBoundingClientRect();
-      const elementMiddle = rect.top + rect.height / 2;
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i] as HTMLElement;
+        const rect = child.getBoundingClientRect();
+        const elementMiddle = rect.top + rect.height / 2;
 
-      if (clientY < elementMiddle) return i;
-    }
+        if (clientY < elementMiddle) return i;
+      }
 
-    return children.length;
-  }, []);
+      return children.length;
+    },
+    [],
+  );
 
   // 순서 업데이트
   const updateOrder = useCallback(
@@ -79,7 +89,7 @@ const OrderOption: React.FC<OrderOptionProps> = ({
 
       onOrderChange(newOrder);
     },
-    [selectedOrder, onOrderChange]
+    [selectedOrder, onOrderChange],
   );
 
   // 드롭 완료 처리
@@ -99,7 +109,7 @@ const OrderOption: React.FC<OrderOptionProps> = ({
       const targetIndex = calculateTargetIndex(e.clientY, containerRef.current);
       setDragOverIndex(targetIndex);
     },
-    [calculateTargetIndex]
+    [calculateTargetIndex],
   );
 
   const handleDragLeave = useCallback(() => {
@@ -120,7 +130,7 @@ const OrderOption: React.FC<OrderOptionProps> = ({
       setDraggedChoiceId(null);
       handleDropComplete(choiceId);
     },
-    [calculateTargetIndex, updateOrder, handleDropComplete]
+    [calculateTargetIndex, updateOrder, handleDropComplete],
   );
 
   const handleDragStart = useCallback((choiceId: string) => {
@@ -132,22 +142,33 @@ const OrderOption: React.FC<OrderOptionProps> = ({
   }, []);
 
   // 터치 이벤트 핸들러
-  const handleTouchStart = useCallback((e: React.TouchEvent, choiceId: string) => {
-    const touch = e.touches[0];
-    touchStartY.current = touch.clientY;
-    setDraggedChoiceId(choiceId);
-  }, []);
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent, choiceId: string) => {
+      const touch = e.touches[0];
+      touchStartY.current = touch.clientY;
+      setDraggedChoiceId(choiceId);
+    },
+    [],
+  );
 
   const handleTouchMove = useCallback(
     (e: TouchEvent) => {
-      if (!draggedChoiceId || !containerRef.current || touchStartY.current === null) return;
+      if (
+        !draggedChoiceId ||
+        !containerRef.current ||
+        touchStartY.current === null
+      )
+        return;
 
       e.preventDefault();
       const touch = e.touches[0];
-      const targetIndex = calculateTargetIndex(touch.clientY, containerRef.current);
+      const targetIndex = calculateTargetIndex(
+        touch.clientY,
+        containerRef.current,
+      );
       setDragOverIndex(targetIndex);
     },
-    [draggedChoiceId, calculateTargetIndex]
+    [draggedChoiceId, calculateTargetIndex],
   );
 
   const handleTouchEnd = useCallback(
@@ -160,7 +181,10 @@ const OrderOption: React.FC<OrderOptionProps> = ({
       }
 
       const touch = e.changedTouches[0];
-      const targetIndex = calculateTargetIndex(touch.clientY, containerRef.current);
+      const targetIndex = calculateTargetIndex(
+        touch.clientY,
+        containerRef.current,
+      );
 
       setDroppedChoiceId(draggedChoiceId);
       updateOrder(draggedChoiceId, targetIndex);
@@ -169,7 +193,7 @@ const OrderOption: React.FC<OrderOptionProps> = ({
       touchStartY.current = null;
       handleDropComplete(draggedChoiceId);
     },
-    [draggedChoiceId, calculateTargetIndex, updateOrder, handleDropComplete]
+    [draggedChoiceId, calculateTargetIndex, updateOrder, handleDropComplete],
   );
 
   // 터치 이벤트 리스너 등록
@@ -177,7 +201,9 @@ const OrderOption: React.FC<OrderOptionProps> = ({
     const container = containerRef.current;
     if (!container) return;
 
-    container.addEventListener("touchmove", handleTouchMove, { passive: false });
+    container.addEventListener("touchmove", handleTouchMove, {
+      passive: false,
+    });
     container.addEventListener("touchend", handleTouchEnd, { passive: false });
 
     return () => {
@@ -195,7 +221,7 @@ const OrderOption: React.FC<OrderOptionProps> = ({
   return (
     <div
       ref={containerRef}
-      className="space-y-3"
+      className={cn("qti-ext-order-list", "space-y-3", layoutClass)}
       role="group"
       aria-label="드래그하여 순서를 정하세요"
       onDragOver={handleDragOver}
@@ -207,10 +233,12 @@ const OrderOption: React.FC<OrderOptionProps> = ({
         if (!choice) return null;
 
         const isDragOver = dragOverIndex === idx;
-        const isSelected = draggedChoiceId === choiceId || droppedChoiceId === choiceId;
+        const isSelected =
+          draggedChoiceId === choiceId || droppedChoiceId === choiceId;
         const isDropped = droppedChoiceId === choiceId;
         const isLastElement = idx === selectedOrder.length - 1;
-        const isDragOverLast = dragOverIndex !== null && dragOverIndex >= selectedOrder.length;
+        const isDragOverLast =
+          dragOverIndex !== null && dragOverIndex >= selectedOrder.length;
         const isCorrect = isSubmit && correctOrder[idx] === choiceId;
 
         return (

@@ -1,4 +1,3 @@
-import React from "react";
 import { cn } from "../../../lib/utils";
 import { MediaContent } from "../../../shared";
 import type { OrderChoiceType, QTIParserOptions } from "../../../types";
@@ -9,11 +8,16 @@ interface OrderClickOptionProps {
   /** 사용자가 누른 순서 (선택된 identifier 시퀀스) */
   clickedOrder: string[];
   responseIdentifier: string;
-  options: Omit<QTIParserOptions, "onOrderChange" | "onDragStart" | "onDragEnd" | "selectedOrder">;
+  options: Omit<
+    QTIParserOptions,
+    "onOrderChange" | "onDragStart" | "onDragEnd" | "selectedOrder"
+  >;
   /** 이미지형 레이아웃(그리드) 여부 */
   isImageOrder?: boolean;
   /** 순번 라벨 스타일 (qti-list-style-type-*) */
   listStyleType?: string | null;
+  /** 나열 방식 클래스 (qti-orientation-* / qti-choices-stacking-*) */
+  layoutClass?: string;
   onOrderChange: (order: string[]) => void;
 }
 
@@ -23,15 +27,16 @@ interface OrderClickOptionProps {
  * - 누르면 다음 순번이 부여되고, 다시 누르면 해제되어 뒤 순번이 자동으로 당겨진다.
  * - 응답값은 "누른 순서"의 identifier 배열.
  */
-const OrderClickOption: React.FC<OrderClickOptionProps> = ({
+const OrderClickOption = ({
   choices,
   clickedOrder,
   responseIdentifier,
   options,
   isImageOrder = false,
   listStyleType,
+  layoutClass,
   onOrderChange,
-}) => {
+}: OrderClickOptionProps) => {
   const isSubmit = options.isSubmit ?? false;
   const isPreview = options.mode === "preview";
   const disabled = isSubmit || isPreview;
@@ -56,7 +61,8 @@ const OrderClickOption: React.FC<OrderClickOptionProps> = ({
     <div
       className={cn(
         "qti-ext-order-click-list",
-        isImageOrder && "qti-ext-order-click-list-image"
+        isImageOrder && "qti-ext-order-click-list-image",
+        layoutClass,
       )}
       role="group"
       aria-label="순서대로 선택하세요"
@@ -66,7 +72,8 @@ const OrderClickOption: React.FC<OrderClickOptionProps> = ({
         const selected = order !== -1;
 
         // 제출 후 정오답: 누른 순번 위치가 정답 순서와 일치하는지
-        const isCorrect = isSubmit && selected && correctOrder[order] === choice.identifier;
+        const isCorrect =
+          isSubmit && selected && correctOrder[order] === choice.identifier;
         const isIncorrect = isSubmit && selected && !isCorrect;
 
         const className = cn(
@@ -75,14 +82,14 @@ const OrderClickOption: React.FC<OrderClickOptionProps> = ({
           selected && "qti-ext-order-click-choice-selected",
           isSubmit && isCorrect && "qti-ext-order-choice-correct",
           isSubmit && isIncorrect && "qti-ext-order-choice-incorrect",
-          disabled && "qti-ext-option-disabled"
+          disabled && "qti-ext-option-disabled",
         );
 
         const badgeClassName = cn(
           "qti-ext-order-click-badge",
           selected && "qti-ext-order-click-badge-active",
           isSubmit && isCorrect && "qti-ext-order-number-correct",
-          isSubmit && isIncorrect && "qti-ext-order-number-incorrect"
+          isSubmit && isIncorrect && "qti-ext-order-number-incorrect",
         );
 
         return (
@@ -98,8 +105,12 @@ const OrderClickOption: React.FC<OrderClickOptionProps> = ({
               {selected ? getListStyleLabel(listStyleType, order + 1) : ""}
             </span>
             <span className="qti-ext-order-click-content">
-              {choice.media && <MediaContent media={choice.media} token={options.token} />}
-              {choice.text && <span className="qti-ext-order-click-text">{choice.text}</span>}
+              {choice.media && (
+                <MediaContent media={choice.media} token={options.token} />
+              )}
+              {choice.text && (
+                <span className="qti-ext-order-click-text">{choice.text}</span>
+              )}
             </span>
           </button>
         );

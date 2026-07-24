@@ -1,13 +1,20 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { extractListStyleType } from "../../parser/listGrouping";
-import type { OrderChoiceType, QTIParserOptions, ResponseValue } from "../../types";
+import type {
+  OrderChoiceType,
+  QTIParserOptions,
+  ResponseValue,
+} from "../../types";
 import { extractMediaFromElement, extractTextFromElement } from "../../utils";
 import OrderClickOption from "./components/OrderClickOption";
 import OrderOption from "./components/OrderOption";
 
 interface OrderInteractionProps {
   element: Element;
-  options: Omit<QTIParserOptions, "onOrderChange" | "onDragStart" | "onDragEnd" | "selectedOrder">;
+  options: Omit<
+    QTIParserOptions,
+    "onOrderChange" | "onDragStart" | "onDragEnd" | "selectedOrder"
+  >;
   index: number;
 }
 
@@ -21,7 +28,21 @@ const resolveOrderingMode = (element: Element): OrderingMode => {
   return "drag";
 };
 
-export const OrderInteraction: React.FC<OrderInteractionProps> = ({ element, options, index }) => {
+/** Fisher-Yates 셔플 (원본 불변) */
+const shuffleArray = <T,>(arr: T[]): T[] => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
+export const OrderInteraction: React.FC<OrderInteractionProps> = ({
+  element,
+  options,
+  index,
+}) => {
   const responseIdentifier = element.getAttribute("response-identifier") || "";
 
   // 선택 방식 (click | drag)
@@ -29,12 +50,26 @@ export const OrderInteraction: React.FC<OrderInteractionProps> = ({ element, opt
   // 이미지형 여부 (레이아웃 분기용)
   const isImageOrder = useMemo(
     () => (element.getAttribute("class") || "").includes("qti-image-order"),
-    [element]
+    [element],
   );
   // 순번 라벨 스타일 (qti-list-style-type-*), 미지정 시 decimal
   const listStyleType = useMemo(
     () => extractListStyleType(element.getAttribute("class") || ""),
-    [element]
+    [element],
+  );
+  // 나열 방식 (orientation/stacking) — SCQ와 동일 명명. 세로 1열이 기본이라 미지정 시 빈 문자열.
+  const layoutClass = useMemo(() => {
+    const cls = element.getAttribute("class") || "";
+    const orientation = cls.match(
+      /qti-orientation-(?:horizontal|vertical)/,
+    )?.[0];
+    const stacking = cls.match(/qti-choices-stacking-\d+/)?.[0];
+    return [orientation, stacking].filter(Boolean).join(" ");
+  }, [element]);
+  // shuffle 속성 (boolean). true면 simple-choice를 무작위 배치.
+  const shuffleEnabled = useMemo(
+    () => (element.getAttribute("shuffle") || "").toLowerCase() === "true",
+    [element],
   );
 
   // choices 추출
@@ -61,15 +96,40 @@ export const OrderInteraction: React.FC<OrderInteractionProps> = ({ element, opt
   const choiceIds = useMemo(() => choices.map((c) => c.identifier), [choices]);
   const choicesKey = choiceIds.join("|");
 
+  // 표시 순서(식별자). shuffle=true면 무작위, 아니면 DOM 순서.
+  // 문항(choicesKey)/shuffle 값이 바뀔 때만 재계산하고, 재파싱(리렌더)에서는 ref에 캐시된 순서를 유지한다.
+  const shuffleRef = useRef<{ key: string; ids: string[] }>({
+    key: "",
+    ids: [],
+  });
+  const displayIds = useMemo(() => {
+    const key = `${choicesKey}::${shuffleEnabled}`;
+    if (shuffleRef.current.key !== key) {
+      shuffleRef.current = {
+        key,
+        ids: shuffleEnabled ? shuffleArray(choiceIds) : choiceIds,
+      };
+    }
+    return shuffleRef.current.ids;
+  }, [choicesKey, shuffleEnabled, choiceIds]);
+
+  // 클릭형 표시용: 셔플된 순서로 재배열한 choices
+  const displayChoices = useMemo(() => {
+    const byId = new Map(choices.map((c) => [c.identifier, c]));
+    return displayIds
+      .map((id) => byId.get(id))
+      .filter((c): c is OrderChoiceType => Boolean(c));
+  }, [choices, displayIds]);
+
   // 초기 순서
-  // - drag: 저장 응답 없으면 choices 순서 전체 (항상 정렬된 리스트)
+  // - drag: 저장 응답 없으면 표시 순서(displayIds) 전체 (항상 정렬된 리스트)
   // - click: 저장 응답 없으면 빈 배열 (사용자가 누른 순서만 채워짐)
   const initialOrder = useMemo(() => {
     const savedResponse = options.responses?.[responseIdentifier];
     if (Array.isArray(savedResponse) && savedResponse.length > 0) {
       return savedResponse;
     }
-    return orderingMode === "click" ? [] : choiceIds;
+    return orderingMode === "click" ? [] : displayIds;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -85,10 +145,10 @@ export const OrderInteraction: React.FC<OrderInteractionProps> = ({ element, opt
     if (savedKey) {
       setSelectedOrder(savedKey.split("|"));
     } else {
-      setSelectedOrder(orderingMode === "click" ? [] : choicesKey ? choicesKey.split("|") : []);
+      setSelectedOrder(orderingMode === "click" ? [] : displayIds);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [savedKey, choicesKey, orderingMode]);
+  }, [savedKey, choicesKey, orderingMode, displayIds]);
 
   // 순서 변경 핸들러 (공통)
   const handleOrderChange = (order: string[]) => {
@@ -101,12 +161,13 @@ export const OrderInteraction: React.FC<OrderInteractionProps> = ({ element, opt
     <div key={`order-${responseIdentifier}-${index}`} className="my-4">
       {orderingMode === "click" ? (
         <OrderClickOption
-          choices={choices}
+          choices={displayChoices}
           clickedOrder={selectedOrder}
           responseIdentifier={responseIdentifier}
           options={options}
           isImageOrder={isImageOrder}
           listStyleType={listStyleType}
+          layoutClass={layoutClass}
           onOrderChange={handleOrderChange}
         />
       ) : (
@@ -116,6 +177,7 @@ export const OrderInteraction: React.FC<OrderInteractionProps> = ({ element, opt
           responseIdentifier={responseIdentifier}
           options={options}
           listStyleType={listStyleType}
+          layoutClass={layoutClass}
           onOrderChange={handleOrderChange}
         />
       )}

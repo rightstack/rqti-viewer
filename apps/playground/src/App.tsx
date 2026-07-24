@@ -315,7 +315,7 @@ export default function App() {
           {status === "ready" && props && (
             <Question
               key={props.itemKey}
-              theme="default"
+              theme="daldal"
               mode="practice"
               {...props}
               sizing={sizing}

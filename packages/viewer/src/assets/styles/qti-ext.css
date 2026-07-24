@@ -447,29 +447,29 @@
   @apply rtqi:flex rtqi:flex-col rtqi:gap-4;
 }
 
-/* horizontal + stacking: grid 열 수 */
-.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-2 {
+/* horizontal + stacking: grid 열 수 — choice/order 등 인터랙션 공통 (두 클래스만으로 적용) */
+.qti-orientation-horizontal.qti-choices-stacking-2 {
   display: grid;
 
   gap: 1rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-3 {
+.qti-orientation-horizontal.qti-choices-stacking-3 {
   display: grid;
 
   gap: 1rem;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-4 {
+.qti-orientation-horizontal.qti-choices-stacking-4 {
   display: grid;
 
   gap: 1rem;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-5 {
+.qti-orientation-horizontal.qti-choices-stacking-5 {
   display: grid;
 
   gap: 1rem;
@@ -2163,6 +2163,20 @@
 }
 
 /* ========================================
+             Order Interaction - 나열 방식 (orientation/stacking)
+             ======================================== */
+
+/* 가로 N열 그리드는 공통 규칙(.qti-orientation-horizontal.qti-choices-stacking-N) 사용.
+   드래그형만 세로 리스트용 여백(space-y / choice mb)을 gap으로 대체 */
+.qti-ext-order-list.qti-orientation-horizontal[class*="qti-choices-stacking-"] > * {
+  margin-top: 0;
+}
+
+.qti-ext-order-list.qti-orientation-horizontal[class*="qti-choices-stacking-"] .qti-ext-order-choice {
+  margin-bottom: 0;
+}
+
+/* ========================================
              Feedback 영역
              ======================================== */
 
@@ -3534,8 +3548,8 @@
     @apply rtqi:mx-auto;
   }
 
-  .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-4,
-  .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-5 {
+  .qti-orientation-horizontal.qti-choices-stacking-4,
+  .qti-orientation-horizontal.qti-choices-stacking-5 {
     grid-template-columns: 1fr;
   }
 
@@ -3652,9 +3666,9 @@
 }
 
 [data-device="mobile"]
-  .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-4,
+  .qti-orientation-horizontal.qti-choices-stacking-4,
 [data-device="mobile"]
-  .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-5 {
+  .qti-orientation-horizontal.qti-choices-stacking-5 {
   grid-template-columns: 1fr;
 }
 

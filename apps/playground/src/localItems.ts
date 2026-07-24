@@ -63,7 +63,7 @@ function hanselGretelXml(interactionClass: string) {
     <qti-item-body>
         <qti-order-interaction response-identifier="RESPONSE"
           class="${interactionClass}"
-          shuffle="true">
+          shuffle="false">
             <qti-prompt>헨젤과 그레텔에게 일어난 일을 순서대로 놓아 보세요.</qti-prompt>
             <qti-simple-choice identifier="CHOICE_1">헨젤과 그레텔이 과자 집을 발견했어요.</qti-simple-choice>
             <qti-simple-choice identifier="CHOICE_2">헨젤이 조약돌을 떨어뜨렸어요.</qti-simple-choice>
@@ -81,7 +81,9 @@ export const LOCAL_ITEMS: Record<string, QuestionItem> = {
     qtiIdentifier: "ORDER_CLICK_HANSEL",
     title: "헨젤과 그레텔 (클릭 순서)",
     type: ITEM_TYPE.ORDER,
-    qtiXml: hanselGretelXml("qti-ext-ordering-click qti-list-style-type-upper-alpha"),
+    qtiXml: hanselGretelXml(
+      "qti-ext-ordering-click qti-list-style-type-upper-alpha",
+    ),
     correctAnswer: ORDER_CORRECT_ANSWER,
     settings: null,
     feedbacks: [CORRECT_FEEDBACK, HINT_FEEDBACK],
@@ -91,7 +93,9 @@ export const LOCAL_ITEMS: Record<string, QuestionItem> = {
     qtiIdentifier: "ORDER_DRAG_HANSEL",
     title: "헨젤과 그레텔 (드래그 순서)",
     type: ITEM_TYPE.ORDER,
-    qtiXml: hanselGretelXml("qti-ext-ordering-drag qti-list-style-type-circled"),
+    qtiXml: hanselGretelXml(
+      "qti-ext-ordering-drag qti-list-style-type-upper-alpha",
+    ),
     correctAnswer: ORDER_CORRECT_ANSWER,
     settings: null,
     feedbacks: [CORRECT_FEEDBACK, HINT_FEEDBACK],
