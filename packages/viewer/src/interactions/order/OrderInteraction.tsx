@@ -21,16 +21,6 @@ const resolveOrderingMode = (element: Element): OrderingMode => {
   return "drag";
 };
 
-/** Fisher-Yates 셔플 (원본 불변) */
-const shuffleArray = <T,>(arr: T[]): T[] => {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-};
-
 export const OrderInteraction = ({ element, options, index }: OrderInteractionProps) => {
   const responseIdentifier = element.getAttribute("response-identifier") || "";
 
@@ -53,12 +43,6 @@ export const OrderInteraction = ({ element, options, index }: OrderInteractionPr
     const stacking = cls.match(/qti-choices-stacking-\d+/)?.[0];
     return [orientation, stacking].filter(Boolean).join(" ");
   }, [element]);
-  // shuffle 속성 (boolean). true면 simple-choice를 무작위 배치.
-  const shuffleEnabled = useMemo(
-    () => (element.getAttribute("shuffle") || "").toLowerCase() === "true",
-    [element]
-  );
-
   // choices 추출
   const choices: OrderChoiceType[] = useMemo(() => {
     const result: OrderChoiceType[] = [];
@@ -83,23 +67,10 @@ export const OrderInteraction = ({ element, options, index }: OrderInteractionPr
   const choiceIds = useMemo(() => choices.map((c) => c.identifier), [choices]);
   const choicesKey = choiceIds.join("|");
 
-  // 표시 순서(식별자). shuffle=true면 무작위, 아니면 DOM 순서.
-  // 문항(choicesKey)/shuffle 값이 바뀔 때만 재계산하고, 재파싱(리렌더)에서는 상태에 보관된 순서를 유지한다.
-  // 키가 바뀌면 렌더 중 상태를 조정한다(effect 불필요 패턴).
-  const shuffleKey = `${choicesKey}::${shuffleEnabled}`;
-  const [displayState, setDisplayState] = useState<{ key: string; ids: string[] }>(() => ({
-    key: shuffleKey,
-    ids: shuffleEnabled ? shuffleArray(choiceIds) : choiceIds,
-  }));
-  if (displayState.key !== shuffleKey) {
-    setDisplayState({
-      key: shuffleKey,
-      ids: shuffleEnabled ? shuffleArray(choiceIds) : choiceIds,
-    });
-  }
-  const displayIds = displayState.ids;
+  // 표시 순서(식별자). 항상 DOM 순서를 사용한다.
+  const displayIds = choiceIds;
 
-  // 클릭형 표시용: 셔플된 순서로 재배열한 choices
+  // 클릭형 표시용: DOM 순서로 재배열한 choices
   const displayChoices = useMemo(() => {
     const byId = new Map(choices.map((c) => [c.identifier, c]));
     return displayIds.map((id) => byId.get(id)).filter((c): c is OrderChoiceType => Boolean(c));

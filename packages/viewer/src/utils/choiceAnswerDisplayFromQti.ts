@@ -3,6 +3,7 @@
  *
  * - qti-choice-interaction: label 속성이 있으면 그 값만; 없으면 interaction·부모 qti-ext-grid의
  *   qti-list-style-type-* 로 목록 마커(① 등); 그것도 없으면 본문 → identifier
+ * - qti-order-interaction: label 속성 → 순번 마커(A·1 등, identifier=DOM 순서에 고정) → 본문 → identifier
  * - qti-inline-choice-interaction: label → 본문 → 미디어 → identifier (단일 문자열, 기존과 동일)
  * - qti-match-interaction 정답만: 쌍이 ROW_n / COL_m 형태면 `n-m` 또는 MatchAnswerView용 배열 (qtiXml으로 interaction 판별)
  * - FeedbackInline 정답 나열 순서: extractInteractionResponseIdentifiersInDocumentOrder 로 본문 interaction 순서 확보
@@ -17,24 +18,35 @@ import { removeMediaFromElementClone } from "./extractTextFromElement";
 import { wrapMathFieldTextForInlineLatex } from "./wrapMathFieldTextForInlineLatex";
 
 /** qti-ext.css @counter-style circled_number 과 동일 */
-const CIRCLED_MARKERS = ["① ", "② ", "③ ", "④ ", "⑤ ", "⑥ ", "⑦ ", "⑧ ", "⑨ ", "⑩ "] as const;
+const CIRCLED_MARKERS = [
+  "① ",
+  "② ",
+  "③ ",
+  "④ ",
+  "⑤ ",
+  "⑥ ",
+  "⑦ ",
+  "⑧ ",
+  "⑨ ",
+  "⑩ ",
+] as const;
 
 /** qti-ext.css @counter-style hangul-consonant */
 const HANGUL_CONSONANT_MARKERS = [
-  "ㄱ. ",
-  "ㄴ. ",
-  "ㄷ. ",
-  "ㄹ. ",
-  "ㅁ. ",
-  "ㅂ. ",
-  "ㅅ. ",
-  "ㅇ. ",
-  "ㅈ. ",
-  "ㅊ. ",
-  "ㅋ. ",
-  "ㅌ. ",
-  "ㅍ. ",
-  "ㅎ. ",
+  "ㄱ ",
+  "ㄴ ",
+  "ㄷ ",
+  "ㄹ ",
+  "ㅁ ",
+  "ㅂ ",
+  "ㅅ ",
+  "ㅇ ",
+  "ㅈ ",
+  "ㅊ ",
+  "ㅋ ",
+  "ㅌ ",
+  "ㅍ ",
+  "ㅎ ",
 ] as const;
 
 /** hangul-consonant-paren */
@@ -75,20 +87,20 @@ const HANGUL_CONSONANT_BRACKET_MARKERS = [
 
 /** hangul-syllable-dot (class qti-list-style-type-hangul-syllable) */
 const HANGUL_SYLLABLE_MARKERS = [
-  "가. ",
-  "나. ",
-  "다. ",
-  "라. ",
-  "마. ",
-  "바. ",
-  "사. ",
-  "아. ",
-  "자. ",
-  "차. ",
-  "카. ",
-  "타. ",
-  "파. ",
-  "하. ",
+  "가 ",
+  "나 ",
+  "다 ",
+  "라 ",
+  "마 ",
+  "바 ",
+  "사 ",
+  "아 ",
+  "자 ",
+  "차 ",
+  "카 ",
+  "타 ",
+  "파 ",
+  "하 ",
 ] as const;
 
 function toSequenceAlpha(oneBased: number, baseCharCode: number): string {
@@ -133,7 +145,10 @@ function toRomanNumeral(num: number): string {
  * choice interaction DOM 순서(1-based)에 해당하는 목록 마커.
  * 알 수 없는 타입·범위 초과면 null → 호출부에서 일반 표시 로직으로 폴백.
  */
-function listStyleMarkerForIndex(listStyleType: string, oneBasedIndex: number): string | null {
+function listStyleMarkerForIndex(
+  listStyleType: string,
+  oneBasedIndex: number,
+): string | null {
   if (oneBasedIndex < 1) return null;
   const i = oneBasedIndex;
 
@@ -141,15 +156,15 @@ function listStyleMarkerForIndex(listStyleType: string, oneBasedIndex: number): 
     case "decimal":
       return `${i}. `;
     case "decimal-leading-zero":
-      return `${i < 10 ? `0${i}` : String(i)}. `;
+      return `${i < 10 ? `0${i}` : String(i)} `;
     case "lower-alpha":
-      return `${toSequenceAlpha(i, 97)}. `;
+      return `${toSequenceAlpha(i, 97)} `;
     case "upper-alpha":
-      return `${toSequenceAlpha(i, 65)}. `;
+      return `${toSequenceAlpha(i, 65)} `;
     case "lower-roman":
-      return `${toRomanNumeral(i).toLowerCase()}. `;
+      return `${toRomanNumeral(i).toLowerCase()} `;
     case "upper-roman":
-      return `${toRomanNumeral(i)}. `;
+      return `${toRomanNumeral(i)} `;
     case "circled":
       return CIRCLED_MARKERS[i - 1] ?? null;
     case "hangul-consonant":
@@ -197,7 +212,9 @@ function serializeChoiceBodyChildNodes(nodes: ChildNode[]): string {
 function bodyDisplayFromChoiceElement(el: Element): string {
   const clone = el.cloneNode(true) as Element;
   removeMediaFromElementClone(clone);
-  const bodyText = serializeChoiceBodyChildNodes(Array.from(clone.childNodes)).trim();
+  const bodyText = serializeChoiceBodyChildNodes(
+    Array.from(clone.childNodes),
+  ).trim();
   if (bodyText !== "") return bodyText;
 
   const media = extractMediaFromElement(el);
@@ -223,14 +240,19 @@ function classTokens(classAttr: string): string[] {
 
 /** div.qti-ext-grid / qti-ext-grid-N 등 그리드 래퍼인지 */
 function isQtiExtGridClass(classAttr: string): boolean {
-  return classTokens(classAttr).some((t) => t === "qti-ext-grid" || /^qti-ext-grid-\d+$/.test(t));
+  return classTokens(classAttr).some(
+    (t) => t === "qti-ext-grid" || /^qti-ext-grid-\d+$/.test(t),
+  );
 }
 
 /**
  * choice-interaction 자신의 class 또는 (grid일 때) 조상 qti-ext-grid의 class에서 list-style 추출
  */
-function listStyleTypeForChoiceInteraction(interaction: Element): string | null {
-  const fromEl = (el: Element) => extractListStyleType(el.getAttribute("class") ?? "");
+function listStyleTypeForChoiceInteraction(
+  interaction: Element,
+): string | null {
+  const fromEl = (el: Element) =>
+    extractListStyleType(el.getAttribute("class") ?? "");
 
   const own = fromEl(interaction);
   if (own) return own;
@@ -252,7 +274,7 @@ function choiceDisplayForBlockChoiceInteraction(
   el: Element,
   identifier: string,
   listStyleType: string | null,
-  oneBasedIndex: number
+  oneBasedIndex: number,
 ): string {
   const labelAttr = el.getAttribute("label")?.trim();
   if (labelAttr && labelAttr !== "") {
@@ -274,7 +296,10 @@ function choiceDisplayForBlockChoiceInteraction(
 }
 
 /** qti-inline-choice-interaction 등: 단일 표기 */
-function choiceDisplayStringForElement(el: Element, identifier: string): string {
+function choiceDisplayStringForElement(
+  el: Element,
+  identifier: string,
+): string {
   const label = el.getAttribute("label")?.trim();
   if (label && label !== "") return label;
 
@@ -285,7 +310,7 @@ function choiceDisplayStringForElement(el: Element, identifier: string): string 
 }
 
 export function buildChoiceIdentifierDisplayMapsFromQtiXml(
-  qtiXml: string
+  qtiXml: string,
 ): Map<string, Map<string, string>> | null {
   if (!qtiXml?.trim()) return null;
   const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
@@ -307,7 +332,34 @@ export function buildChoiceIdentifierDisplayMapsFromQtiXml(
     interaction.querySelectorAll("qti-simple-choice").forEach((el, idx) => {
       const id = el.getAttribute("identifier")?.trim() ?? "";
       if (!id) return;
-      choiceMap.set(id, choiceDisplayForBlockChoiceInteraction(el, id, listStyleType, idx + 1));
+      choiceMap.set(
+        id,
+        choiceDisplayForBlockChoiceInteraction(el, id, listStyleType, idx + 1),
+      );
+    });
+  };
+
+  const addOrderChoices = (interaction: Element) => {
+    const respId = interaction.getAttribute("response-identifier")?.trim();
+    if (!respId) return;
+    let map = result.get(respId);
+    if (!map) {
+      map = new Map();
+      result.set(respId, map);
+    }
+    const choiceMap = map;
+    // order는 순번 라벨이 identifier(DOM 순서)에 고정되어 따라간다. 미지정 시 decimal.
+    const listStyleType =
+      extractListStyleType(interaction.getAttribute("class") ?? "") ??
+      "decimal";
+
+    interaction.querySelectorAll("qti-simple-choice").forEach((el, idx) => {
+      const id = el.getAttribute("identifier")?.trim() ?? "";
+      if (!id) return;
+      choiceMap.set(
+        id,
+        choiceDisplayForBlockChoiceInteraction(el, id, listStyleType, idx + 1),
+      );
     });
   };
 
@@ -320,7 +372,9 @@ export function buildChoiceIdentifierDisplayMapsFromQtiXml(
       result.set(respId, map);
     }
     const choiceMap = map;
-    const listStyleType = extractListStyleType(interaction.getAttribute("class") ?? "");
+    const listStyleType = extractListStyleType(
+      interaction.getAttribute("class") ?? "",
+    );
 
     interaction.querySelectorAll("qti-inline-choice").forEach((el, idx) => {
       const id = el.getAttribute("identifier")?.trim() ?? "";
@@ -328,7 +382,10 @@ export function buildChoiceIdentifierDisplayMapsFromQtiXml(
       let display: string;
       if (listStyleType) {
         const marker = listStyleMarkerForIndex(listStyleType, idx + 1);
-        display = marker !== null ? marker.trim() : choiceDisplayStringForElement(el, id);
+        display =
+          marker !== null
+            ? marker.trim()
+            : choiceDisplayStringForElement(el, id);
       } else {
         display = choiceDisplayStringForElement(el, id);
       }
@@ -339,6 +396,9 @@ export function buildChoiceIdentifierDisplayMapsFromQtiXml(
   doc.querySelectorAll("qti-choice-interaction").forEach((el) => {
     addBlockChoices(el);
   });
+  doc.querySelectorAll("qti-order-interaction").forEach((el) => {
+    addOrderChoices(el);
+  });
   doc.querySelectorAll("qti-inline-choice-interaction").forEach((el) => {
     addInlineChoices(el);
   });
@@ -348,14 +408,14 @@ export function buildChoiceIdentifierDisplayMapsFromQtiXml(
 
 /** 쉼표 선택자로 문서 순서 유지 (다중 TFQ·빈칸·인라인 선택·매칭 혼합) */
 const INTERACTION_ORDER_SELECTOR =
-  "qti-choice-interaction, qti-inline-choice-interaction, qti-text-entry-interaction, qti-match-interaction";
+  "qti-choice-interaction, qti-order-interaction, qti-inline-choice-interaction, qti-text-entry-interaction, qti-match-interaction";
 
 /**
  * 복습 정답 표시 순서용: 위 interaction들의 response-identifier를 XML 트리 순으로 수집.
  * 중복 id는 첫 occurrence만. 파싱 실패·빈 XML이면 null.
  */
 export function extractInteractionResponseIdentifiersInDocumentOrder(
-  qtiXml: string | null | undefined
+  qtiXml: string | null | undefined,
 ): string[] | null {
   if (!qtiXml?.trim()) return null;
   const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
@@ -376,7 +436,7 @@ export function extractInteractionResponseIdentifiersInDocumentOrder(
 const FRACTION_RESPONSE_PART_RE = /^(FRACTION_.+)_(N|D|W)$/;
 
 export function parseFractionResponsePart(
-  identifier: string
+  identifier: string,
 ): { base: string; part: "N" | "D" | "W" } | null {
   const m = identifier.match(FRACTION_RESPONSE_PART_RE);
   if (!m) return null;
@@ -393,7 +453,11 @@ function responseScalarStringForCorrectAnswer(value: unknown): string {
 }
 
 /** n·d 필수. w가 있으면 대분수 `w\\frac{n}{d}`, 없으면 `\\frac{n}{d}`. */
-function buildFractionLatexFromParts(w: string, n: string, d: string): string | null {
+function buildFractionLatexFromParts(
+  w: string,
+  n: string,
+  d: string,
+): string | null {
   if (!n || !d) return null;
   const frac = `\\frac{${n}}{${d}}`;
   if (w) return `${w}${frac}`;
@@ -412,7 +476,7 @@ export type CorrectAnswerFeedbackSegment =
  */
 export function buildCorrectAnswerFeedbackSegments(
   correctAnswer: Record<string, unknown>,
-  qtiXml: string | null | undefined
+  qtiXml: string | null | undefined,
 ): CorrectAnswerFeedbackSegment[] {
   const entries = Object.entries(correctAnswer);
   const order = extractInteractionResponseIdentifiersInDocumentOrder(qtiXml);
@@ -475,7 +539,7 @@ const COL_ID_RE = /^COL_(\d+)$/i;
  */
 export function extractMatchRowColIdentifiersFromQtiXml(
   qtiXml: string | null | undefined,
-  responseIdentifier?: string | null
+  responseIdentifier?: string | null,
 ): { rows: string[]; cols: string[] } | null {
   if (!qtiXml?.trim()) return null;
   const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
@@ -486,7 +550,7 @@ export function extractMatchRowColIdentifiersFromQtiXml(
   if (rid) {
     interaction =
       Array.from(doc.querySelectorAll("qti-match-interaction")).find(
-        (el) => el.getAttribute("response-identifier")?.trim() === rid
+        (el) => el.getAttribute("response-identifier")?.trim() === rid,
       ) ?? null;
   } else {
     interaction = doc.querySelector("qti-match-interaction");
@@ -494,7 +558,9 @@ export function extractMatchRowColIdentifiersFromQtiXml(
 
   if (!interaction) return null;
 
-  const directSets = Array.from(interaction.querySelectorAll(":scope > qti-simple-match-set"));
+  const directSets = Array.from(
+    interaction.querySelectorAll(":scope > qti-simple-match-set"),
+  );
   const matchSets =
     directSets.length > 0
       ? directSets
@@ -525,7 +591,7 @@ export function extractMatchRowColIdentifiersFromQtiXml(
  */
 export function getMatchInteractionElementFromQtiXml(
   qtiXml: string | null | undefined,
-  responseIdentifier: string
+  responseIdentifier: string,
 ): Element | null {
   if (!qtiXml?.trim()) return null;
   const rid = responseIdentifier.trim();
@@ -534,22 +600,36 @@ export function getMatchInteractionElementFromQtiXml(
   if (doc.querySelector("parsererror")) return null;
   return (
     Array.from(doc.querySelectorAll("qti-match-interaction")).find(
-      (el) => el.getAttribute("response-identifier")?.trim() === rid
+      (el) => el.getAttribute("response-identifier")?.trim() === rid,
     ) ?? null
+  );
+}
+
+/** 해당 응답이 문항 XML 안의 qti-order-interaction 인지 */
+export function isOrderInteractionResponse(
+  qtiXml: string | null | undefined,
+  responseIdentifier: string,
+): boolean {
+  const rid = responseIdentifier.trim();
+  if (!rid || !qtiXml?.trim()) return false;
+  const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
+  if (doc.querySelector("parsererror")) return false;
+  return Array.from(doc.querySelectorAll("qti-order-interaction")).some(
+    (el) => el.getAttribute("response-identifier")?.trim() === rid,
   );
 }
 
 /** 해당 응답이 문항 XML 안의 qti-match-interaction 인지 */
 export function isMatchInteractionResponse(
   qtiXml: string | null | undefined,
-  responseIdentifier: string
+  responseIdentifier: string,
 ): boolean {
   const rid = responseIdentifier.trim();
   if (!rid || !qtiXml?.trim()) return false;
   const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
   if (doc.querySelector("parsererror")) return false;
   return Array.from(doc.querySelectorAll("qti-match-interaction")).some(
-    (el) => el.getAttribute("response-identifier")?.trim() === rid
+    (el) => el.getAttribute("response-identifier")?.trim() === rid,
   );
 }
 
@@ -585,7 +665,7 @@ function matchPairsForDisplay(value: unknown): MatchingPairType[] {
 export function getMatchCorrectResponseStrings(
   qtiXml: string | null | undefined,
   responseIdentifier: string,
-  value: unknown
+  value: unknown,
 ): string[] | null {
   if (!isMatchInteractionResponse(qtiXml, responseIdentifier)) return null;
   const pairs = matchPairsForDisplay(value);
@@ -604,9 +684,13 @@ export function getMatchCorrectResponseStrings(
 export function formatMatchCorrectAnswerForDisplay(
   qtiXml: string | null | undefined,
   responseIdentifier: string,
-  value: unknown
+  value: unknown,
 ): string | null {
-  const strings = getMatchCorrectResponseStrings(qtiXml, responseIdentifier, value);
+  const strings = getMatchCorrectResponseStrings(
+    qtiXml,
+    responseIdentifier,
+    value,
+  );
   if (strings === null) return null;
   const parts = strings.map((seg) => {
     const spaceIdx = seg.indexOf(" ");
@@ -627,12 +711,12 @@ export function formatCorrectAnswerValueForDisplay(
   responseIdentifier: string,
   value: unknown,
   maps: Map<string, Map<string, string>> | null,
-  qtiXml?: string | null
+  qtiXml?: string | null,
 ): string {
   const matchDisplay = formatMatchCorrectAnswerForDisplay(
     qtiXml ?? null,
     responseIdentifier,
-    value
+    value,
   );
   if (matchDisplay !== null) {
     return matchDisplay;
@@ -645,11 +729,21 @@ export function formatCorrectAnswerValueForDisplay(
     return idMap.get(id) ?? id;
   };
 
+  // qti-order-interaction 정답은 순서를 나타내므로 하이픈으로 연결 (a-b-c)
+  const separator = isOrderInteractionResponse(
+    qtiXml ?? null,
+    responseIdentifier,
+  )
+    ? " - "
+    : ", ";
+
   if (typeof value === "string") {
     return mapOne(value);
   }
   if (Array.isArray(value)) {
-    return value.map((v) => (typeof v === "string" ? mapOne(v) : String(v))).join(", ");
+    return value
+      .map((v) => (typeof v === "string" ? mapOne(v) : String(v)))
+      .join(separator);
   }
   if (value === null || value === undefined) {
     return "";

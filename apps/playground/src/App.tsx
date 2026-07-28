@@ -106,6 +106,7 @@ export default function App() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [sizing, setSizing] = useState<Sizing>("fixed");
+  const [showInlineFeedback, setShowInlineFeedback] = useState(true);
   const [drawing, setDrawing] = useState(true);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   // 문항 컨테이너 가용 폭(px). 슬라이더로 좁혀 고정폭 scale 축소 / 반응형 재배치를 시연한다.
@@ -240,6 +241,16 @@ export default function App() {
               : "폭을 줄이면 UI가 반응형으로 재배치됩니다."}
           </p>
 
+          <h2 style={styles.stateTitle}>정답·피드백</h2>
+          <label style={styles.checkboxRow}>
+            <input
+              type="checkbox"
+              checked={showInlineFeedback}
+              onChange={(e) => setShowInlineFeedback(e.target.checked)}
+            />
+            인라인 피드백 표시 (preview 정답·해설)
+          </label>
+
           {sizing === "fixed" && (
             <>
               <h2 style={styles.stateTitle}>화이트보드 필기</h2>
@@ -316,8 +327,9 @@ export default function App() {
             <Question
               key={props.itemKey}
               theme="daldal"
-              mode="practice"
+              mode="preview"
               {...props}
+              showInlineFeedback={showInlineFeedback}
               sizing={sizing}
               designWidth={DESIGN_WIDTH}
               annotationOverlay={
