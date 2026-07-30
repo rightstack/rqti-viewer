@@ -408,7 +408,7 @@ export function buildChoiceIdentifierDisplayMapsFromQtiXml(
 
 /** 쉼표 선택자로 문서 순서 유지 (다중 TFQ·빈칸·인라인 선택·매칭 혼합) */
 const INTERACTION_ORDER_SELECTOR =
-  "qti-choice-interaction, qti-order-interaction, qti-inline-choice-interaction, qti-text-entry-interaction, qti-match-interaction";
+  "qti-choice-interaction, qti-order-interaction, qti-inline-choice-interaction, qti-text-entry-interaction, qti-match-interaction, qti-gap-match-interaction";
 
 /**
  * 복습 정답 표시 순서용: 위 interaction들의 response-identifier를 XML 트리 순으로 수집.
@@ -707,6 +707,97 @@ export function formatMatchCorrectAnswerForDisplay(
   return parts.join(", ");
 }
 
+/** `response-identifier`에 해당하는 `qti-gap-match-interaction` 요소 (없으면 null) */
+function getGapMatchInteractionElementFromQtiXml(
+  qtiXml: string | null | undefined,
+  responseIdentifier: string,
+): Element | null {
+  if (!qtiXml?.trim()) return null;
+  const rid = responseIdentifier.trim();
+  if (!rid) return null;
+  const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
+  if (doc.querySelector("parsererror")) return null;
+  return (
+    Array.from(doc.querySelectorAll("qti-gap-match-interaction")).find(
+      (el) => el.getAttribute("response-identifier")?.trim() === rid,
+    ) ?? null
+  );
+}
+
+/** 해당 응답이 문항 XML 안의 qti-gap-match-interaction 인지 */
+export function isGapMatchInteractionResponse(
+  qtiXml: string | null | undefined,
+  responseIdentifier: string,
+): boolean {
+  return (
+    getGapMatchInteractionElementFromQtiXml(qtiXml, responseIdentifier) !== null
+  );
+}
+
+/**
+ * qti-gap-match-interaction 정답 표시.
+ * - 정답 쌍(gapId·choiceId)을 gap 문서 순서로 정렬해 `라벨 + 선택지 텍스트`로 표시 (예: `① 목성, ② 수성`)
+ * - 라벨은 gap 라벨 스타일(qti-list-style-type-*, 미지정 시 decimal)을 따른다
+ * - 쌍의 좌/우 순서는 gap/gap-text 식별자로 판별해 뒤바뀌어도 안전하게 처리
+ */
+export function formatGapMatchCorrectAnswerForDisplay(
+  qtiXml: string | null | undefined,
+  responseIdentifier: string,
+  value: unknown,
+): string | null {
+  const interaction = getGapMatchInteractionElementFromQtiXml(
+    qtiXml,
+    responseIdentifier,
+  );
+  if (!interaction) return null;
+
+  // choiceId(gap-text) → 표시 텍스트
+  const choiceTextMap = new Map<string, string>();
+  interaction.querySelectorAll("qti-gap-text").forEach((el) => {
+    const id = el.getAttribute("identifier")?.trim() ?? "";
+    if (id) choiceTextMap.set(id, bodyDisplayFromChoiceElement(el) || id);
+  });
+
+  // gap 문서 순서
+  const gapIds: string[] = [];
+  interaction.querySelectorAll("qti-gap").forEach((el) => {
+    const id = el.getAttribute("identifier")?.trim() ?? "";
+    if (id) gapIds.push(id);
+  });
+  if (gapIds.length === 0) return null;
+
+  const gapIdSet = new Set(gapIds);
+  const listStyleType =
+    extractListStyleType(interaction.getAttribute("class") ?? "") ?? "decimal";
+
+  // 정답 쌍 → { gapId: choiceId } (좌/우 순서 무관하게 gapId 기준으로 매핑)
+  const gapToChoice = new Map<string, string>();
+  for (const pair of matchPairsForDisplay(value)) {
+    const a = typeof pair.leftId === "string" ? pair.leftId.trim() : "";
+    const b = typeof pair.rightId === "string" ? pair.rightId.trim() : "";
+    let gapId = a;
+    let choiceId = b;
+    if (!gapIdSet.has(a) && gapIdSet.has(b)) {
+      gapId = b;
+      choiceId = a;
+    }
+    if (gapId) gapToChoice.set(gapId, choiceId);
+  }
+  if (gapToChoice.size === 0) return null;
+
+  const parts: string[] = [];
+  gapIds.forEach((gapId, idx) => {
+    const choiceId = gapToChoice.get(gapId);
+    if (!choiceId) return;
+    const marker = listStyleMarkerForIndex(listStyleType, idx + 1);
+    const label = marker !== null ? marker.trim() : "";
+    const text = choiceTextMap.get(choiceId) ?? choiceId;
+    parts.push(label ? `${label} - ${text}` : text);
+  });
+  if (parts.length === 0) return null;
+  return parts.join(", ");
+}
+
 export function formatCorrectAnswerValueForDisplay(
   responseIdentifier: string,
   value: unknown,
@@ -720,6 +811,15 @@ export function formatCorrectAnswerValueForDisplay(
   );
   if (matchDisplay !== null) {
     return matchDisplay;
+  }
+
+  const gapMatchDisplay = formatGapMatchCorrectAnswerForDisplay(
+    qtiXml ?? null,
+    responseIdentifier,
+    value,
+  );
+  if (gapMatchDisplay !== null) {
+    return gapMatchDisplay;
   }
 
   const idMap = maps?.get(responseIdentifier);

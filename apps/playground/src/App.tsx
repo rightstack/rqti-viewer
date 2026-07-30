@@ -327,20 +327,20 @@ export default function App() {
             <Question
               key={props.itemKey}
               theme="daldal"
-              mode="preview"
+              mode="practice"
               {...props}
               showInlineFeedback={showInlineFeedback}
               sizing={sizing}
               designWidth={DESIGN_WIDTH}
-              annotationOverlay={
-                sizing === "fixed" ? (
-                  <Whiteboard
-                    strokes={strokes}
-                    onChange={setStrokes}
-                    enabled={drawing}
-                  />
-                ) : undefined
-              }
+              // annotationOverlay={
+              //   sizing === "fixed" ? (
+              //     <Whiteboard
+              //       strokes={strokes}
+              //       onChange={setStrokes}
+              //       enabled={drawing}
+              //     />
+              //   ) : undefined
+              // }
             />
           )}
         </div>

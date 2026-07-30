@@ -26,6 +26,14 @@ interface MediaAttributes {
   controls?: boolean;
 }
 
+/**
+ * XML 들여쓰기/줄바꿈으로 생긴 포맷팅 전용 공백 텍스트 노드 여부.
+ * (white-space: pre-line 하에서 빈 줄로 렌더되는 것을 방지)
+ * - 줄바꿈을 포함한 공백-only 노드만 대상 → 실제 인라인 공백 한 칸은 보존.
+ */
+export const isFormattingWhitespace = (text: string | null): boolean =>
+  text != null && text.trim() === "" && text.includes("\n");
+
 export const parseHTMLElement = (
   element: Element,
   options: QTIParserOptions,
@@ -69,6 +77,8 @@ export const parseHTMLElement = (
     if (child.nodeType === Node.TEXT_NODE) {
       // 텍스트 노드는 공백을 보존해야 함 (요소 사이의 공백이 의미가 있을 수 있음)
       const text = child.textContent;
+      // XML 들여쓰기/줄바꿈으로 생긴 포맷팅 전용 공백은 제외 (pre-line 빈 줄 방지)
+      if (isFormattingWhitespace(text)) return;
       // 완전히 빈 텍스트 노드만 제외
       if (text !== null && text !== undefined) {
         // qti-ext-mathfield 클래스를 가진 요소 내부 텍스트는 LaTeX 파싱
@@ -93,6 +103,20 @@ export const parseHTMLElement = (
     const childTagName = childElement.tagName.toLowerCase();
 
     const childKeyBase = `el-${index}-${idx}`;
+
+    // 커스텀 노드 훅: undefined면 기본 처리, 그 외(null 포함)면 그 결과 사용
+    const custom = options.renderCustomNode?.(childElement, idx);
+    if (custom !== undefined) {
+      if (custom !== null) {
+        const keyed =
+          React.isValidElement(custom) && custom.key === null
+            ? React.cloneElement(custom, { key: childKeyBase })
+            : custom;
+        children.push(keyed as React.ReactElement);
+      }
+      return;
+    }
+
     if (isInteraction(childTagName)) {
       const parsed = parseNode(childElement, options, idx);
       if (parsed) {

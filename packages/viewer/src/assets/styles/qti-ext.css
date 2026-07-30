@@ -1599,6 +1599,19 @@
   cursor: not-allowed;
 }
 
+/* click 모드: 클릭 가능한 선택지 */
+.qti-ext-gap-choice-clickable {
+  cursor: pointer;
+}
+
+/* click 모드: 선택(armed) 상태 */
+.qti-ext-gap-choice-selected {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+  box-shadow: 0 0 0 2px var(--qti-option-border-selected);
+}
+
 /* Gap (빈칸 - 드롭 영역) */
 .qti-ext-gap {
   border-width: var(--qti-option-border-width);
@@ -1611,7 +1624,20 @@
   color: var(--qti-option-text);
   font-size: inherit;
 
-  @apply rtqi:mx-1 rtqi:my-1 rtqi:inline-block rtqi:min-h-8 rtqi:min-w-20 rtqi:px-2 rtqi:py-1 rtqi:text-center rtqi:align-middle rtqi:transition-all rtqi:duration-150;
+  @apply rtqi:mx-1 rtqi:my-1 rtqi:inline-flex rtqi:min-h-8 rtqi:min-w-20 rtqi:items-center rtqi:justify-center rtqi:gap-1 rtqi:px-2 rtqi:py-1 rtqi:text-center rtqi:align-middle rtqi:transition-all rtqi:duration-150;
+}
+
+/* Gap 식별 라벨 (예: "1.", "①") */
+.qti-ext-gap-label {
+  color: var(--qti-option-text);
+  font-weight: 700;
+  opacity: 0.7;
+
+  @apply rtqi:shrink-0 rtqi:select-none;
+}
+
+.qti-ext-gap-content {
+  @apply rtqi:min-w-0;
 }
 
 /* 콘텐츠가 있는 Gap */
@@ -2168,11 +2194,13 @@
 
 /* 가로 N열 그리드는 공통 규칙(.qti-orientation-horizontal.qti-choices-stacking-N) 사용.
    드래그형만 세로 리스트용 여백(space-y / choice mb)을 gap으로 대체 */
-.qti-ext-order-list.qti-orientation-horizontal[class*="qti-choices-stacking-"] > * {
+.qti-ext-order-list.qti-orientation-horizontal[class*="qti-choices-stacking-"]
+  > * {
   margin-top: 0;
 }
 
-.qti-ext-order-list.qti-orientation-horizontal[class*="qti-choices-stacking-"] .qti-ext-order-choice {
+.qti-ext-order-list.qti-orientation-horizontal[class*="qti-choices-stacking-"]
+  .qti-ext-order-choice {
   margin-bottom: 0;
 }
 
@@ -3665,10 +3693,8 @@
   @apply rtqi:mx-auto;
 }
 
-[data-device="mobile"]
-  .qti-orientation-horizontal.qti-choices-stacking-4,
-[data-device="mobile"]
-  .qti-orientation-horizontal.qti-choices-stacking-5 {
+[data-device="mobile"] .qti-orientation-horizontal.qti-choices-stacking-4,
+[data-device="mobile"] .qti-orientation-horizontal.qti-choices-stacking-5 {
   grid-template-columns: 1fr;
 }
 

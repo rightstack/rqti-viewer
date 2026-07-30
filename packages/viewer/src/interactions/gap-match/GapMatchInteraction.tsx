@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { parseHTMLElement } from "../../parser/parseHtmlElement";
+import { extractListStyleType } from "../../parser/listGrouping";
+import { isFormattingWhitespace, parseHTMLElement } from "../../parser/parseHtmlElement";
+import { parseTextWithLaTeX } from "../../parser/parseLatexToReact";
 import type {
   GapChoiceType,
   GapType,
@@ -8,6 +10,7 @@ import type {
   ResponseValueMap,
 } from "../../types";
 import { extractMediaFromElement, extractTextFromElement } from "../../utils";
+import { getListStyleLabel } from "../../utils/listStyleLabel";
 import { Gap } from "./components/Gap";
 import { GapChoice } from "./components/GapChoice";
 
@@ -20,6 +23,20 @@ interface GapMatchInteractionProps {
   index: number;
 }
 
+/** 선택 방식: class로 결정 (기본 drag) */
+type GapMatchMode = "click" | "drag";
+
+const resolveGapMatchMode = (className: string): GapMatchMode => {
+  if (className.includes("qti-ext-gap-match-click")) return "click";
+  // qti-ext-gap-match-drag 또는 미지정 시 drag(기본)
+  return "drag";
+};
+
+/** 선택지(gap-text) 패널 자리표시 요소 여부: <div class="qti-ext-gap-text-panel"/> */
+const isGapTextPanel = (el: Element): boolean =>
+  el.tagName.toLowerCase() === "div" &&
+  (el.getAttribute("class") || "").includes("qti-ext-gap-text-panel");
+
 export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
   element,
   options,
@@ -28,6 +45,15 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
   const responseIdentifier = element.getAttribute("response-identifier") || "";
   const className = element.getAttribute("class") || "";
   const choicesPosition = className.includes("qti-choices-top") ? "top" : "bottom";
+  // 선택 방식 (click | drag)
+  const mode = useMemo(() => resolveGapMatchMode(className), [className]);
+  // gap 라벨 스타일 (qti-list-style-type-*), 미지정 시 decimal
+  const listStyleType = useMemo(() => extractListStyleType(className), [className]);
+  // 선택지 패널 자리표시(qti-ext-gap-text-panel) 존재 여부 → 있으면 그 위치에 렌더
+  const hasGapTextPanel = useMemo(
+    () => !!element.querySelector(".qti-ext-gap-text-panel"),
+    [element]
+  );
 
   const gapTextElements = element.querySelectorAll("qti-gap-text");
   const gapTexts: GapChoiceType[] = useMemo(() => {
@@ -44,6 +70,17 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
       });
     });
     return result;
+  }, [gapTextElements]);
+
+  // choiceId → match-max (0 = 무제한/다중, 미지정 = 1(단일 사용))
+  const matchMaxMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    gapTextElements.forEach((choice) => {
+      const id = choice.getAttribute("identifier") || "";
+      const raw = choice.getAttribute("match-max");
+      map[id] = raw != null ? Number.parseInt(raw, 10) || 0 : 1;
+    });
+    return map;
   }, [gapTextElements]);
 
   // gap 목록 추출 (순서 유지, width 포함)
@@ -87,10 +124,13 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
         if (Object.keys(fromResponses).length > 0) return fromResponses;
       }
     }
-    const rawCorrect = options.correctAnswers?.[responseIdentifier];
-    if (Array.isArray(rawCorrect)) {
-      const fromCorrect = pairsArrayToMap(rawCorrect);
-      if (Object.keys(fromCorrect).length > 0) return fromCorrect;
+    // 정답 프리필은 preview(정답 확인) 모드에서만. practice 등에서는 빈 값으로 시작.
+    if (options.mode === "preview") {
+      const rawCorrect = options.correctAnswers?.[responseIdentifier];
+      if (Array.isArray(rawCorrect)) {
+        const fromCorrect = pairsArrayToMap(rawCorrect);
+        if (Object.keys(fromCorrect).length > 0) return fromCorrect;
+      }
     }
     return {};
   });
@@ -102,9 +142,27 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
     setIsSubmit(!!options.isSubmit);
   }, [options.isSubmit]);
   const [dragOverGapId, setDragOverGapId] = useState<string | null>(null);
+  // click 모드에서 현재 '선택(armed)'된 choiceId
+  const [armedChoiceId, setArmedChoiceId] = useState<string | null>(null);
 
-  // 사용된 choiceId들 계산
-  const usedChoices = useMemo(() => new Set(Object.values(gapSelections)), [gapSelections]);
+  // choiceId → 현재 배치된 gap 수
+  const usedCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    Object.values(gapSelections).forEach((cId) => {
+      counts[cId] = (counts[cId] || 0) + 1;
+    });
+    return counts;
+  }, [gapSelections]);
+
+  // match-max 도달 여부 (0이면 무제한 → 항상 false)
+  const isChoiceExhausted = useCallback(
+    (choiceId: string) => {
+      const max = matchMaxMap[choiceId] ?? 1;
+      if (max === 0) return false;
+      return (usedCounts[choiceId] || 0) >= max;
+    },
+    [matchMaxMap, usedCounts]
+  );
 
   // 정답 맵: { gapId: choiceId }
   const correctMap = useMemo<Record<string, string>>(() => {
@@ -132,7 +190,57 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
     [options, responseIdentifier]
   );
 
-  // GapChoice 드래그 시작
+  // choice를 gap에 배치 (drag/click 공통). match-max를 고려해 재사용/이동을 처리한다.
+  const assignChoiceToGap = useCallback(
+    (targetGapId: string, choiceId: string, sourceGapId?: string) => {
+      if (isSubmit || isPreview) return;
+
+      const newSelections = { ...gapSelections };
+      // gap → gap 이동 시 원래 gap 비우기
+      if (sourceGapId) delete newSelections[sourceGapId];
+
+      const max = matchMaxMap[choiceId] ?? 1;
+      if (max !== 0) {
+        const countExcludingTarget = Object.entries(newSelections).filter(
+          ([g, c]) => g !== targetGapId && c === choiceId
+        ).length;
+        if (countExcludingTarget >= max) {
+          if (max === 1) {
+            // 단일 사용: 기존 위치에서 옮긴다
+            Object.keys(newSelections).forEach((g) => {
+              if (g !== targetGapId && newSelections[g] === choiceId) delete newSelections[g];
+            });
+          } else {
+            // 최대치 도달 → 배치 불가
+            return;
+          }
+        }
+      }
+
+      newSelections[targetGapId] = choiceId;
+      setGapSelections(newSelections);
+      setIsSubmit(false);
+      setArmedChoiceId(null);
+      notifyResponseChange(newSelections);
+    },
+    [gapSelections, isSubmit, isPreview, matchMaxMap, notifyResponseChange]
+  );
+
+  // gap 비우기 헬퍼
+  const clearGap = useCallback(
+    (gapId: string) => {
+      if (isSubmit || isPreview) return;
+      if (!gapSelections[gapId]) return;
+      const newSelections = { ...gapSelections };
+      delete newSelections[gapId];
+      setGapSelections(newSelections);
+      setIsSubmit(false);
+      notifyResponseChange(newSelections);
+    },
+    [gapSelections, isSubmit, isPreview, notifyResponseChange]
+  );
+
+  // ── drag 모드 핸들러 ──
   const handleDragStart = useCallback(
     (e: React.DragEvent, choiceId: string) => {
       if (isSubmit) {
@@ -146,7 +254,6 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
     [isSubmit]
   );
 
-  // Gap에서 드래그 시작 (이미 할당된 choice를 다른 곳으로 이동)
   const handleGapDragStart = useCallback(
     (e: React.DragEvent, gapId: string, choiceId: string) => {
       if (isSubmit) {
@@ -161,7 +268,6 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
     [isSubmit]
   );
 
-  // Gap 위에 드래그 오버
   const handleDragOver = useCallback(
     (e: React.DragEvent, gapId: string) => {
       if (isSubmit) return;
@@ -172,12 +278,10 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
     [isSubmit]
   );
 
-  // Gap에서 드래그 떠남
   const handleDragLeave = useCallback(() => {
     setDragOverGapId(null);
   }, []);
 
-  // Gap에 드롭
   const handleDrop = useCallback(
     (e: React.DragEvent, targetGapId: string) => {
       if (isSubmit) return;
@@ -187,35 +291,13 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
       const choiceId = e.dataTransfer.getData("text/plain");
       const source = e.dataTransfer.getData("source");
       const sourceGapId = e.dataTransfer.getData("sourceGapId");
-
       if (!choiceId) return;
 
-      const newSelections = { ...gapSelections };
-
-      // 소스가 gap이면 원래 gap에서 제거
-      if (source === "gap" && sourceGapId) {
-        delete newSelections[sourceGapId];
-      }
-
-      // 이미 다른 gap에 할당되어 있으면 제거 (choice에서 드래그한 경우)
-      if (source === "choice") {
-        Object.keys(newSelections).forEach((gId) => {
-          if (newSelections[gId] === choiceId) {
-            delete newSelections[gId];
-          }
-        });
-      }
-
-      // 타겟 gap에 할당
-      newSelections[targetGapId] = choiceId;
-      setGapSelections(newSelections);
-      setIsSubmit(false);
-      notifyResponseChange(newSelections);
+      assignChoiceToGap(targetGapId, choiceId, source === "gap" ? sourceGapId : undefined);
     },
-    [gapSelections, isSubmit, notifyResponseChange]
+    [isSubmit, assignChoiceToGap]
   );
 
-  // GapChoice 영역에 드롭 (Gap에서 choice를 제거)
   const handleDropOnChoices = useCallback(
     (e: React.DragEvent) => {
       if (isSubmit) return;
@@ -224,31 +306,47 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
       const source = e.dataTransfer.getData("source");
       const sourceGapId = e.dataTransfer.getData("sourceGapId");
 
-      // gap에서 드래그한 경우에만 처리
+      // gap에서 드래그한 경우에만 제거
       if (source === "gap" && sourceGapId) {
-        const newSelections = { ...gapSelections };
-        delete newSelections[sourceGapId];
-        setGapSelections(newSelections);
-        setIsSubmit(false);
-        notifyResponseChange(newSelections);
+        clearGap(sourceGapId);
       }
     },
-    [gapSelections, isSubmit, notifyResponseChange]
+    [isSubmit, clearGap]
   );
 
-  // Gap 클릭 시 선택 제거
+  // ── click 모드 핸들러 ──
+  const handleChoiceClick = useCallback(
+    (choiceId: string) => {
+      if (isSubmit || isPreview) return;
+      setArmedChoiceId((prev) => {
+        if (prev === choiceId) return null; // 다시 누르면 해제
+        if (isChoiceExhausted(choiceId)) return prev; // 최대치면 선택 불가
+        return choiceId;
+      });
+    },
+    [isSubmit, isPreview, isChoiceExhausted]
+  );
+
+  // click 모드: gap 클릭 → armed choice 배치, armed 없으면 채워진 gap 비우기
+  const handleGapActivate = useCallback(
+    (gapId: string) => {
+      if (isSubmit || isPreview) return;
+      if (armedChoiceId) {
+        assignChoiceToGap(gapId, armedChoiceId);
+        return;
+      }
+      clearGap(gapId);
+    },
+    [isSubmit, isPreview, armedChoiceId, assignChoiceToGap, clearGap]
+  );
+
+  // drag 모드: 채워진 gap 클릭 → 비우기
   const handleGapClick = useCallback(
     (gapId: string) => {
       if (isSubmit) return;
-      if (!gapSelections[gapId]) return; // 선택된 게 없으면 무시
-
-      const newSelections = { ...gapSelections };
-      delete newSelections[gapId];
-      setGapSelections(newSelections);
-      setIsSubmit(false);
-      notifyResponseChange(newSelections);
+      clearGap(gapId);
     },
-    [gapSelections, isSubmit, notifyResponseChange]
+    [isSubmit, clearGap]
   );
 
   // qti-gap만 처리하는 함수
@@ -269,11 +367,24 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
           ? selectedChoiceId === correctMap[gapId]
           : undefined;
 
+      const label = getListStyleLabel(listStyleType, currentGapIndex + 1);
+
+      // preview에서는 클릭 반응 없음. click 모드: 항상 클릭(배치/비우기). drag 모드: 채워졌을 때만 클릭(비우기).
+      const onClick = isPreview
+        ? undefined
+        : mode === "click"
+          ? () => handleGapActivate(gapId)
+          : selectedChoiceId
+            ? () => handleGapClick(gapId)
+            : undefined;
+
       return (
         <Gap
           key={`gap-${responseIdentifier}-${gapId}`}
           gap={gap}
           index={currentGapIndex}
+          label={label}
+          canDrag={mode === "drag"}
           selectedChoiceId={selectedChoiceId}
           selectedChoiceText={selectedChoice?.text || null}
           isSubmit={!!options.isSubmit}
@@ -285,168 +396,130 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, gapId)}
           onDragStart={
-            selectedChoiceId ? (e) => handleGapDragStart(e, gapId, selectedChoiceId) : undefined
+            mode === "drag" && selectedChoiceId
+              ? (e) => handleGapDragStart(e, gapId, selectedChoiceId)
+              : undefined
           }
-          onClick={selectedChoiceId ? () => handleGapClick(gapId) : undefined}
+          onClick={onClick}
         />
       );
     },
     [
       gaps,
       gapSelections,
-      isSubmit,
       gapTexts,
       responseIdentifier,
       correctMap,
       dragOverGapId,
+      listStyleType,
+      mode,
+      isPreview,
+      options.isSubmit,
       handleDragOver,
       handleDragLeave,
       handleDrop,
       handleGapDragStart,
+      handleGapActivate,
       handleGapClick,
     ]
   );
-
-  // HTML 요소를 처리하되 내부의 qti-gap도 처리하는 함수
-  const parseHTMLElementWithGaps = (
-    htmlElement: Element,
-    gapIndexCounter: { current: number },
-    htmlIndex: number,
-    parentTagName?: string
-  ): React.ReactElement | null => {
-    const tagName = htmlElement.tagName.toLowerCase();
-
-    // void elements는 children을 가질 수 없으므로 먼저 처리
-    if (tagName === "br") {
-      const brClassName = htmlElement.getAttribute("class") || undefined;
-      return <br key={`br-${htmlIndex}`} className={brClassName} />;
-    }
-
-    // 자식 노드 처리 (HTML 요소, 텍스트, qti-gap 처리)
-    const children: Array<React.ReactElement | string> = [];
-    htmlElement.childNodes.forEach((child, idx) => {
-      if (child.nodeType === Node.TEXT_NODE) {
-        const text = child.textContent;
-        if (text !== null && text !== undefined) {
-          children.push(text);
-        }
-        return;
-      }
-
-      if (child.nodeType !== Node.ELEMENT_NODE) return;
-
-      const childElement = child as Element;
-      const childTagName = childElement.tagName.toLowerCase();
-
-      // qti-gap은 직접 처리
-      if (childTagName === "qti-gap") {
-        const gapNode = processGapNode(childElement, gapIndexCounter);
-        if (gapNode) children.push(gapNode);
-        return;
-      }
-
-      // qti-gap-text는 제외
-      if (childTagName === "qti-gap-text") return;
-
-      // 일반 HTML 요소는 재귀적으로 처리 (parseHTMLElementWithGaps 재사용)
-      const parsed = parseHTMLElementWithGaps(childElement, gapIndexCounter, idx, tagName);
-      if (parsed) children.push(parsed);
-    });
-
-    // parseHTMLElement를 사용하여 HTML 태그로 감싸서 반환
-    const baseElement = parseHTMLElement(htmlElement, options, htmlIndex, parentTagName);
-    if (!baseElement) return null;
-
-    return React.cloneElement(baseElement, {}, ...children);
-  };
-
-  // SAX 방식으로 HTML과 gap을 섞어서 파싱
-  const renderContent = useMemo(() => {
-    const children: Array<React.ReactElement | string> = [];
-    const gapIndexCounter = { current: 0 };
-
-    element.childNodes.forEach((child, idx) => {
-      // 텍스트 노드 처리
-      if (child.nodeType === Node.TEXT_NODE) {
-        const text = child.textContent;
-        if (text !== null && text !== undefined) {
-          children.push(text);
-        }
-        return;
-      }
-
-      if (child.nodeType !== Node.ELEMENT_NODE) return;
-
-      const childElement = child as Element;
-      const childTagName = childElement.tagName.toLowerCase();
-
-      // qti-gap은 직접 처리
-      if (childTagName === "qti-gap") {
-        const gapNode = processGapNode(childElement, gapIndexCounter);
-        if (gapNode) children.push(gapNode);
-        return;
-      }
-
-      // qti-gap-text는 제외
-      if (childTagName === "qti-gap-text") return;
-
-      // 일반 HTML 요소는 parseHTMLElementWithGaps로 처리
-      const parsed = parseHTMLElementWithGaps(childElement, gapIndexCounter, idx);
-      if (parsed) children.push(parsed);
-    });
-
-    return children;
-  }, [element, processGapNode, parseHTMLElementWithGaps]);
 
   // gap-text 선택 옵션들 렌더링
   const gapTextChoices =
     gapTexts.length > 0 &&
     gapTexts.map((choice) => {
-      const isUsed = usedChoices.has(choice.identifier);
+      const exhausted = isChoiceExhausted(choice.identifier);
+      const isArmed = armedChoiceId === choice.identifier;
       return (
         <GapChoice
           key={`gap-choice-${choice.identifier}`}
           choice={choice}
-          isUsed={isUsed}
+          isUsed={exhausted}
           isSubmit={!!options.isSubmit}
           isPreview={isPreview}
-          draggable={!options.isSubmit && !isPreview && !isUsed}
+          draggable={mode === "drag" && !options.isSubmit && !isPreview && !exhausted}
           onDragStart={(e) => handleDragStart(e, choice.identifier)}
+          clickable={mode === "click" && !options.isSubmit && !isPreview && !exhausted}
+          selected={isArmed}
+          onClick={mode === "click" ? () => handleChoiceClick(choice.identifier) : undefined}
         />
       );
     });
 
+  const choicesGroup = gapTextChoices ? (
+    <div
+      className="qti-ext-gap-choices"
+      role="group"
+      aria-label="선택지 목록"
+      onDragOver={(e: React.DragEvent) => {
+        if (mode !== "drag") return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+      }}
+      onDrop={mode === "drag" ? handleDropOnChoices : undefined}
+    >
+      {gapTextChoices}
+    </div>
+  ) : null;
+
+  // 본문 콘텐츠 렌더: 공용 파서(parseHTMLElement)를 재사용하고,
+  // qti-gap / qti-gap-text / gap-text 패널만 renderCustomNode 훅으로 커스텀 처리한다.
+  const renderContent = useMemo(() => {
+    const gapIndexCounter = { current: 0 };
+
+    // 공용 파서가 각 자식 요소에서 호출하는 훅 (undefined=기본 처리)
+    const renderCustomNode = (el: Element, _idx: number): React.ReactNode | undefined => {
+      const tag = el.tagName.toLowerCase();
+      if (tag === "qti-gap") return processGapNode(el, gapIndexCounter) ?? null;
+      if (tag === "qti-gap-text") return null; // 선택지는 패널/상·하단에서 별도 렌더
+      if (isGapTextPanel(el)) return choicesGroup ?? null;
+      return undefined;
+    };
+
+    const optionsWithHook: QTIParserOptions = { ...options, renderCustomNode };
+    const children: React.ReactNode[] = [];
+
+    // 인터랙션 요소 자체는 HTML 태그가 아니므로 직속 자식만 여기서 순회하고,
+    // 하위 트리는 공용 파서에 위임한다(내부 qti-gap도 훅으로 처리됨).
+    element.childNodes.forEach((child, idx) => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const text = child.textContent;
+        if (isFormattingWhitespace(text)) return;
+        if (text != null && text !== "") {
+          children.push(...parseTextWithLaTeX(text, `gm-text-${idx}`));
+        }
+        return;
+      }
+      if (child.nodeType !== Node.ELEMENT_NODE) return;
+
+      const el = child as Element;
+      const custom = renderCustomNode(el, idx);
+      if (custom !== undefined) {
+        if (custom !== null) children.push(custom);
+        return;
+      }
+      const parsed = parseHTMLElement(el, optionsWithHook, idx);
+      if (parsed) children.push(parsed);
+    });
+
+    let seq = 0;
+    return children.map((c) => {
+      if (React.isValidElement(c) && c.key === null) {
+        seq += 1;
+        return React.cloneElement(c, { key: `gm-child-${seq}` });
+      }
+      return c;
+    });
+  }, [element, options, processGapNode, choicesGroup]);
+
   return (
-    <div key={`gap-match-${responseIdentifier}-${index}`}>
-      {choicesPosition === "top" && gapTextChoices && (
-        <div
-          className="qti-ext-gap-choices"
-          role="group"
-          aria-label="선택지 목록"
-          onDragOver={(e: React.DragEvent) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = "move";
-          }}
-          onDrop={handleDropOnChoices}
-        >
-          {gapTextChoices}
-        </div>
-      )}
+    <div
+      key={`gap-match-${responseIdentifier}-${index}`}
+      className={`qti-ext-gap-match qti-ext-gap-match-${mode}`}
+    >
+      {!hasGapTextPanel && choicesPosition === "top" && choicesGroup}
       {renderContent}
-      {choicesPosition === "bottom" && gapTextChoices && (
-        <div
-          className="qti-ext-gap-choices"
-          role="group"
-          aria-label="선택지 목록"
-          onDragOver={(e: React.DragEvent) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = "move";
-          }}
-          onDrop={handleDropOnChoices}
-        >
-          {gapTextChoices}
-        </div>
-      )}
+      {!hasGapTextPanel && choicesPosition === "bottom" && choicesGroup}
     </div>
   );
 };

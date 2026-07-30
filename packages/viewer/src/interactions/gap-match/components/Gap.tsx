@@ -14,6 +14,10 @@ interface GapProps {
   isCorrect?: boolean;
   inputWidth?: string;
   isDragOver?: boolean;
+  /** gap 식별 라벨 (qti-list-style-type-* 기반, 예: "1.", "①") */
+  label?: string;
+  /** drag 모드에서만 native drag 허용 (click 모드는 false) */
+  canDrag?: boolean;
   onDragOver?: (e: React.DragEvent) => void;
   onDragLeave?: () => void;
   onDrop?: (e: React.DragEvent) => void;
@@ -30,6 +34,8 @@ export const Gap: React.FC<GapProps> = ({
   isCorrect,
   inputWidth,
   isDragOver,
+  label,
+  canDrag = true,
   onDragOver,
   onDragLeave,
   onDrop,
@@ -53,8 +59,8 @@ export const Gap: React.FC<GapProps> = ({
         widthClass
       )}
       style={widthStyle}
-      aria-label={`Gap ${index + 1}${selectedChoiceText ? `: ${selectedChoiceText}` : ""}`}
-      draggable={hasContent && !disabled}
+      aria-label={`Gap ${label || index + 1}${selectedChoiceText ? `: ${selectedChoiceText}` : ""}`}
+      draggable={canDrag && hasContent && !disabled}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
@@ -67,7 +73,11 @@ export const Gap: React.FC<GapProps> = ({
         }
       }}
     >
-      {selectedChoiceText || "\u00A0"}
+      {hasContent ? (
+        <span className="qti-ext-gap-content">{selectedChoiceText}</span>
+      ) : (
+        <span className="qti-ext-gap-label">{label || "\u00A0"}</span>
+      )}
     </span>
   );
 };

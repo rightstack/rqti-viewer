@@ -134,6 +134,13 @@ export interface QTIParserOptions {
   usedChoices?: Set<string>; // 사용된 choiceId들
   onGapOptionClick?: (choiceId: string) => void; // 옵션 클릭 핸들러
   onGapClick?: (gapId: string, index: number) => void; // gap 클릭 핸들러
+  /**
+   * 커스텀 노드 렌더 훅.
+   * - `undefined` 반환: 기본 처리(공용 파서에 위임)
+   * - 그 외(React 노드 또는 `null`) 반환: 처리됨. `null`은 아무것도 렌더하지 않음.
+   * gap-match가 `qti-gap` / `qti-gap-text` / `qti-ext-gap-text-panel`을 처리하는 데 사용.
+   */
+  renderCustomNode?: (element: Element, index: number) => ReactNode | undefined;
 }
 
 export interface MatchingPairType {
