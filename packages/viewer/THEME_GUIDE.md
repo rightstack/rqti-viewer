@@ -62,6 +62,18 @@ import themeJson from "./my-theme.json";
 | `padding`         | `"20px"`    | 컨테이너 안쪽 여백      |
 | `backgroundColor` | `"#FFFFFF"` | 컨테이너 배경색         |
 
+1000px 기준 너비 전체를 사용하려면 다음과 같이 설정합니다.
+
+```ts
+containerConfig: {
+  maxWidth: "100%",
+  padding: "0px",
+}
+```
+
+`maxWidth`는 내부 콘텐츠 너비만 제어합니다. 문항 전체의 비례 축소는
+`sizing="fixed"`와 `designWidth={1000}`으로 설정합니다.
+
 ### 3.2 `typography` — 타이포그래피
 
 | 필드              | 예시                                                 | 설명                                                                   |

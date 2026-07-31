@@ -104,8 +104,6 @@ export interface QuestionProps {
   sizing?: QuestionSizing;
   /** `sizing="fixed"`일 때 저작 기준 고정 폭(px). 기본 720. */
   designWidth?: number;
-  /** `sizing="fixed"`일 때 확대 상한. 예: 1 = 원본 이상 확대 금지. */
-  maxScale?: number;
   /**
    * `sizing="fixed"`일 때 designWidth 좌표계 위에 겹칠 오버레이(예: 화이트보드).
    * 콘텐츠와 동일한 스케일 안에 놓여 좌표가 함께 변환된다.
@@ -143,7 +141,6 @@ function Question({
   className,
   sizing = "responsive",
   designWidth = 720,
-  maxScale,
   annotationOverlay,
 }: QuestionProps) {
   const [responses, setResponses] = useState<ResponseValueMap>(
@@ -481,7 +478,6 @@ function Question({
     return (
       <FixedScaleContainer
         designWidth={designWidth}
-        maxScale={maxScale}
         overlay={annotationOverlay}
         className="rtqi-viewer-scale"
       >

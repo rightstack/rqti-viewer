@@ -5,7 +5,7 @@ QTI 문항을 **상세 API**로 조회해 읽기 전용으로 렌더링하는 �
 
 > `mode`는 `Question`이 기본값 `"preview"`(읽기 전용)로 처리합니다. `toQuestionProps`는 `mode`를 지정하지 않으므로, 인터랙션이 필요하면 호출측에서 `mode="practice"`를 직접 전달하세요.
 
-현재 패키지 버전: **0.3.1**
+현재 패키지 버전: **0.4.0**
 
 ---
 
@@ -222,7 +222,44 @@ export function ItemViewer() {
 
 ---
 
-## 7. Question props 요약
+## 7. 너비 및 스케일 설정
+
+| 설정 | 설명 |
+| --- | --- |
+| `sizing="responsive"` | **반응형**: 부모 너비에 따라 줄바꿈과 배치가 변경됨 |
+| `sizing="fixed"` | **고정형 스케일**: 기준 레이아웃을 유지하며 가로·세로가 같은 비율로 축소됨 |
+| `designWidth={1000}` | 고정형 스케일의 기준 너비를 1000px로 설정 |
+| `maxWidth: "100%"` | 문항 콘텐츠가 기준 너비 전체를 사용 |
+| `padding: "0px"` | 문항 콘텐츠의 기본 내부 여백 제거 |
+
+```tsx
+import { DEFAULT_THEME, Question, type Theme } from "@rightstack/rqti-viewer";
+
+const exampleTheme: Theme = {
+  ...DEFAULT_THEME,
+  id: "example",
+  name: "가이드 예시",
+  containerConfig: {
+    ...DEFAULT_THEME.containerConfig,
+    maxWidth: "100%",
+    padding: "0px",
+  },
+};
+
+<Question
+  {...props}
+  theme={exampleTheme}
+  sizing="fixed"
+  designWidth={1000}
+/>
+```
+
+외부 컨테이너 너비와 세로 스크롤은 호스트 애플리케이션에서 제어합니다.
+뷰어 높이는 자동 계산되므로 고정 높이와 내부 세로 스크롤은 지정하지 않습니다.
+
+---
+
+## 8. Question props 요약
 
 | prop                 | 설명                                                               |
 | -------------------- | ------------------------------------------------------------------ |
@@ -234,12 +271,14 @@ export function ItemViewer() {
 | `correctAnswers`     | 정답                                                               |
 | `feedbacks`          | 해설/해석/힌트 등                                                  |
 | `theme`              | `"default"` 또는 커스텀 `Theme`(JSON/객체) — `THEME_GUIDE.md` 참고 |
+| `sizing`             | `"responsive"`(기본) 또는 `"fixed"`                                |
+| `designWidth`        | `fixed` 모드의 원본 기준 폭(px). 기본 `720`                        |
 
 문항 전환 시 `key={props.itemKey}`를 권장합니다.
 
 ---
 
-## 8. 요구사항 / 제약
+## 9. 요구사항 / 제약
 
 - React >= 18, React DOM >= 18
 - **클라이언트 전용** (`DOMParser` 사용 — SSR에서 동작하지 않음)
@@ -247,7 +286,7 @@ export function ItemViewer() {
 
 ---
 
-## 9. 주요 export 목록
+## 10. 주요 export 목록
 
 ```tsx
 import {

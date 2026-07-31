@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  DEFAULT_THEME,
   Question,
   SAMPLE_ITEMS,
   toQuestionProps,
   type SampleItem,
   type QuestionItem,
   type QuestionItemProps,
+  type Theme,
 } from "@rightstack/rqti-viewer";
 import { LOCAL_ITEMS, LOCAL_SAMPLE_ITEMS } from "./localItems";
 
@@ -16,7 +18,20 @@ const NAV_ITEMS: readonly SampleItem[] = [
 ];
 
 const QMS_API_TOKEN = "1786114799~Eg4k3QFE";
-const DESIGN_WIDTH = 720;
+const DESIGN_WIDTH = 1000;
+
+/** 1000px 저작 기준 폭을 전부 사용하는 뷰어 테마 예시 */
+const FULL_WIDTH_THEME: Theme = {
+  ...DEFAULT_THEME,
+  id: "full-width",
+  name: "전체 너비",
+  containerConfig: {
+    ...DEFAULT_THEME.containerConfig,
+    maxWidth: "100%",
+    padding: "0px",
+    backgroundColor: "#FFFFFF",
+  },
+};
 
 function detailUrl(qtiIdentifier: string) {
   return `/qms-api/api/v3/viewer/preview/${qtiIdentifier}`;
@@ -110,7 +125,7 @@ export default function App() {
   const [drawing, setDrawing] = useState(true);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   // 문항 컨테이너 가용 폭(px). 슬라이더로 좁혀 고정폭 scale 축소 / 반응형 재배치를 시연한다.
-  const [previewWidth, setPreviewWidth] = useState(900);
+  const [previewWidth, setPreviewWidth] = useState(1000);
 
   const saveAnnotations = () => {
     localStorage.setItem(
@@ -326,7 +341,7 @@ export default function App() {
           {status === "ready" && props && (
             <Question
               key={props.itemKey}
-              theme="daldal"
+              theme={FULL_WIDTH_THEME}
               mode="practice"
               {...props}
               showInlineFeedback={showInlineFeedback}
@@ -442,6 +457,7 @@ const styles: Record<string, React.CSSProperties> = {
   statusText: { margin: 0, color: "#666", fontSize: 14 },
   main: {
     flex: 1,
+    minWidth: 0,
     padding: 40,
     display: "flex",
     justifyContent: "center",
@@ -449,6 +465,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   card: {
     width: "100%",
+    minWidth: 0,
     maxWidth: 720,
     background: "#fff",
     border: "1px solid #eee",
