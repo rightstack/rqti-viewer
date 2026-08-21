@@ -4,7 +4,7 @@ QTI 문항을 **상세 API**로 조회해 **문항 1개**를 렌더링하는 가
 
 > `mode`는 `Question`이 기본값 `"preview"`(읽기 전용)입니다. `toQuestionProps`는 `mode`를 지정하지 않으므로, 풀이가 필요하면 호출측에서 `mode="practice"`를 전달하세요.
 
-현재 패키지 버전: **0.4.0**
+현재 패키지 버전: **0.4.1**
 
 ---
 
@@ -62,15 +62,15 @@ select / tab 등 UI는 호스트 앱에서 구현합니다.
 
 | 유형        | `type`  | label               | `qtiIdentifier`      |
 | ----------- | ------- | ------------------- | -------------------- |
-| 단일 선택   | `scq`   | 단일 선택형 (SCQ)   | `i_k0jw4eqye8u7i2pz` |
-| 다중 선택   | `mcq`   | 다중 선택형 (MCQ)   | `i_r5ke0kl1jbzq2dss` |
-| 그룹 선택   | `gcq`   | 그룹 선택형 (GCQ)   | `i_noes42x1zwso2aki` |
-| 참/거짓     | `tfq`   | 참/거짓형 (TFQ)     | `i_f57k5qvs3llg7mkc` |
-| 드롭다운    | `ddq`   | 드롭다운형 (DDQ)    | `i_twi9q5n94j11o450` |
-| 연결하기    | `match` | 연결형 (MATCH)      | `i_ad3qnvlwjv97ds6a` |
-| 단답형      | `srq`   | 단답형 (SRQ)        | `i_yyit9dl938yuv45h` |
-| 빈칸 채우기 | `cloze` | 빈칸 채우기 (CLOZE) | `i_3cmubgeftcod4u72` |
-| 서술형      | `essay` | 서술형 (ESSAY)      | `i_kt5gesu56npkfjde` |
+| 단일 선택   | `scq`   | 단일 선택형 (SCQ)   | `i_hnjgpnv4k8rm4mka` |
+| 다중 선택   | `mcq`   | 다중 선택형 (MCQ)   | `i_bh2rcz4sfva33bxb` |
+| 그룹 선택   | `gcq`   | 그룹 선택형 (GCQ)   | `i_iqypqoaiu195zhpl` |
+| 참/거짓     | `tfq`   | 참/거짓형 (TFQ)     | `i_9m9bumtq22y0bqfo` |
+| 드롭다운    | `ddq`   | 드롭다운형 (DDQ)    | `i_ktmmv31vi3hnjrv9` |
+| 연결하기    | `match` | 연결형 (MATCH)      | `i_fljjjasfugmmldzc` |
+| 단답형      | `srq`   | 단답형 (SRQ)        | `i_f08cywvcvnmeagx1` |
+| 빈칸 채우기 | `cloze` | 빈칸 채우기 (CLOZE) | `i_lqenbou7mkjktvwo` |
+| 서술형      | `essay` | 서술형 (ESSAY)      | `i_1m7u6xcu9wdo59lt` |
 
 ### 타입
 
@@ -97,7 +97,7 @@ SAMPLE_ITEMS.map((item) => ({
   label: item.label,
 }));
 
-const id = SAMPLE_IDS[ITEM_TYPE.SCQ]; // "i_k0jw4eqye8u7i2pz"
+const id = SAMPLE_IDS[ITEM_TYPE.SCQ]; // "i_hnjgpnv4k8rm4mka"
 ```
 
 ---

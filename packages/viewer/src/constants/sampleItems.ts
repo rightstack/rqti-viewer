@@ -14,47 +14,47 @@ export const SAMPLE_ITEMS: readonly SampleItem[] = [
   {
     type: ITEM_TYPE.SCQ,
     label: "단일 선택형 (SCQ)",
-    qtiIdentifier: "i_k0jw4eqye8u7i2pz",
+    qtiIdentifier: "i_hnjgpnv4k8rm4mka",
   },
   {
     type: ITEM_TYPE.MCQ,
     label: "다중 선택형 (MCQ)",
-    qtiIdentifier: "i_r5ke0kl1jbzq2dss",
+    qtiIdentifier: "i_bh2rcz4sfva33bxb",
   },
   {
     type: ITEM_TYPE.GCQ,
     label: "그룹 선택형 (GCQ)",
-    qtiIdentifier: "i_noes42x1zwso2aki",
+    qtiIdentifier: "i_iqypqoaiu195zhpl",
   },
   {
     type: ITEM_TYPE.TFQ,
     label: "참/거짓형 (TFQ)",
-    qtiIdentifier: "i_f57k5qvs3llg7mkc",
+    qtiIdentifier: "i_9m9bumtq22y0bqfo",
   },
   {
     type: ITEM_TYPE.DDQ,
     label: "드롭다운형 (DDQ)",
-    qtiIdentifier: "i_twi9q5n94j11o450",
+    qtiIdentifier: "i_ktmmv31vi3hnjrv9",
   },
   {
     type: ITEM_TYPE.MATCH,
     label: "연결형 (MATCH)",
-    qtiIdentifier: "i_ad3qnvlwjv97ds6a",
+    qtiIdentifier: "i_fljjjasfugmmldzc",
   },
   {
     type: ITEM_TYPE.SRQ,
     label: "단답형 (SRQ)",
-    qtiIdentifier: "i_yyit9dl938yuv45h",
+    qtiIdentifier: "i_f08cywvcvnmeagx1",
   },
   {
     type: ITEM_TYPE.CLOZE,
     label: "빈칸 채우기 (CLOZE)",
-    qtiIdentifier: "i_3cmubgeftcod4u72",
+    qtiIdentifier: "i_lqenbou7mkjktvwo",
   },
   {
     type: ITEM_TYPE.ESSAY,
     label: "서술형 (ESSAY)",
-    qtiIdentifier: "i_kt5gesu56npkfjde",
+    qtiIdentifier: "i_1m7u6xcu9wdo59lt",
   },
 ] as const;
 
