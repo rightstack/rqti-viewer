@@ -2,10 +2,9 @@
 
 QTI 문항(Viewer) 렌더링 라이브러리. React 앱에서 문항 단위로 QTI XML을 렌더링합니다.
 
-현재 가이드는 **상세 API + `mode="preview"`** 기준입니다.
-문항을 조회·표시만 하며, 제출·채점 연동은 포함하지 않습니다.
+`Question`은 **문항 1개**를 렌더합니다.
 
-> 사용자 연동 가이드(유형별 샘플 ID 포함): **[USER_GUIDE.md](./USER_GUIDE.md)**
+> 사용자 연동 가이드(유형별 샘플 ID·practice/preview): **[USER_GUIDE.md](./USER_GUIDE.md)**
 
 ## 요구사항
 
@@ -70,7 +69,7 @@ export function ItemView({ item }: { item: QuestionItem }) {
 
 ## 상세 API
 
-현재 연동하는 API는 문항 상세 조회 하나뿐입니다.
+뷰어가 직접 호출하는 API는 문항 상세 조회 하나뿐입니다. 채점·세션·Delivery API는 호스트 백엔드 범위입니다.
 
 ```
 GET /api/v3/viewer/preview/{qtiIdentifier}?t={token}
@@ -181,24 +180,36 @@ const item = (await res.json()) as QuestionItem;
 <Question theme="default" {...toQuestionProps(item)} />;
 ```
 
-## Question (preview)
+## practice / preview
 
-매퍼를 쓰면 아래 props가 채워집니다. 문항은 읽기 전용으로 렌더되고, 하단에 정답·피드백이 표시됩니다.
-
-| prop | 설명 |
-|------|------|
-| `data` | QTI XML |
-| `type` | 문항 유형 |
-| `itemKey` | 문항 식별 키 (캐시·전환용) |
-| `mode` | `"preview"` 고정 |
-| `showInlineFeedback` | 하단 FeedbackInline 표시 (기본: `false`) |
-| `correctAnswers` | 정답 |
-| `feedbacks` | 해설/해석/힌트 등 |
-
-문항이 바뀔 때는 `key`와 `itemKey`를 함께 두는 것을 권장합니다.
+| | practice | preview |
+| --- | --- | --- |
+| `mode` | `"practice"` | `"preview"` (기본값) |
+| 동작 | 풀이 가능, 제출 버튼 표시 | 읽기 전용 |
+| 추가 prop | `onSubmit` — 제출 시 응답 수신 | `responses` — 저장 응답을 선택·입력으로 표시 |
 
 ```tsx
-<Question key={props.itemKey} theme="default" {...props} />
+<Question
+  key={props.itemKey}
+  {...props}
+  mode="practice"
+  onSubmit={(responses) => {
+    saveResponses(responses);
+  }}
+/>
+
+<Question
+  key={props.itemKey}
+  {...props}
+  mode="preview"
+  responses={savedResponses}
+/>
+```
+
+`onSubmit`으로 받은 값을 preview의 `responses`에 그대로 넣으면 됩니다. 실제 형태는 `onSubmit`에서 확인하면 됩니다.
+
+```ts
+{ RESPONSE: "C" }
 ```
 
 ### 미디어 / 인증
@@ -251,22 +262,18 @@ const myTheme: Theme = {
 };
 ```
 
-문항 번호는 `theme.questionNumberConfig` + `questionIndex`로 제어합니다.
+문항 번호는 표시하지 않습니다.
 
 ```tsx
-const themeWithNumber: Theme = {
+const themeWithoutNumber: Theme = {
   ...DEFAULT_THEME,
   questionNumberConfig: {
-    enabled: true,
-    position: "inline", // "top" | "inline"
-    prefix: "Q",
-    suffix: ".",
-    digits: 2,
+    ...DEFAULT_THEME.questionNumberConfig,
+    enabled: false,
   },
 };
 
-<Question theme={themeWithNumber} questionIndex={3} {...props} />
-// → "Q03."
+<Question theme={themeWithoutNumber} {...props} />
 ```
 
 ## 지원 문항 유형

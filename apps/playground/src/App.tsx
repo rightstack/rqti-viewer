@@ -7,6 +7,7 @@ import {
   type SampleItem,
   type QuestionItem,
   type QuestionItemProps,
+  type ResponseValueMap,
   type Theme,
 } from "@rightstack/rqti-viewer";
 import { LOCAL_ITEMS, LOCAL_SAMPLE_ITEMS } from "./localItems";
@@ -20,7 +21,7 @@ const NAV_ITEMS: readonly SampleItem[] = [
 const QMS_API_TOKEN = "1786114799~Eg4k3QFE";
 const DESIGN_WIDTH = 1000;
 
-/** 1000px 저작 기준 폭을 전부 사용하는 뷰어 테마 예시 */
+/** 1000px 저작 기준 폭을 전부 사용하는 뷰어 테마 예시. 문항 번호는 플랫폼이 그리는 전제. */
 const FULL_WIDTH_THEME: Theme = {
   ...DEFAULT_THEME,
   id: "full-width",
@@ -30,6 +31,10 @@ const FULL_WIDTH_THEME: Theme = {
     maxWidth: "100%",
     padding: "0px",
     backgroundColor: "#FFFFFF",
+  },
+  questionNumberConfig: {
+    ...DEFAULT_THEME.questionNumberConfig,
+    enabled: false,
   },
 };
 
@@ -122,6 +127,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [sizing, setSizing] = useState<Sizing>("fixed");
   const [showInlineFeedback, setShowInlineFeedback] = useState(true);
+  const [mode, setMode] = useState<"practice" | "preview">("practice");
+  const [lastSubmit, setLastSubmit] = useState<ResponseValueMap | null>(null);
   const [drawing, setDrawing] = useState(true);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   // 문항 컨테이너 가용 폭(px). 슬라이더로 좁혀 고정폭 scale 축소 / 반응형 재배치를 시연한다.
@@ -154,6 +161,7 @@ export default function App() {
     setStatus("loading");
     setError(null);
     setItem(null);
+    setLastSubmit(null);
 
     // 로컬(XML 직접 주입) 문항은 API 호출 없이 바로 렌더
     const local = LOCAL_ITEMS[selected.qtiIdentifier];
@@ -197,7 +205,7 @@ export default function App() {
     <div style={styles.page}>
       <aside style={styles.sidebar}>
         <h1 style={styles.title}>@rightstack/rqti-viewer</h1>
-        <p style={styles.subtitle}>상세 API 연동 테스트 · mode=preview</p>
+        <p style={styles.subtitle}>문항 단독 · onSubmit / preview 복원</p>
 
         <nav style={styles.nav} aria-label="문항 유형">
           {NAV_ITEMS.map((s) => {
@@ -220,6 +228,27 @@ export default function App() {
         </nav>
 
         <section style={styles.state}>
+          <h2 style={styles.stateTitle}>모드</h2>
+          <div style={styles.toggleRow}>
+            {(["practice", "preview"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                style={{
+                  ...styles.toggleBtn,
+                  ...(mode === m ? styles.toggleBtnActive : null),
+                }}
+              >
+                {m === "practice" ? "practice (제출)" : "preview (복원)"}
+              </button>
+            ))}
+          </div>
+          <p style={styles.hint}>
+            preview는 마지막 onSubmit 응답을 선택·입력으로 표시합니다. 정오
+            색은 그리지 않습니다.
+          </p>
+
           <h2 style={styles.stateTitle}>사이징 모드</h2>
           <div style={styles.toggleRow}>
             {(["responsive", "fixed"] as const).map((s) => (
@@ -265,6 +294,14 @@ export default function App() {
             />
             인라인 피드백 표시 (preview 정답·해설)
           </label>
+
+          <h2 style={styles.stateTitle}>마지막 onSubmit</h2>
+          <pre style={styles.pre}>
+            {lastSubmit ? JSON.stringify(lastSubmit, null, 2) : "아직 제출 없음"}
+          </pre>
+          <p style={styles.hint}>
+            응답값만 전달됩니다. 정오 채점은 호스트 백엔드 → QMS 범위입니다.
+          </p>
 
           {sizing === "fixed" && (
             <>
@@ -342,9 +379,12 @@ export default function App() {
             <Question
               key={props.itemKey}
               theme={FULL_WIDTH_THEME}
-              mode="practice"
+              mode={mode}
               {...props}
+              showFeedback={false}
               showInlineFeedback={showInlineFeedback}
+              responses={mode === "preview" ? lastSubmit ?? undefined : undefined}
+              onSubmit={setLastSubmit}
               sizing={sizing}
               designWidth={DESIGN_WIDTH}
               // annotationOverlay={

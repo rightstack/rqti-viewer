@@ -53,7 +53,11 @@ export interface QuestionProps {
   itemKey?: string;
   /** 응답 변경 콜백 */
   onResponse?: (responses: ResponseValueMap) => void;
-  /** 제출 콜백 */
+  /**
+   * 문항 단독 Submit Callback. 응답값만 전달한다.
+   * 권위 있는 정오(`correct`)는 호스트 백엔드 → QMS 채점 결과로 처리한다.
+   * 응시자/세션 식별은 호스트가 이 콜백 시점에 묶는다. 뷰어는 ID를 받지 않는다.
+   */
   onSubmit?: (responses: ResponseValueMap) => void;
   isSubmit?: boolean;
   showSubmitButton?: boolean;
@@ -61,7 +65,10 @@ export interface QuestionProps {
   /** practice: 인터랙티브, preview: 정적 렌더 */
   mode?: QuestionMode;
   correctAnswers?: Record<string, ResponseValue>;
-  /** 제어형 응답 (preview에서 사용) */
+  /**
+   * 제어형 응답. preview에서 값이 있으면 선택·입력을 복원해 표시한다.
+   * practice의 `onSubmit` 페이로드를 그대로 넣으면 된다.
+   */
   responses?: ResponseValueMap;
   /** 채점 결과 (도착 시 피드백 시그널 발생) */
   submitResponse?: FeedbackSubmitResponse;
@@ -262,7 +269,7 @@ function Question({
     mode,
     correct,
     submitResponse: effectiveSubmitResponse,
-    responses: responsesProp,
+    responses: responsesProp ?? responses,
     correctAnswers: correctAnswers ?? effectiveSubmitResponse?.correctAnswer,
     isSubmit: internalIsSubmit,
     itemKey: itemKeyProp,

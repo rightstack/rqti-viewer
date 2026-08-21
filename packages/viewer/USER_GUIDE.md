@@ -1,9 +1,8 @@
 # @rightstack/rqti-viewer 사용자 가이드
 
-QTI 문항을 **상세 API**로 조회해 읽기 전용으로 렌더링하는 가이드입니다.  
-제출·채점 연동은 포함하지 않습니다. (`Question`의 기본 모드 `preview` 사용)
+QTI 문항을 **상세 API**로 조회해 **문항 1개**를 렌더링하는 가이드입니다.
 
-> `mode`는 `Question`이 기본값 `"preview"`(읽기 전용)로 처리합니다. `toQuestionProps`는 `mode`를 지정하지 않으므로, 인터랙션이 필요하면 호출측에서 `mode="practice"`를 직접 전달하세요.
+> `mode`는 `Question`이 기본값 `"preview"`(읽기 전용)입니다. `toQuestionProps`는 `mode`를 지정하지 않으므로, 풀이가 필요하면 호출측에서 `mode="practice"`를 전달하세요.
 
 현재 패키지 버전: **0.4.0**
 
@@ -130,8 +129,6 @@ Authorization: Bearer 1786114799~Eg4k3QFE
 | `title`         | `string`                                | 문항 제목      |
 | `type`          | `ItemsType`                             | 문항 유형      |
 | `qtiXml`        | `string`                                | QTI XML        |
-| `correctAnswer` | `Record<string, ResponseValue> \| null` | 정답           |
-| `feedbacks`     | `QuestionFeedback[]`                    | 피드백 목록    |
 
 ---
 
@@ -144,10 +141,6 @@ Authorization: Bearer 1786114799~Eg4k3QFE
 | `qtiXml`        | `data`               |                                                                             |
 | `type`          | `type`               |                                                                             |
 | `qtiIdentifier` | `itemKey`            |                                                                             |
-| `correctAnswer` | `correctAnswers`     | `null`이면 생략                                                             |
-| `feedbacks`     | `feedbacks`          | `displayOrder` 정렬, `feedbackType` → `type`                                |
-| —               | `mode`               | 매퍼는 지정 안 함 → Question 기본값 `"preview"` (필요 시 `mode="practice"`) |
-| —               | `showInlineFeedback` | 기본 `false` (필요 시 호출측에서 `true`)                                    |
 
 ---
 
@@ -244,6 +237,10 @@ const exampleTheme: Theme = {
     maxWidth: "100%",
     padding: "0px",
   },
+  questionNumberConfig: {
+    ...DEFAULT_THEME.questionNumberConfig,
+    enabled: false,
+  },
 };
 
 <Question
@@ -253,6 +250,8 @@ const exampleTheme: Theme = {
   designWidth={1000}
 />
 ```
+
+문항 번호는 뷰어에서 표시하지 않습니다. `theme.questionNumberConfig.enabled: false`로 끕니다.
 
 외부 컨테이너 너비와 세로 스크롤은 호스트 애플리케이션에서 제어합니다.
 뷰어 높이는 자동 계산되므로 고정 높이와 내부 세로 스크롤은 지정하지 않습니다.
@@ -266,10 +265,9 @@ const exampleTheme: Theme = {
 | `data`               | QTI XML                                                            |
 | `type`               | 문항 유형                                                          |
 | `itemKey`            | 문항 식별 키                                                       |
-| `mode`               | 기본 `"preview"`(읽기 전용). `"practice"`로 인터랙션 활성          |
-| `showInlineFeedback` | 하단 정답·피드백 표시 (기본: `false`)                              |
-| `correctAnswers`     | 정답                                                               |
-| `feedbacks`          | 해설/해석/힌트 등                                                  |
+| `mode`               | `"preview"`(기본, 읽기 전용) 또는 `"practice"`(풀이)               |
+| `onSubmit`           | practice 전용. 제출 시 응답 수신                                   |
+| `responses`          | preview 전용. 저장해 둔 응답을 선택·입력으로 표시                  |
 | `theme`              | `"default"` 또는 커스텀 `Theme`(JSON/객체) — `THEME_GUIDE.md` 참고 |
 | `sizing`             | `"responsive"`(기본) 또는 `"fixed"`                                |
 | `designWidth`        | `fixed` 모드의 원본 기준 폭(px). 기본 `720`                        |
@@ -278,7 +276,42 @@ const exampleTheme: Theme = {
 
 ---
 
-## 9. 요구사항 / 제약
+## 9. practice / preview
+
+`mode`에 따라 넘기는 props만 다릅니다.
+
+| | practice | preview |
+| --- | --- | --- |
+| `mode` | `"practice"` | `"preview"` (기본값) |
+| 동작 | 풀이 가능, 제출 버튼 표시 | 읽기 전용 |
+| 추가 prop | `onSubmit` — 제출 시 응답 수신 | `responses` — 저장 응답을 선택·입력으로 표시 |
+
+```tsx
+<Question
+  {...props}
+  mode="practice"
+  onSubmit={(responses) => {
+    saveResponses(responses);
+  }}
+/>
+
+<Question
+  {...props}
+  mode="preview"
+  responses={savedResponses}
+/>
+```
+
+`onSubmit`으로 받은 값을 preview의 `responses`에 그대로 넣으면 됩니다.  
+실제 형태는 `onSubmit`에서 확인하면 됩니다. SCQ 예시:
+
+```ts
+{ RESPONSE: "C" }
+```
+
+---
+
+## 10. 요구사항 / 제약
 
 - React >= 18, React DOM >= 18
 - **클라이언트 전용** (`DOMParser` 사용 — SSR에서 동작하지 않음)
@@ -286,7 +319,7 @@ const exampleTheme: Theme = {
 
 ---
 
-## 10. 주요 export 목록
+## 11. 주요 export 목록
 
 ```tsx
 import {
