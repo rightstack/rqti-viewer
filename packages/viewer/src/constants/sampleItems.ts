@@ -14,12 +14,12 @@ export const SAMPLE_ITEMS: readonly SampleItem[] = [
   {
     type: ITEM_TYPE.SCQ,
     label: "단일 선택형 (SCQ)",
-    qtiIdentifier: "i_hnjgpnv4k8rm4mka",
+    qtiIdentifier: "i_5x75v2r5ecaujlqo",
   },
   {
     type: ITEM_TYPE.MCQ,
     label: "다중 선택형 (MCQ)",
-    qtiIdentifier: "i_bh2rcz4sfva33bxb",
+    qtiIdentifier: "i_pc7r2necedi2vy7t",
   },
   {
     type: ITEM_TYPE.GCQ,
@@ -29,12 +29,12 @@ export const SAMPLE_ITEMS: readonly SampleItem[] = [
   {
     type: ITEM_TYPE.TFQ,
     label: "참/거짓형 (TFQ)",
-    qtiIdentifier: "i_9m9bumtq22y0bqfo",
+    qtiIdentifier: "i_d7ugrkh4v8ril59c",
   },
   {
     type: ITEM_TYPE.DDQ,
     label: "드롭다운형 (DDQ)",
-    qtiIdentifier: "i_ktmmv31vi3hnjrv9",
+    qtiIdentifier: "i_hvji6dr3xffwtunf",
   },
   {
     type: ITEM_TYPE.MATCH,
@@ -44,7 +44,7 @@ export const SAMPLE_ITEMS: readonly SampleItem[] = [
   {
     type: ITEM_TYPE.SRQ,
     label: "단답형 (SRQ)",
-    qtiIdentifier: "i_f08cywvcvnmeagx1",
+    qtiIdentifier: "i_gq5x41yc2t4biapu",
   },
   {
     type: ITEM_TYPE.CLOZE,

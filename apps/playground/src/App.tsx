@@ -245,8 +245,8 @@ export default function App() {
             ))}
           </div>
           <p style={styles.hint}>
-            preview는 마지막 onSubmit 응답을 선택·입력으로 표시합니다. 정오
-            색은 그리지 않습니다.
+            preview는 마지막 onSubmit 응답을 선택·입력으로 표시합니다. 정오 색은
+            그리지 않습니다.
           </p>
 
           <h2 style={styles.stateTitle}>사이징 모드</h2>
@@ -297,7 +297,9 @@ export default function App() {
 
           <h2 style={styles.stateTitle}>마지막 onSubmit</h2>
           <pre style={styles.pre}>
-            {lastSubmit ? JSON.stringify(lastSubmit, null, 2) : "아직 제출 없음"}
+            {lastSubmit
+              ? JSON.stringify(lastSubmit, null, 2)
+              : "아직 제출 없음"}
           </pre>
           <p style={styles.hint}>
             응답값만 전달됩니다. 정오 채점은 호스트 백엔드 → QMS 범위입니다.
@@ -383,7 +385,9 @@ export default function App() {
               {...props}
               showFeedback={false}
               showInlineFeedback={showInlineFeedback}
-              responses={mode === "preview" ? lastSubmit ?? undefined : undefined}
+              responses={
+                mode === "preview" ? lastSubmit ?? undefined : undefined
+              }
               onSubmit={setLastSubmit}
               sizing={sizing}
               designWidth={DESIGN_WIDTH}

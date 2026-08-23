@@ -62,13 +62,13 @@ select / tab 등 UI는 호스트 앱에서 구현합니다.
 
 | 유형        | `type`  | label               | `qtiIdentifier`      |
 | ----------- | ------- | ------------------- | -------------------- |
-| 단일 선택   | `scq`   | 단일 선택형 (SCQ)   | `i_hnjgpnv4k8rm4mka` |
-| 다중 선택   | `mcq`   | 다중 선택형 (MCQ)   | `i_bh2rcz4sfva33bxb` |
+| 단일 선택   | `scq`   | 단일 선택형 (SCQ)   | `i_5x75v2r5ecaujlqo` |
+| 다중 선택   | `mcq`   | 다중 선택형 (MCQ)   | `i_pc7r2necedi2vy7t` |
 | 그룹 선택   | `gcq`   | 그룹 선택형 (GCQ)   | `i_iqypqoaiu195zhpl` |
-| 참/거짓     | `tfq`   | 참/거짓형 (TFQ)     | `i_9m9bumtq22y0bqfo` |
-| 드롭다운    | `ddq`   | 드롭다운형 (DDQ)    | `i_ktmmv31vi3hnjrv9` |
+| 참/거짓     | `tfq`   | 참/거짓형 (TFQ)     | `i_d7ugrkh4v8ril59c` |
+| 드롭다운    | `ddq`   | 드롭다운형 (DDQ)    | `i_hvji6dr3xffwtunf` |
 | 연결하기    | `match` | 연결형 (MATCH)      | `i_fljjjasfugmmldzc` |
-| 단답형      | `srq`   | 단답형 (SRQ)        | `i_f08cywvcvnmeagx1` |
+| 단답형      | `srq`   | 단답형 (SRQ)        | `i_gq5x41yc2t4biapu` |
 | 빈칸 채우기 | `cloze` | 빈칸 채우기 (CLOZE) | `i_lqenbou7mkjktvwo` |
 | 서술형      | `essay` | 서술형 (ESSAY)      | `i_1m7u6xcu9wdo59lt` |
 
@@ -97,7 +97,7 @@ SAMPLE_ITEMS.map((item) => ({
   label: item.label,
 }));
 
-const id = SAMPLE_IDS[ITEM_TYPE.SCQ]; // "i_hnjgpnv4k8rm4mka"
+const id = SAMPLE_IDS[ITEM_TYPE.SCQ]; // "i_5x75v2r5ecaujlqo"
 ```
 
 ---
