@@ -14,7 +14,7 @@ function Separator({
       decorative={decorative}
       orientation={orientation}
       className={cn(
-        "rtqi:bg-border rtqi:shrink-0 rtqi:data-[orientation=horizontal]:h-px rtqi:data-[orientation=horizontal]:w-full rtqi:data-[orientation=vertical]:h-full rtqi:data-[orientation=vertical]:w-px",
+        "rqti:bg-border rqti:shrink-0 rqti:data-[orientation=horizontal]:h-px rqti:data-[orientation=horizontal]:w-full rqti:data-[orientation=vertical]:h-full rqti:data-[orientation=vertical]:w-px",
         className
       )}
       {...props}

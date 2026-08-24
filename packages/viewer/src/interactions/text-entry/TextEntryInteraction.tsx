@@ -90,7 +90,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
 
   const isSRQ = options.questionType === ITEM_TYPE.SRQ;
   const isCLOZE = options.questionType === ITEM_TYPE.CLOZE;
-  const layout = isSRQ ? "rtqi:block" : "rtqi:inline";
+  const layout = isSRQ ? "rqti:block" : "rqti:inline";
 
   /**
    * CLOZE 타입은 input 영역 피드백 로직 미적용
@@ -140,7 +140,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
       layout={layout}
       maxLength={Number.isFinite(maxLength) ? maxLength : undefined}
       ariaLabel={`${responseIdentifier} 입력`}
-      // showCharacterCounter={layout === "rtqi:block" && Number.isFinite(effectiveMaxLength)}
+      // showCharacterCounter={layout === "rqti:block" && Number.isFinite(effectiveMaxLength)}
       variant={isSRQ ? "srq" : isCLOZE ? "cloze" : "default"}
     />
   );

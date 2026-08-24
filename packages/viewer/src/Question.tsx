@@ -1,10 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./assets/styles/index.css";
 import { FixedScaleContainer } from "./components/FixedScaleContainer";
+import { PassageLayout } from "./components/PassageLayout";
 import { QuestionNumber } from "./components/QuestionNumber";
 import { ITEM_TYPE, type ItemsType } from "./constants/itemType";
 import { cn } from "./lib/utils";
-import { parseFeedbackContentToReact, parseQTIToReact } from "./parser";
+import {
+  parseFeedbackContentToReact,
+  parsePassageHtmlToReact,
+  parseQTIToReact,
+} from "./parser";
 import {
   CorrectIcon,
   FeedbackInline,
@@ -94,6 +99,11 @@ export interface QuestionProps {
    * 정답(correctAnswers)·지문 해설(passageFeedbacks)과 함께 FeedbackInline으로 렌더된다.
    */
   feedbacks?: FeedbackItem[];
+  /**
+   * 연결지문 HTML. 값이 있으면 문항 왼쪽에 지문을 가로로 같이 렌더한다.
+   * 파싱·배치는 Question 내부에서 처리한다.
+   */
+  passage?: string | null;
   /** preview(리뷰) 모드에서 표시할 지문 해설 HTML */
   passageFeedbacks?: string | null;
   /**
@@ -143,6 +153,7 @@ function Question({
   questionIndex,
   correct,
   feedbacks,
+  passage,
   passageFeedbacks,
   showInlineFeedback = false,
   className,
@@ -256,6 +267,20 @@ function Question({
 
   const canSubmit = canSubmitUtil(responses, canSubmitOptions);
 
+  const trimmedPassage = passage?.trim() ?? "";
+  const passageNode = useMemo(
+    () =>
+      trimmedPassage
+        ? parsePassageHtmlToReact(trimmedPassage, {
+            token,
+            baseUrl,
+            theme,
+            mode,
+          })
+        : null,
+    [trimmedPassage, token, baseUrl, theme, mode],
+  );
+
   // preview(리뷰) 하단 FeedbackInline에 표시할 정답: prop 우선, 없으면 채점 응답의 correctAnswer
   const inlineCorrectAnswer =
     correctAnswers ?? effectiveSubmitResponse?.correctAnswer;
@@ -286,7 +311,7 @@ function Question({
     questionIndex !== undefined &&
     questionIndex !== null &&
     questionIndex >= 1;
-  const position = qnConfig?.position === "top" ? "top" : "rtqi:inline";
+  const position = qnConfig?.position === "top" ? "top" : "rqti:inline";
   const digits = Number(qnConfig?.digits) || 1;
   const prefix = qnConfig?.prefix ?? "";
   const suffix = qnConfig?.suffix ?? "";
@@ -335,14 +360,14 @@ function Question({
   const contentBlock = (() => {
     if (
       showQuestionNumber &&
-      position === "rtqi:inline" &&
+      position === "rqti:inline" &&
       parsedContent &&
       React.isValidElement(parsedContent)
     ) {
       const numberNode = (
         <QuestionNumber
           label={questionNumberLabel}
-          position="rtqi:inline"
+          position="rqti:inline"
           feedbackBadge={showFeedbackBadge ? renderFeedbackBadge() : undefined}
         />
       );
@@ -359,59 +384,69 @@ function Question({
     ? { ...(themeVariables as React.CSSProperties), ["--qti-design-width" as string]: `${designWidth}px` }
     : (themeVariables as React.CSSProperties);
 
-  const viewer = (
+  const questionBody = (
     <div
-      className={cn("rtqi-viewer", className)}
-      data-sizing={sizing}
-      style={rootStyle}
+      className={cn(
+        "qti-ext-wrapper",
+        stackInlineFeedback && "rqti:flex-col",
+      )}
     >
       <div
         className={cn(
-          "qti-ext-wrapper",
-          stackInlineFeedback && "rtqi:flex-col",
+          "qti-ext-container",
+          stackInlineFeedback && "rqti:mx-auto rqti:w-full",
         )}
       >
-        <div
-          className={cn(
-            "qti-ext-container",
-            stackInlineFeedback && "rtqi:mx-auto rtqi:w-full",
-          )}
-        >
-          {showQuestionNumber &&
-            position === "top" &&
-            (showFeedbackBadge ? (
-              <div className="qti-ext-question-number-region">
-                {renderFeedbackBadge()}
-                <QuestionNumber label={questionNumberLabel} position="top" />
-              </div>
-            ) : (
+        {showQuestionNumber &&
+          position === "top" &&
+          (showFeedbackBadge ? (
+            <div className="qti-ext-question-number-region">
+              {renderFeedbackBadge()}
               <QuestionNumber label={questionNumberLabel} position="top" />
-            ))}
-
-          {contentBlock}
-
-          {mode !== "preview" && showSubmitButton && (
-            <div className="rtqi:mt-auto rtqi:pb-8">
-              <SubmitButton
-                canSubmit={canSubmit}
-                onSubmit={handleSubmit}
-                label={submitButtonLabel}
-              />
             </div>
-          )}
-        </div>
-      </div>
+          ) : (
+            <QuestionNumber label={questionNumberLabel} position="top" />
+          ))}
 
-      {mode === "preview" && showInlineFeedback && (
-        <FeedbackInline
-          correctAnswer={inlineCorrectAnswer}
-          feedbacks={feedbacks}
-          passageFeedbacks={passageFeedbacks}
-          qtiXml={data}
-          token={token}
-          themeVariables={themeVariables}
-        />
+        {contentBlock}
+
+        {mode !== "preview" && showSubmitButton && (
+          <div className="rqti:mt-auto rqti:pb-8">
+            <SubmitButton
+              canSubmit={canSubmit}
+              onSubmit={handleSubmit}
+              label={submitButtonLabel}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const inlineFeedback =
+    mode === "preview" && showInlineFeedback ? (
+      <FeedbackInline
+        correctAnswer={inlineCorrectAnswer}
+        feedbacks={feedbacks}
+        passageFeedbacks={passageFeedbacks}
+        qtiXml={data}
+        token={token}
+        themeVariables={themeVariables}
+      />
+    ) : null;
+
+  const viewer = (
+    <div
+      className={cn("rqti-viewer", className)}
+      data-sizing={sizing}
+      style={rootStyle}
+    >
+      {passageNode ? (
+        <PassageLayout passage={passageNode}>{questionBody}</PassageLayout>
+      ) : (
+        questionBody
       )}
+      {inlineFeedback}
 
       {mode === "practice" && showFeedback && effectiveSubmitResponse && (
         <FeedbackSheet
@@ -486,7 +521,7 @@ function Question({
       <FixedScaleContainer
         designWidth={designWidth}
         overlay={annotationOverlay}
-        className="rtqi-viewer-scale"
+        className="rqti-viewer-scale"
       >
         {viewer}
       </FixedScaleContainer>

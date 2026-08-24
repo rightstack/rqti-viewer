@@ -21,6 +21,12 @@ const NAV_ITEMS: readonly SampleItem[] = [
 const QMS_API_TOKEN = "1786114799~Eg4k3QFE";
 const DESIGN_WIDTH = 1000;
 
+const DEMO_PASSAGE_HTML = `
+<p><strong>다음 글을 읽고 물음에 답하시오.</strong></p>
+<p>헨젤과 그레텔은 숲속에서 길을 잃었다. 헨젤은 처음에 조약돌을 떨어뜨려 집을 찾아왔지만, 두 번째에는 빵 조각을 떨어뜨렸다. 숲속의 새들이 빵을 모두 먹어 버려 두 아이는 집을 찾지 못했다.</p>
+<p>한참을 헤매던 남매는 과자로 만든 집을 발견했다. 배가 고팠던 아이들은 지붕과 창문을 깨물어 먹기 시작했다.</p>
+`;
+
 /** 1000px 저작 기준 폭을 전부 사용하는 뷰어 테마 예시. 문항 번호는 플랫폼이 그리는 전제. */
 const FULL_WIDTH_THEME: Theme = {
   ...DEFAULT_THEME,
@@ -133,6 +139,7 @@ export default function App() {
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   // 문항 컨테이너 가용 폭(px). 슬라이더로 좁혀 고정폭 scale 축소 / 반응형 재배치를 시연한다.
   const [previewWidth, setPreviewWidth] = useState(1000);
+  const [demoPassage, setDemoPassage] = useState(false);
 
   const saveAnnotations = () => {
     localStorage.setItem(
@@ -285,6 +292,17 @@ export default function App() {
               : "폭을 줄이면 UI가 반응형으로 재배치됩니다."}
           </p>
 
+          <h2 style={styles.stateTitle}>연결지문</h2>
+          <label style={styles.checkboxRow}>
+            <input
+              type="checkbox"
+              checked={demoPassage}
+              onChange={(e) => setDemoPassage(e.target.checked)}
+            />
+            데모 지문 표시 (`passage` prop)
+          </label>
+          <p style={styles.hint}>지문은 문항 왼쪽에 가로로 고정됩니다.</p>
+
           <h2 style={styles.stateTitle}>정답·피드백</h2>
           <label style={styles.checkboxRow}>
             <input
@@ -388,6 +406,7 @@ export default function App() {
               responses={
                 mode === "preview" ? lastSubmit ?? undefined : undefined
               }
+              passage={demoPassage ? DEMO_PASSAGE_HTML : props.passage}
               onSubmit={setLastSubmit}
               sizing={sizing}
               designWidth={DESIGN_WIDTH}
@@ -510,11 +529,11 @@ const styles: Record<string, React.CSSProperties> = {
   card: {
     width: "100%",
     minWidth: 0,
-    maxWidth: 720,
-    background: "#fff",
-    border: "1px solid #eee",
-    borderRadius: 16,
-    padding: 32,
-    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+    // maxWidth: 720,
+    // background: "#fff",
+    // border: "1px solid #eee",
+    // borderRadius: 16,
+    // padding: 32,
+    // boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
   },
 };

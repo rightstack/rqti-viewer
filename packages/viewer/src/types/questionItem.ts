@@ -47,4 +47,6 @@ export interface QuestionItem {
   correctAnswer: Record<string, ResponseValue> | null;
   settings: unknown | null;
   feedbacks: QuestionFeedback[];
+  /** 연결지문. `content` HTML이 있으면 `toQuestionProps`가 `passage`로 넘긴다. */
+  passage?: { content?: string | null } | null;
 }

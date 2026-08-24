@@ -18,7 +18,7 @@ export const MediaContent = ({ media, className = "", token, baseUrl }: MediaCon
   if (media.length === 0) return null;
 
   return (
-    <div className={`rtqi:flex rtqi:flex-col rtqi:gap-2 ${className}`}>
+    <div className={`rqti:flex rqti:flex-col rqti:gap-2 ${className}`}>
       {media.map((item) => {
         const resolvedUrl = resolveMediaUrl(item.url, baseUrl);
         switch (item.type) {

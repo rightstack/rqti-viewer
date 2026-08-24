@@ -43,7 +43,7 @@ function SheetPortal({ ...props }: React.ComponentProps<typeof SheetPrimitive.Po
 //   return (
 //     <SheetPrimitive.Overlay
 //       className={cn(
-//         "rtqi:data-[state=open]:animate-in rtqi:data-[state=closed]:animate-out rtqi:data-[state=closed]:fade-out-0 rtqi:data-[state=open]:fade-in-0 rtqi:fixed rtqi:inset-0 rtqi:z-50 rtqi:bg-black/50",
+//         "rqti:data-[state=open]:animate-in rqti:data-[state=closed]:animate-out rqti:data-[state=closed]:fade-out-0 rqti:data-[state=open]:fade-in-0 rqti:fixed rqti:inset-0 rqti:z-50 rqti:bg-black/50",
 //         className
 //       )}
 //       {...props}
@@ -65,24 +65,24 @@ function SheetContent({
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          "rtqi-viewer",
-          "rtqi:bg-background rtqi:data-[state=open]:animate-in rtqi:data-[state=closed]:animate-out rtqi:fixed rtqi:z-50 rtqi:flex rtqi:flex-col rtqi:gap-4 rtqi:shadow-lg rtqi:transition rtqi:ease-in-out rtqi:data-[state=closed]:duration-300 rtqi:data-[state=open]:duration-500",
+          "rqti-viewer",
+          "rqti:bg-background rqti:data-[state=open]:animate-in rqti:data-[state=closed]:animate-out rqti:fixed rqti:z-50 rqti:flex rqti:flex-col rqti:gap-4 rqti:shadow-lg rqti:transition rqti:ease-in-out rqti:data-[state=closed]:duration-300 rqti:data-[state=open]:duration-500",
           side === "right" &&
-            "rtqi:data-[state=closed]:slide-out-to-right rtqi:data-[state=open]:slide-in-from-right rtqi:inset-y-0 rtqi:right-0 rtqi:h-full rtqi:w-3/4 rtqi:border-l rtqi:sm:max-w-sm",
+            "rqti:data-[state=closed]:slide-out-to-right rqti:data-[state=open]:slide-in-from-right rqti:inset-y-0 rqti:right-0 rqti:h-full rqti:w-3/4 rqti:border-l rqti:sm:max-w-sm",
           side === "left" &&
-            "rtqi:data-[state=closed]:slide-out-to-left rtqi:data-[state=open]:slide-in-from-left rtqi:inset-y-0 rtqi:left-0 rtqi:h-full rtqi:w-3/4 rtqi:border-r rtqi:sm:max-w-sm",
+            "rqti:data-[state=closed]:slide-out-to-left rqti:data-[state=open]:slide-in-from-left rqti:inset-y-0 rqti:left-0 rqti:h-full rqti:w-3/4 rqti:border-r rqti:sm:max-w-sm",
           side === "top" &&
-            "rtqi:data-[state=closed]:slide-out-to-top rtqi:data-[state=open]:slide-in-from-top rtqi:inset-x-0 rtqi:top-0 rtqi:h-auto rtqi:border-b",
+            "rqti:data-[state=closed]:slide-out-to-top rqti:data-[state=open]:slide-in-from-top rqti:inset-x-0 rqti:top-0 rqti:h-auto rqti:border-b",
           side === "bottom" &&
-            "rtqi:data-[state=closed]:slide-out-to-bottom rtqi:data-[state=open]:slide-in-from-bottom rtqi:inset-x-0 rtqi:bottom-0 rtqi:h-auto rtqi:border-t",
+            "rqti:data-[state=closed]:slide-out-to-bottom rqti:data-[state=open]:slide-in-from-bottom rqti:inset-x-0 rqti:bottom-0 rqti:h-auto rqti:border-t",
           className
         )}
         {...props}
       >
         {children}
-        <SheetPrimitive.Close className="rtqi:ring-offset-background rtqi:focus:ring-ring rtqi:data-[state=open]:bg-secondary rtqi:absolute rtqi:top-4 rtqi:right-4 rtqi:rounded-xs rtqi:opacity-70 rtqi:transition-opacity rtqi:hover:opacity-100 rtqi:focus:ring-2 rtqi:focus:ring-offset-2 rtqi:focus:outline-hidden rtqi:disabled:pointer-events-none">
+        <SheetPrimitive.Close className="rqti:ring-offset-background rqti:focus:ring-ring rqti:data-[state=open]:bg-secondary rqti:absolute rqti:top-4 rqti:right-4 rqti:rounded-xs rqti:opacity-70 rqti:transition-opacity rqti:hover:opacity-100 rqti:focus:ring-2 rqti:focus:ring-offset-2 rqti:focus:outline-hidden rqti:disabled:pointer-events-none">
           <XIcon className="size-4" />
-          <span className="rtqi:sr-only">Close</span>
+          <span className="rqti:sr-only">Close</span>
         </SheetPrimitive.Close>
       </SheetPrimitive.Content>
     </SheetPortal>
@@ -93,7 +93,7 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-header"
-      className={cn("rtqi:flex rtqi:flex-col rtqi:gap-1.5 rtqi:p-4", className)}
+      className={cn("rqti:flex rqti:flex-col rqti:gap-1.5 rqti:p-4", className)}
       {...props}
     />
   );
@@ -103,7 +103,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-footer"
-      className={cn("rtqi:mt-auto rtqi:flex rtqi:flex-col rtqi:gap-2 rtqi:p-4", className)}
+      className={cn("rqti:mt-auto rqti:flex rqti:flex-col rqti:gap-2 rqti:p-4", className)}
       {...props}
     />
   );
@@ -113,7 +113,7 @@ function SheetTitle({ className, ...props }: React.ComponentProps<typeof SheetPr
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn("rtqi:text-foreground rtqi:font-semibold", className)}
+      className={cn("rqti:text-foreground rqti:font-semibold", className)}
       {...props}
     />
   );
@@ -126,7 +126,7 @@ function SheetDescription({
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"
-      className={cn("rtqi:text-muted-foreground rtqi:text-sm", className)}
+      className={cn("rqti:text-muted-foreground rqti:text-sm", className)}
       {...props}
     />
   );

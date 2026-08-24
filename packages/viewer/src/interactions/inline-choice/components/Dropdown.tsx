@@ -187,7 +187,7 @@ export const Dropdown = ({
     showAnswerFeedback && isCorrect && "qti-ext-dropdown-trigger-correct",
     isIncorrect && "qti-ext-dropdown-trigger-incorrect",
     // showDisabledStyle && "qti-ext-dropdown-trigger-disabled",
-    (showCorrectAnswer || showAnswerFeedback) && "rtqi:text-center",
+    (showCorrectAnswer || showAnswerFeedback) && "rqti:text-center",
     isSelected && "qti-ext-dropdown-trigger-has-value"
   );
 

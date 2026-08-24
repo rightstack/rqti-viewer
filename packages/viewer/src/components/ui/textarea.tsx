@@ -6,9 +6,9 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
     <textarea
       data-slot="textarea"
       className={cn(
-        "rtqi:file:text-foreground rtqi:placeholder:text-muted-foreground rtqi:selection:bg-primary rtqi:selection:text-primary-foreground rtqi:dark:bg-input/30 rtqi:border-input rtqi:flex rtqi:min-h-[60px] rtqi:w-full rtqi:min-w-0 rtqi:rounded-md rtqi:border rtqi:bg-transparent rtqi:px-3 rtqi:py-2 rtqi:text-sm rtqi:shadow-xs rtqi:transition-[color,box-shadow] rtqi:outline-none rtqi:disabled:pointer-events-none rtqi:disabled:cursor-not-allowed rtqi:disabled:opacity-50 rtqi:md:text-sm",
-        "rtqi:focus-visible:border-ring rtqi:focus-visible:ring-ring/50 rtqi:focus-visible:ring-[3px]",
-        "rtqi:aria-invalid:ring-destructive/20 rtqi:dark:aria-invalid:ring-destructive/40 rtqi:aria-invalid:border-destructive",
+        "rqti:file:text-foreground rqti:placeholder:text-muted-foreground rqti:selection:bg-primary rqti:selection:text-primary-foreground rqti:dark:bg-input/30 rqti:border-input rqti:flex rqti:min-h-[60px] rqti:w-full rqti:min-w-0 rqti:rounded-md rqti:border rqti:bg-transparent rqti:px-3 rqti:py-2 rqti:text-sm rqti:shadow-xs rqti:transition-[color,box-shadow] rqti:outline-none rqti:disabled:pointer-events-none rqti:disabled:cursor-not-allowed rqti:disabled:opacity-50 rqti:md:text-sm",
+        "rqti:focus-visible:border-ring rqti:focus-visible:ring-ring/50 rqti:focus-visible:ring-[3px]",
+        "rqti:aria-invalid:ring-destructive/20 rqti:dark:aria-invalid:ring-destructive/40 rqti:aria-invalid:border-destructive",
         className
       )}
       {...props}

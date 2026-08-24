@@ -1,4 +1,4 @@
-@custom-variant dark (&:is(.rtqi-viewer.dark *));
+@custom-variant dark (&:is(.rqti-viewer.dark *));
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -65,12 +65,12 @@
   }
 }
 
-.rtqi-viewer {
-  /* 컨테이너 쿼리 컨텍스트: 내부 반응형(@container rtqi)이 뷰포트가 아닌
+.rqti-viewer {
+  /* 컨테이너 쿼리 컨텍스트: 내부 반응형(@container rqti)이 뷰포트가 아닌
      뷰어 자기 폭에 반응한다. sizing="fixed"에선 폭이 항상 designWidth라
      반응형이 흔들리지 않고, responsive에선 실제 가용 폭에 반응한다. */
   container-type: inline-size;
-  container-name: rtqi;
+  container-name: rqti;
 
   --radius: 0.625rem;
   --background: oklch(100% 0 0);
@@ -97,7 +97,7 @@
   --highlight-foreground: oklch(100% 0 0);
 }
 
-.rtqi-viewer.dark {
+.rqti-viewer.dark {
   --background: oklch(14.5% 0 0);
   --foreground: oklch(98.5% 0 0);
   --card: oklch(20.5% 0 0);
@@ -120,20 +120,20 @@
   --highlight-foreground: oklch(100% 0 0);
 }
 
-.rtqi-viewer *,
-.rtqi-viewer *::before,
-.rtqi-viewer *::after {
+.rqti-viewer *,
+.rqti-viewer *::before,
+.rqti-viewer *::after {
   box-sizing: border-box;
 }
 
 @layer base {
-  .rtqi-viewer *,
-  .rtqi-viewer ::before,
-  .rtqi-viewer ::after {
+  .rqti-viewer *,
+  .rqti-viewer ::before,
+  .rqti-viewer ::after {
     border-color: var(--border);
   }
 
-  .rtqi-viewer button {
+  .rqti-viewer button {
     cursor: pointer;
   }
 }

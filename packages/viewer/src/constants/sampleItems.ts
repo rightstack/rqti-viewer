@@ -19,7 +19,7 @@ export const SAMPLE_ITEMS: readonly SampleItem[] = [
   {
     type: ITEM_TYPE.MCQ,
     label: "다중 선택형 (MCQ)",
-    qtiIdentifier: "i_pc7r2necedi2vy7t",
+    qtiIdentifier: "i_bo7qcg294mks15yh",
   },
   {
     type: ITEM_TYPE.GCQ,

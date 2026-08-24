@@ -10,7 +10,7 @@ import type { QuestionFeedback, QuestionItem } from "../types/questionItem";
  */
 export type QuestionItemProps = Pick<
   QuestionProps,
-  "data" | "type" | "itemKey" | "correctAnswers" | "feedbacks"
+  "data" | "type" | "itemKey" | "correctAnswers" | "feedbacks" | "passage"
 >;
 
 function mapFeedbacks(feedbacks: QuestionFeedback[]): FeedbackItem[] {
@@ -36,11 +36,13 @@ function mapFeedbacks(feedbacks: QuestionFeedback[]): FeedbackItem[] {
  * ```
  */
 export function toQuestionProps(item: QuestionItem): QuestionItemProps {
+  const passage = item.passage?.content?.trim();
   return {
     data: item.qtiXml,
     type: item.type,
     itemKey: item.qtiIdentifier,
     correctAnswers: item.correctAnswer ?? undefined,
     feedbacks: mapFeedbacks(item.feedbacks ?? []),
+    ...(passage ? { passage } : {}),
   };
 }

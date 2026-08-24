@@ -63,7 +63,7 @@ select / tab 등 UI는 호스트 앱에서 구현합니다.
 | 유형        | `type`  | label               | `qtiIdentifier`      |
 | ----------- | ------- | ------------------- | -------------------- |
 | 단일 선택   | `scq`   | 단일 선택형 (SCQ)   | `i_5x75v2r5ecaujlqo` |
-| 다중 선택   | `mcq`   | 다중 선택형 (MCQ)   | `i_pc7r2necedi2vy7t` |
+| 다중 선택   | `mcq`   | 다중 선택형 (MCQ)   | `i_bo7qcg294mks15yh` |
 | 그룹 선택   | `gcq`   | 그룹 선택형 (GCQ)   | `i_iqypqoaiu195zhpl` |
 | 참/거짓     | `tfq`   | 참/거짓형 (TFQ)     | `i_d7ugrkh4v8ril59c` |
 | 드롭다운    | `ddq`   | 드롭다운형 (DDQ)    | `i_hvji6dr3xffwtunf` |
@@ -265,6 +265,7 @@ const exampleTheme: Theme = {
 | `data`               | QTI XML                                                            |
 | `type`               | 문항 유형                                                          |
 | `itemKey`            | 문항 식별 키                                                       |
+| `passage`            | 연결지문 HTML. 있으면 문항 왼쪽에 가로로 같이 렌더                 |
 | `mode`               | `"preview"`(기본, 읽기 전용) 또는 `"practice"`(풀이)               |
 | `onSubmit`           | practice 전용. 제출 시 응답 수신                                   |
 | `responses`          | preview 전용. 저장해 둔 응답을 선택·입력으로 표시                  |
@@ -311,15 +312,27 @@ const exampleTheme: Theme = {
 
 ---
 
-## 10. 요구사항 / 제약
+## 10. 연결지문
 
-- React >= 18, React DOM >= 18
-- **클라이언트 전용** (`DOMParser` 사용 — SSR에서 동작하지 않음)
-- 스타일은 `.rtqi-viewer` 아래로 격리됨 (`rtqi:` Tailwind prefix)
+연결지문이 있으면 `passage`에 HTML만 넘기면 됩니다. 파싱과 가로 배치는 `Question`이 처리합니다.
+
+```tsx
+<Question {...props} passage={passageHtml} />
+```
+
+지문은 문항 왼쪽에 고정됩니다.
 
 ---
 
-## 11. 주요 export 목록
+## 11. 요구사항 / 제약
+
+- React >= 18, React DOM >= 18
+- **클라이언트 전용** (`DOMParser` 사용 — SSR에서 동작하지 않음)
+- 스타일은 `.rqti-viewer` 아래로 격리됨 (`rqti:` Tailwind prefix)
+
+---
+
+## 12. 주요 export 목록
 
 ```tsx
 import {

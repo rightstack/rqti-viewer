@@ -52,16 +52,16 @@ export function getTfqLayoutClasses(tfqCount: number): {
 } {
   if (tfqCount <= 1) {
     return {
-      row: "tfq-row tfq-single rtqi:flex rtqi:flex-col rtqi:gap-3",
-      prompt: "tfq-prompt rtqi:w-full",
-      buttons: "tfq-buttons rtqi:w-full rtqi:flex rtqi:justify-start rtqi:gap-2 rtqi:shrink-0",
+      row: "tfq-row tfq-single rqti:flex rqti:flex-col rqti:gap-3",
+      prompt: "tfq-prompt rqti:w-full",
+      buttons: "tfq-buttons rqti:w-full rqti:flex rqti:justify-start rqti:gap-2 rqti:shrink-0",
     };
   }
   return {
-    row: "tfq-row rtqi:flex rtqi:flex-col rtqi:gap-3 rtqi:min-[480px]:flex-row rtqi:min-[480px]:items-center rtqi:min-[480px]:justify-between rtqi:min-[480px]:gap-6",
-    prompt: "tfq-prompt rtqi:w-full rtqi:min-w-0 rtqi:min-[480px]:w-[60%]",
+    row: "tfq-row rqti:flex rqti:flex-col rqti:gap-3 rqti:min-[480px]:flex-row rqti:min-[480px]:items-center rqti:min-[480px]:justify-between rqti:min-[480px]:gap-6",
+    prompt: "tfq-prompt rqti:w-full rqti:min-w-0 rqti:min-[480px]:w-[60%]",
     buttons:
-      "tfq-buttons rtqi:w-full rtqi:flex rtqi:justify-start rtqi:gap-2 rtqi:min-[480px]:w-[40%] rtqi:min-[480px]:justify-end rtqi:min-w-[120px] rtqi:shrink-0",
+      "tfq-buttons rqti:w-full rqti:flex rqti:justify-start rqti:gap-2 rqti:min-[480px]:w-[40%] rqti:min-[480px]:justify-end rqti:min-w-[120px] rqti:shrink-0",
   };
 }
 

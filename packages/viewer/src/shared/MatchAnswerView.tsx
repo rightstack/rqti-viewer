@@ -107,9 +107,9 @@ export function MatchAnswerView({ items, correctResponse }: MatchAnswerViewProps
   const colIndices = Array.from({ length: colIds.length }, (_, i) => i + 1);
 
   return (
-    <div className="rtqi:w-full rtqi:min-w-0">
+    <div className="rqti:w-full rqti:min-w-0">
       <svg
-        className="rtqi:block rtqi:w-full rtqi:max-w-[280px]"
+        className="rqti:block rqti:w-full rqti:max-w-[280px]"
         viewBox={`${VIEW_MIN_X} 0 ${VIEW_W} ${height}`}
         preserveAspectRatio="xMidYMid meet"
         style={{

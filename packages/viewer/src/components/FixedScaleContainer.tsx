@@ -96,12 +96,12 @@ export function FixedScaleContainer({
   };
 
   return (
-    <div ref={outerRef} className={className} style={outerStyle} data-rtqi-scale-outer="">
+    <div ref={outerRef} className={className} style={outerStyle} data-rqti-scale-outer="">
       <div style={spacerStyle}>
-        <div ref={innerRef} style={innerStyle} data-rtqi-scale-inner="">
+        <div ref={innerRef} style={innerStyle} data-rqti-scale-inner="">
           {children}
           {overlay != null && (
-            <div style={overlayStyle} data-rtqi-scale-overlay="">
+            <div style={overlayStyle} data-rqti-scale-overlay="">
               {overlay}
             </div>
           )}

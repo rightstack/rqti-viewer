@@ -4,26 +4,26 @@ import { type VariantProps, cva } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 
 const buttonVariants = cva(
-  "rtqi:inline-flex rtqi:items-center rtqi:justify-center rtqi:gap-2 rtqi:whitespace-nowrap rtqi:rounded-md rtqi:text-sm rtqi:font-medium rtqi:transition-all rtqi:disabled:pointer-events-none rtqi:disabled:opacity-50 rtqi:[&_svg]:pointer-events-none rtqi:[&_svg:not([class*='size-'])]:size-4 rtqi:shrink-0 rtqi:[&_svg]:shrink-0 rtqi:outline-none rtqi:focus-visible:border-ring rtqi:focus-visible:ring-ring/50 rtqi:focus-visible:ring-[3px] rtqi:aria-invalid:ring-destructive/20 rtqi:dark:aria-invalid:ring-destructive/40 rtqi:aria-invalid:border-destructive",
+  "rqti:inline-flex rqti:items-center rqti:justify-center rqti:gap-2 rqti:whitespace-nowrap rqti:rounded-md rqti:text-sm rqti:font-medium rqti:transition-all rqti:disabled:pointer-events-none rqti:disabled:opacity-50 rqti:[&_svg]:pointer-events-none rqti:[&_svg:not([class*='size-'])]:size-4 rqti:shrink-0 rqti:[&_svg]:shrink-0 rqti:outline-none rqti:focus-visible:border-ring rqti:focus-visible:ring-ring/50 rqti:focus-visible:ring-[3px] rqti:aria-invalid:ring-destructive/20 rqti:dark:aria-invalid:ring-destructive/40 rqti:aria-invalid:border-destructive",
   {
     variants: {
       variant: {
-        default: "rtqi:bg-primary rtqi:text-primary-foreground rtqi:hover:bg-primary/90",
+        default: "rqti:bg-primary rqti:text-primary-foreground rqti:hover:bg-primary/90",
         destructive:
-          "rtqi:bg-destructive rtqi:text-white rtqi:hover:bg-destructive/90 rtqi:focus-visible:ring-destructive/20 rtqi:dark:focus-visible:ring-destructive/40 rtqi:dark:bg-destructive/60",
+          "rqti:bg-destructive rqti:text-white rqti:hover:bg-destructive/90 rqti:focus-visible:ring-destructive/20 rqti:dark:focus-visible:ring-destructive/40 rqti:dark:bg-destructive/60",
         outline:
-          "rtqi:border rtqi:bg-background rtqi:shadow-xs rtqi:hover:bg-accent rtqi:hover:text-accent-foreground rtqi:dark:bg-input/30 rtqi:dark:border-input rtqi:dark:hover:bg-input/50",
-        secondary: "rtqi:bg-secondary rtqi:text-secondary-foreground rtqi:hover:bg-secondary/80",
-        ghost: "rtqi:hover:bg-accent rtqi:hover:text-accent-foreground rtqi:dark:hover:bg-accent/50",
-        link: "rtqi:text-primary rtqi:underline-offset-4 rtqi:hover:underline",
+          "rqti:border rqti:bg-background rqti:shadow-xs rqti:hover:bg-accent rqti:hover:text-accent-foreground rqti:dark:bg-input/30 rqti:dark:border-input rqti:dark:hover:bg-input/50",
+        secondary: "rqti:bg-secondary rqti:text-secondary-foreground rqti:hover:bg-secondary/80",
+        ghost: "rqti:hover:bg-accent rqti:hover:text-accent-foreground rqti:dark:hover:bg-accent/50",
+        link: "rqti:text-primary rqti:underline-offset-4 rqti:hover:underline",
       },
       size: {
-        default: "rtqi:h-9 rtqi:px-4 rtqi:py-2 rtqi:has-[>svg]:px-3",
-        sm: "rtqi:h-8 rtqi:rounded-md rtqi:gap-1.5 rtqi:px-3 rtqi:has-[>svg]:px-2.5",
-        lg: "rtqi:h-10 rtqi:rounded-md rtqi:px-6 rtqi:has-[>svg]:px-4",
-        icon: "rtqi:size-9",
-        "icon-sm": "rtqi:size-8",
-        "icon-lg": "rtqi:size-10",
+        default: "rqti:h-9 rqti:px-4 rqti:py-2 rqti:has-[>svg]:px-3",
+        sm: "rqti:h-8 rqti:rounded-md rqti:gap-1.5 rqti:px-3 rqti:has-[>svg]:px-2.5",
+        lg: "rqti:h-10 rqti:rounded-md rqti:px-6 rqti:has-[>svg]:px-4",
+        icon: "rqti:size-9",
+        "icon-sm": "rqti:size-8",
+        "icon-lg": "rqti:size-10",
       },
     },
     defaultVariants: {

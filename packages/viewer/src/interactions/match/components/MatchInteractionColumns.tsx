@@ -77,7 +77,7 @@ export const MatchInteractionColumns: React.FC<MatchInteractionColumnsProps> = (
           <div
             key={getSetKey(setIndex)}
             ref={isMeasuredCol && !hasSameOptionCount ? setColRefBySetIndex(setIndex) : undefined}
-            className="rtqi:flex rtqi:flex-col rtqi:gap-3"
+            className="rqti:flex rqti:flex-col rqti:gap-3"
           >
             {choices.map((option, optionIndex) => {
               const optionRef =

@@ -57,7 +57,7 @@ const OrderChoice = ({
     const targetElement = e.currentTarget as HTMLElement;
     const dragElement = targetElement.cloneNode(true) as HTMLElement;
     const container = document.createElement("div");
-    container.style.position = "rtqi:absolute";
+    container.style.position = "rqti:absolute";
     container.style.top = "-1000px";
     container.style.left = "-1000px";
 
@@ -70,16 +70,16 @@ const OrderChoice = ({
       computedStyle.getPropertyValue("--qti-option-text");
     const borderWidth =
       computedStyle.getPropertyValue("--qti-option-border-width") ||
-      computedStyle.getPropertyValue("rtqi:border-width");
+      computedStyle.getPropertyValue("rqti:border-width");
 
     // 드래그 요소에 원본과 동일한 스타일 적용
-    const borderRadius = computedStyle.getPropertyValue("rtqi:border-radius");
+    const borderRadius = computedStyle.getPropertyValue("rqti:border-radius");
     const padding = computedStyle.getPropertyValue("padding");
     const display = computedStyle.getPropertyValue("display");
     const alignItems = computedStyle.getPropertyValue("align-items");
-    const fontFamily = computedStyle.getPropertyValue("rtqi:font-family");
-    const fontSize = computedStyle.getPropertyValue("rtqi:font-size");
-    const fontWeight = computedStyle.getPropertyValue("rtqi:font-weight");
+    const fontFamily = computedStyle.getPropertyValue("rqti:font-family");
+    const fontSize = computedStyle.getPropertyValue("rqti:font-size");
+    const fontWeight = computedStyle.getPropertyValue("rqti:font-weight");
     const lineHeight = computedStyle.getPropertyValue("line-height");
 
     dragElement.style.width = `${targetElement.offsetWidth}px`;
@@ -98,17 +98,17 @@ const OrderChoice = ({
     dragElement.style.fontWeight = fontWeight;
     dragElement.style.lineHeight = lineHeight;
     dragElement.style.transform = "rotate(-3deg)";
-    dragElement.style.boxSizing = "rtqi:border-box";
+    dragElement.style.boxSizing = "rqti:border-box";
 
     // 순서번호 스타일 적용
-    const numberElement = dragElement.querySelector("rtqi:[data-order-number]")
+    const numberElement = dragElement.querySelector("rqti:[data-order-number]")
       ?.parentElement as HTMLElement;
     if (numberElement) {
       numberElement.style.backgroundColor = selectedBgColor;
       numberElement.style.borderColor = selectedBorderColor;
       numberElement.style.borderWidth = borderWidth;
     }
-    const numberText = dragElement.querySelector("rtqi:[data-order-number]") as HTMLElement;
+    const numberText = dragElement.querySelector("rqti:[data-order-number]") as HTMLElement;
     if (numberText) {
       numberText.style.color = selectedBorderColor;
     }

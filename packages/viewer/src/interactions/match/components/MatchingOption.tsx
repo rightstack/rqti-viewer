@@ -50,15 +50,15 @@ const MatchingOption = forwardRef<HTMLDivElement, MatchingOptionProps>(function 
   const optionClassName = cn(
     "qti-ext-option-base",
     "qti-ext-match-option",
-    "rtqi:focus-visible:ring-ring rtqi:cursor-pointer rtqi:outline-none rtqi:focus-visible:ring-2 rtqi:focus-visible:ring-offset-2",
+    "rqti:focus-visible:ring-ring rqti:cursor-pointer rqti:outline-none rqti:focus-visible:ring-2 rqti:focus-visible:ring-offset-2",
     isSelected && "qti-ext-match-option-selected",
     isMatched && !canMatchMore && "qti-ext-match-option-matched",
     isMatched && canMatchMore && "qti-ext-match-option-partial", // 부분 매칭 (추가 가능)
     isCorrect && "qti-ext-match-option-correct",
     isIncorrect && "qti-ext-match-option-incorrect",
     showDisabledStyle && "qti-ext-option-disabled",
-    isPreview && "rtqi:pointer-events-none",
-    (showDisabledStyle || disabled) && "rtqi:pointer-events-none"
+    isPreview && "rqti:pointer-events-none",
+    (showDisabledStyle || disabled) && "rqti:pointer-events-none"
   );
 
   const getPointClassName = (position: "left" | "right") => {

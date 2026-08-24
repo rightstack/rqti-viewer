@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  prefix: "rtqi",
+  prefix: "rqti",
   content: ["./src/**/*.{ts,tsx}"],
 };
 

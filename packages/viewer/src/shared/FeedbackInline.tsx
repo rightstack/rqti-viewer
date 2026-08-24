@@ -197,7 +197,7 @@ export const FeedbackInline = ({
               <CircleCheckBig className="qti-ext-feedback-section-icon-svg" />
             </span>
             <span className="qti-ext-feedback-section-label">정답</span>
-            <div className="qti-ext-feedback-section-answer rtqi:flex-wrap">
+            <div className="qti-ext-feedback-section-answer rqti:flex-wrap">
               {correctAnswerSegments.map((segment, index, segments) => {
                 const matchStrings =
                   segment.kind === "default"
@@ -208,7 +208,7 @@ export const FeedbackInline = ({
                     <span
                       className={cn(
                         "qti-ext-feedback-section-answer-item",
-                        matchStrings !== null && "rtqi:block rtqi:w-full rtqi:basis-full"
+                        matchStrings !== null && "rqti:block rqti:w-full rqti:basis-full"
                       )}
                     >
                       {segment.kind === "fractionLatex" ? (
@@ -241,7 +241,7 @@ export const FeedbackInline = ({
         </div>
       )}
       {showSeparator && (
-        <Separator className="rtqi:my-3 rtqi:bg-[color-mix(in_srgb,var(--qti-feedback-description-color-explanation)_35%,transparent)]" />
+        <Separator className="rqti:my-3 rqti:bg-[color-mix(in_srgb,var(--qti-feedback-description-color-explanation)_35%,transparent)]" />
       )}
       {renderedDescription !== null && renderedDescription !== undefined && (
         <div

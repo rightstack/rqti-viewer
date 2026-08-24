@@ -212,6 +212,12 @@ const item = (await res.json()) as QuestionItem;
 { RESPONSE: "C" }
 ```
 
+연결지문이 있으면 `passage`에 HTML을 넘깁니다. 파싱과 가로 배치는 `Question` 내부에서 처리합니다.
+
+```tsx
+<Question {...props} passage={passageHtml} />
+```
+
 ### 미디어 / 인증
 
 상세 API의 `t` 토큰과 별도로, 문항 내 미디어 URL용 토큰이 필요하면 `token` / `baseUrl`을 추가합니다.
@@ -306,9 +312,9 @@ LaTeX 수식은 [MathLive](https://cortexjs.io/mathlive/)로 렌더링됩니다.
 
 ## 스타일 격리
 
-모든 스타일은 `.rtqi-viewer` root 아래에서만 적용됩니다.
+모든 스타일은 `.rqti-viewer` root 아래에서만 적용됩니다.
 Tailwind preflight는 비활성화되어 host app CSS와 충돌하지 않습니다.
-클래스 util은 `rtqi:` prefix로 스코프됩니다.
+클래스 util은 `rqti:` prefix로 스코프됩니다.
 
 ## 추가 export
 

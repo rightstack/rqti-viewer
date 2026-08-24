@@ -173,7 +173,7 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
   return (
     <div
       key={`choice-${responseIdentifier}-${index}`}
-      className={`qti-choice-interaction-wrapper rtqi:my-4 rtqi:flex rtqi:flex-col rtqi:gap-4 ${xmlClass}`.trim()}
+      className={`qti-choice-interaction-wrapper rqti:my-4 rqti:flex rqti:flex-col rqti:gap-4 ${xmlClass}`.trim()}
     >
       {choices.map((choice) => {
         const isSelected: boolean = Boolean(

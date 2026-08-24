@@ -542,8 +542,8 @@ export const MatchInteraction: React.FC<MatchInteractionProps> = ({ element, opt
   };
 
   // 그리드 클래스 (2 or 3)
-  const gridColsClass = matchSetCount === 3 ? "rtqi:grid-cols-3" : "rtqi:grid-cols-2";
-  const colSpanClass = matchSetCount === 3 ? "rtqi:col-span-3" : "rtqi:col-span-2";
+  const gridColsClass = matchSetCount === 3 ? "rqti:grid-cols-3" : "rqti:grid-cols-2";
+  const colSpanClass = matchSetCount === 3 ? "rqti:col-span-3" : "rqti:col-span-2";
 
   // side 결정 함수
   const getSide = (setIndex: number): "left" | "center" | "right" => {
@@ -565,7 +565,7 @@ export const MatchInteraction: React.FC<MatchInteractionProps> = ({ element, opt
     <div
       ref={gridContainerRef}
       key={gridMountKey}
-      className={`rtqi:relative rtqi:my-4 rtqi:grid ${gridColsClass} rtqi:gap-6`}
+      className={`rqti:relative rqti:my-4 rqti:grid ${gridColsClass} rqti:gap-6`}
     >
       <div className={colSpanClass}>
         {isMultiWay ? (
