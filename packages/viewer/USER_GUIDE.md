@@ -324,7 +324,30 @@ const exampleTheme: Theme = {
 
 ---
 
-## 11. 요구사항 / 제약
+## 11. 수식입력기 (MathKeyboard)
+
+학생용 수식 키패드다. MathLive 가상키보드를 커스텀한다. 왼쪽은 수식 탭(레벨별 구성), 오른쪽은 숫자·사칙 고정 패드다. 입력창에 포커스가 있을 때만 열린다.
+
+`level` prop으로 중등/고등 키캡 세트와 배치를 전환한다(`"middle"` 기본, `"high"`). 기본 MathLive 레이아웃은 없다.
+
+```tsx
+import { MathKeyboard } from "@rightstack/rqti-viewer";
+
+<MathKeyboard
+  value={latex}
+  onChange={setLatex}
+  correctAnswer={correctLatex}
+  level="middle" // "middle" | "high"
+/>
+```
+
+`correctAnswer`의 첫 LaTeX 명령어로 탭을 연다. `\dfrac`·`\sqrt`·`\dot`는 대수, `\overline`은 기하, 그 외는 기본이다.
+
+값은 LaTeX 문자열이다.
+
+---
+
+## 12. 요구사항 / 제약
 
 - React >= 18, React DOM >= 18
 - **클라이언트 전용** (`DOMParser` 사용 — SSR에서 동작하지 않음)
@@ -332,7 +355,7 @@ const exampleTheme: Theme = {
 
 ---
 
-## 12. 주요 export 목록
+## 13. 주요 export 목록
 
 ```tsx
 import {
@@ -347,5 +370,6 @@ import {
   ITEM_TYPE,
   type ItemsType,
   type Theme,
+  MathKeyboard,
 } from "@rightstack/rqti-viewer";
 ```

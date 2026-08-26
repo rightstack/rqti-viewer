@@ -12,6 +12,7 @@ const MathField = "math-field" as unknown as ElementType;
 const MATH_MACROS = {
   sim: { def: '\\char"223D', args: 0 }, // ∽ 둥근 닮음 기호
   neg: { def: '\\char"FF5E', args: 0 }, // ～ 전각 틸드 (교과서 스타일)
+  sslash: { def: "\\mathbin{/\\!/}", args: 0 }, // 중등 평행
 };
 
 /**

@@ -1,0 +1,284 @@
+/* 중등 수식입력기 — MathLive 가상키보드를 슬라이드 4 좌·우 분할로 맞춤 */
+
+.rqti-math-input {
+  --rqti-mlk-width: 460px; /* 좌측 패드(키보드+미리보기) 기준 고정 폭 */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* 포커스 시 열리는 통합 키보드 패널 (닫힘 상태에서는 숨김) */
+.rqti-math-input-panel {
+  display: none;
+}
+
+.rqti-math-input-panel--open {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+/* 좌측 영역: 위=수식 키보드, 아래=읽기전용 미리보기(하단 정렬).
+   컨테이너가 좁아지면 이 영역 자체가 가로 스크롤되어(좌측 패드 전체가 한 덩어리로 스크롤)
+   우측 숫자패드(고정)를 침범/겹치지 않는다. */
+.rqti-math-input-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* 미리보기는 좌측 영역 하단에 붙고, 키보드와 같은 고정 폭이라 함께 정렬·스크롤된다. */
+.rqti-math-input-preview-wrap {
+  flex: none;
+  width: var(--rqti-mlk-width);
+  min-width: var(--rqti-mlk-width);
+  margin-top: auto;
+}
+
+.rqti-math-input-preview {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.5em;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  color: inherit;
+  font-size: var(--qti-font-size-base, inherit) !important;
+  line-height: 1.5;
+}
+
+.rqti-math-input-preview::part(virtual-keyboard-toggle),
+.rqti-math-input-preview::part(menu-toggle) {
+  display: none;
+}
+
+/* 우측 숫자 패드: 좌측(키보드+미리보기) 높이에 맞춰 5행이 전체 높이를 꽉 채운다. */
+.rqti-math-input-right {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 2rem);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 0.25rem;
+  align-content: stretch;
+}
+
+.rqti-math-input-right-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.rqti-math-input-right-key[data-wide] {
+  grid-column: span 2;
+}
+
+.rqti-math-input-right-key:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.rqti-math-input-right-key:active {
+  background: #0c75d8;
+  border-color: #0c75d8;
+  color: #ffffff;
+}
+
+.rqti-math-input-field {
+  --qti-text-entry-width: 10ch;
+  display: block;
+  box-sizing: border-box;
+  width: var(--qti-text-entry-width);
+  min-width: 8ch;
+  max-width: 15ch;
+  min-height: 2em;
+  padding: 0 0.5rem;
+  border-width: var(--qti-option-border-width, 1px);
+  border-style: solid;
+  border-color: var(--qti-option-border, #e5e5e5);
+  border-radius: var(--qti-option-border-radius, 4px);
+  background-color: var(--qti-option-bg, #fff);
+  color: inherit;
+  font-size: var(--qti-font-size-base, inherit) !important;
+  font-weight: var(--qti-option-font-weight, inherit);
+  line-height: 1.5;
+}
+
+.rqti-math-input-field::part(container) {
+  padding: 0;
+  min-height: 0;
+  background: transparent;
+}
+
+.rqti-math-input-field::part(content) {
+  padding: 2px 0;
+}
+
+.rqti-math-input math-field::part(virtual-keyboard-toggle),
+.rqti-math-input math-field::part(menu-toggle) {
+  display: none;
+}
+
+/* 좌측 수식 키보드(커스텀 렌더): 탭 + 그룹별 독립 블록 */
+.rqti-math-input-keyboard {
+  --rqti-mlk-key-height: 2rem;
+  --rqti-mlk-col-gap: 0.25rem; /* 그룹 내 키 사이 가로 간격 */
+  --rqti-mlk-row-gap: 0.25rem; /* 그룹 내 행 사이 간격 */
+  --rqti-mlk-group-gap: 0.25rem; /* 그룹 사이 간격(구분선 좌우 포함) */
+  --rqti-mlk-rows: 3; /* 심볼 영역 예약 높이 기준 행 수(폴백). 컴포넌트가 모든 탭의 최대 행 수로 덮어씀 */
+  --rqti-mlk-key-font: 0.75rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* 고정폭(460px): 탭을 바꿔도 폭이 변하지 않는다. 가로 스크롤은 상위 좌측 영역이 담당하며,
+     이 키보드는 고정폭 블록으로 좌측 영역과 함께 통째로 스크롤된다(탭+심볼 정렬 유지). */
+  flex: none;
+  width: var(--rqti-mlk-width);
+  min-width: var(--rqti-mlk-width);
+  color: #000;
+}
+
+/* 탭 (기본/대수/기하 …): 고정 폭 안에서 줄바꿈/축소 없이 유지 */
+.rqti-mlk-tabs {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 6px;
+  /* 콘텐츠(탭 버튼 합) 폭을 유지하되 최소 패드 폭은 채운다 → 좁아도 세로로 눌리지 않고 함께 스크롤 */
+  width: max-content;
+  min-width: 100%;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rqti-mlk-tab {
+  flex: 0 0 auto;
+  padding: 4px 10px 6px;
+  margin-bottom: -1px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: #2c2e2f;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rqti-mlk-tab:hover {
+  color: #0c75d8;
+}
+
+.rqti-mlk-tab--active {
+  color: #0c75d8;
+  border-bottom-color: #0c75d8;
+  font-weight: 500;
+}
+
+/* 그룹 배치: 그룹을 가로로 한 줄에 나열(줄바꿈 없음), 각 그룹은 자기 항목 수만큼(위 정렬).
+   전체 심볼 영역 높이는 최다 행 기준으로 고정한다. */
+.rqti-mlk-groups {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: var(--rqti-mlk-group-gap);
+  /* 그룹 합 폭을 유지하되 최소 패드 폭은 채운다 → 좁으면 키보드 컨테이너에서 함께 가로 스크롤 */
+  width: max-content;
+  min-width: 100%;
+  min-height: calc(
+    var(--rqti-mlk-key-height) * var(--rqti-mlk-rows) + var(--rqti-mlk-row-gap) *
+      (var(--rqti-mlk-rows) - 1)
+  );
+}
+
+/* 그룹 사이 세로 실선: 심볼 영역 전체 높이로 stretch */
+.rqti-mlk-divider {
+  align-self: stretch;
+  flex: 0 0 1px;
+  width: 1px;
+  background: #eee;
+}
+
+/* 각 그룹: 행 수는 --rqti-mlk-grows(컴포넌트 계산). 열 우선(세로)으로 채워
+   항목이 적은 그룹은 세로 1열로 쌓여 폭을 아낀다. 열은 콘텐츠 폭에 맞춘다. */
+.rqti-mlk-group {
+  display: grid;
+  grid-template-rows: repeat(var(--rqti-mlk-grows, 1), auto);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(2rem, auto);
+  column-gap: var(--rqti-mlk-col-gap);
+  row-gap: var(--rqti-mlk-row-gap);
+  align-content: start;
+}
+
+/* 키캡: 콘텐츠 크기(높이도 콘텐츠 기준) + 상하 0.2rem 패딩. 클릭 영역은 버튼 전체. */
+.rqti-mlk-key {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  padding: 0.1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.rqti-mlk-key:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.rqti-mlk-key:active {
+  background: #0c75d8;
+  border-color: #0c75d8;
+  color: #fff;
+}
+
+.rqti-mlk-key-text {
+  font-size: var(--rqti-mlk-key-font);
+  line-height: 1;
+}
+
+.rqti-mlk-key-math {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--rqti-mlk-key-font);
+  line-height: 1;
+}
+
+/* mathlive 정적 마크업이 키 폰트 크기를 따르도록 한다. */
+.rqti-mlk-key-math .ML__latex {
+  font-size: inherit;
+}

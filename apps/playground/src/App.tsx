@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_THEME,
+  MathKeyboard,
   Question,
   SAMPLE_ITEMS,
   toQuestionProps,
@@ -140,6 +141,10 @@ export default function App() {
   // 문항 컨테이너 가용 폭(px). 슬라이더로 좁혀 고정폭 scale 축소 / 반응형 재배치를 시연한다.
   const [previewWidth, setPreviewWidth] = useState(1000);
   const [demoPassage, setDemoPassage] = useState(false);
+  const [showMathKeyboard, setShowMathKeyboard] = useState(true);
+  const [mathLatex, setMathLatex] = useState("");
+  const [mathCorrect, setMathCorrect] = useState("\\dfrac{1}{2}");
+  const [mathLevel, setMathLevel] = useState<"middle" | "high">("middle");
 
   const saveAnnotations = () => {
     localStorage.setItem(
@@ -292,6 +297,67 @@ export default function App() {
               : "폭을 줄이면 UI가 반응형으로 재배치됩니다."}
           </p>
 
+          <h2 style={styles.stateTitle}>수식입력기</h2>
+          <label style={styles.checkboxRow}>
+            <input
+              type="checkbox"
+              checked={showMathKeyboard}
+              onChange={(e) => setShowMathKeyboard(e.target.checked)}
+            />
+            키패드 데모
+          </label>
+          {showMathKeyboard && (
+            <div style={styles.toggleRow}>
+              {(
+                [
+                  ["middle", "중등"],
+                  ["high", "고등"],
+                ] as const
+              ).map(([lv, label]) => (
+                <button
+                  key={lv}
+                  type="button"
+                  onClick={() => setMathLevel(lv)}
+                  style={{
+                    ...styles.toggleBtn,
+                    ...(mathLevel === lv ? styles.toggleBtnActive : null),
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+          {showMathKeyboard && (
+            <div style={styles.toggleRow}>
+              {(
+                [
+                  ["\\dfrac{1}{2}", "분수→대수"],
+                  ["\\sin{x}", "삼각비→대수"],
+                  ["\\overline{AB}", "선분→기하"],
+                  ["x^2", "문자→알파벳"],
+                ] as const
+              ).map(([latex, label]) => (
+                <button
+                  key={latex}
+                  type="button"
+                  onClick={() => setMathCorrect(latex)}
+                  style={{
+                    ...styles.toggleBtn,
+                    ...(mathCorrect === latex ? styles.toggleBtnActive : null),
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+          {showMathKeyboard && (
+            <p style={styles.hint}>
+              키패드가 항상 노출됩니다. 정답 첫 명령어로 탭이 선택됩니다.
+            </p>
+          )}
+
           <h2 style={styles.stateTitle}>연결지문</h2>
           <label style={styles.checkboxRow}>
             <input
@@ -395,7 +461,19 @@ export default function App() {
           {status === "error" && (
             <p style={styles.statusText}>API 오류: {error}</p>
           )} */}
-          {status === "ready" && props && (
+          {showMathKeyboard && (
+            <div className="rqti-viewer">
+              <MathKeyboard
+                key={mathLevel}
+                value={mathLatex}
+                onChange={setMathLatex}
+                correctAnswer={mathCorrect}
+                level={mathLevel}
+                alwaysOpen
+              />
+            </div>
+          )}
+          {!showMathKeyboard && status === "ready" && props && (
             <Question
               key={props.itemKey}
               theme={FULL_WIDTH_THEME}

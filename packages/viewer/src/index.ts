@@ -57,3 +57,17 @@ export {
   toQuestionProps,
   type QuestionItemProps,
 } from "./utils/toQuestionProps";
+
+export {
+  MathKeyboard,
+  MATH_TAB_LABEL,
+  MIDDLE_SCHOOL_MATH_KEYS,
+  MIDDLE_SCHOOL_MATH_TABS,
+  MIDDLE_SCHOOL_KEYS_BY_TAB,
+  MIDDLE_SCHOOL_PAD_KEYS,
+  extractFirstLatexCommand,
+  resolveMathTab,
+  type MathKeyboardProps,
+  type MathKey,
+  type MathTab,
+} from "./math-keyboard";
