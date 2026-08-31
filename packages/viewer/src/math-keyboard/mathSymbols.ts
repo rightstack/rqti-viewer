@@ -27,6 +27,8 @@ export interface MathKey {
   labelType: "text" | "latex";
   /** 정답 첫 명령어 판별용 (백슬래시 없는 이름, 또는 `^` / 문자) */
   command: string;
+  /** 격자에서 차지하는 열 수. 행렬처럼 넓은 키는 2. 기본 1. */
+  cols?: 1 | 2;
 }
 
 /** 탭 라벨(전 레벨 공용). */

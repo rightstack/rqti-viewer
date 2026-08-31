@@ -143,8 +143,7 @@ export default function App() {
   const [demoPassage, setDemoPassage] = useState(false);
   const [showMathKeyboard, setShowMathKeyboard] = useState(true);
   const [mathLatex, setMathLatex] = useState("");
-  const [mathCorrect, setMathCorrect] = useState("\\dfrac{1}{2}");
-  const [mathLevel, setMathLevel] = useState<"middle" | "high">("middle");
+  const [mathLevel, setMathLevel] = useState<"middle" | "high">("high");
 
   const saveAnnotations = () => {
     localStorage.setItem(
@@ -329,32 +328,11 @@ export default function App() {
             </div>
           )}
           {showMathKeyboard && (
-            <div style={styles.toggleRow}>
-              {(
-                [
-                  ["\\dfrac{1}{2}", "분수→대수"],
-                  ["\\sin{x}", "삼각비→대수"],
-                  ["\\overline{AB}", "선분→기하"],
-                  ["x^2", "문자→알파벳"],
-                ] as const
-              ).map(([latex, label]) => (
-                <button
-                  key={latex}
-                  type="button"
-                  onClick={() => setMathCorrect(latex)}
-                  style={{
-                    ...styles.toggleBtn,
-                    ...(mathCorrect === latex ? styles.toggleBtnActive : null),
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
-          {showMathKeyboard && (
             <p style={styles.hint}>
-              키패드가 항상 노출됩니다. 정답 첫 명령어로 탭이 선택됩니다.
+              플로팅 패드입니다. 위 핸들로 드래그하고, {">"} / {"<"} 로
+              좌측 서랍을 엽니다. 고등은 집합·행렬·통계 탭과 n제곱근·구간·벡터
+              등이 추가됩니다. 최근 사용 탭·마지막 탭·위치는 이 브라우저
+              탭을 닫을 때까지 sessionStorage에 남습니다.
             </p>
           )}
 
@@ -467,7 +445,6 @@ export default function App() {
                 key={mathLevel}
                 value={mathLatex}
                 onChange={setMathLatex}
-                correctAnswer={mathCorrect}
                 level={mathLevel}
                 alwaysOpen
               />

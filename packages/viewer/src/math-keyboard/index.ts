@@ -42,3 +42,16 @@ export {
   MathKeyboard,
   type MathKeyboardProps,
 } from "./MathKeyboard";
+
+export {
+  MAX_RECENT_KEY_IDS,
+  RECENT_TAB,
+  mathKeyboardHistoryKey,
+  pushRecentKeyId,
+  readMathKeyboardHistory,
+  resolveStoredTab,
+  writeMathKeyboardHistory,
+  type MathKeyboardHistory,
+  type MathKeyboardPosition,
+  type MathKeyboardTab,
+} from "./mathKeyboardHistory";

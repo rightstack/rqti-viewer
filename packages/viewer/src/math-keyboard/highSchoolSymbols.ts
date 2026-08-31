@@ -6,7 +6,7 @@
  * - 기하: 선/관계/도형/각 + 벡터
  * - 집합·행렬: 집합(원소·부분집합·연산) + 행렬(pmatrix)
  * - 통계: 순열·조합(P/C/Π/H)·팩토리얼
- * 배치 규칙(그룹 최대 행 수·폭)은 `mathLevels.ts`의 MATH_LEVEL_CONFIG.high에서 관리한다.
+ * 좌측 배치는 4열 줄바꿈 격자. 폭은 `mathLevels.ts`의 MATH_LEVEL_CONFIG에서 관리한다.
  */
 import type { MathKey, MathTab } from "./mathSymbols";
 
@@ -105,11 +105,11 @@ export const HIGH_SCHOOL_SET_MATRIX_KEYS: readonly MathKey[] = [
   key({ id: "set-notsubset", tab: "setMatrix", group: "집합", insert: "\\not\\subset", label: "\\not\\subset", command: "not" }),
   key({ id: "set-cap", tab: "setMatrix", group: "집합", insert: "\\cap", label: "\\cap", command: "cap" }),
   key({ id: "set-cup", tab: "setMatrix", group: "집합", insert: "\\cup", label: "\\cup", command: "cup" }),
-  key({ id: "mat-2x2", tab: "setMatrix", group: "행렬", insert: "\\begin{pmatrix}#? & #?\\\\#? & #?\\end{pmatrix}", label: "\\begin{pmatrix}\\square & \\square\\\\\\square & \\square\\end{pmatrix}", command: "begin" }),
-  key({ id: "mat-1x2", tab: "setMatrix", group: "행렬", insert: "\\begin{pmatrix}#? & #?\\end{pmatrix}", label: "\\begin{pmatrix}\\square & \\square\\end{pmatrix}", command: "begin" }),
-  key({ id: "mat-1x3", tab: "setMatrix", group: "행렬", insert: "\\begin{pmatrix}#? & #? & #?\\end{pmatrix}", label: "\\begin{pmatrix}\\square & \\square & \\square\\end{pmatrix}", command: "begin" }),
-  key({ id: "mat-2x3", tab: "setMatrix", group: "행렬", insert: "\\begin{pmatrix}#? & #? & #?\\\\#? & #? & #?\\end{pmatrix}", label: "\\begin{pmatrix}\\square & \\square & \\square\\\\\\square & \\square & \\square\\end{pmatrix}", command: "begin" }),
-  key({ id: "mat-3x3", tab: "setMatrix", group: "행렬", insert: "\\begin{pmatrix}#? & #? & #?\\\\#? & #? & #?\\\\#? & #? & #?\\end{pmatrix}", label: "\\begin{pmatrix}\\square & \\square & \\square\\\\\\square & \\square & \\square\\\\\\square & \\square & \\square\\end{pmatrix}", command: "begin" }),
+  key({ id: "mat-2x2", tab: "setMatrix", group: "행렬", insert: "\\begin{pmatrix}#? & #?\\\\#? & #?\\end{pmatrix}", label: "\\begin{pmatrix}\\square & \\square\\\\\\square & \\square\\end{pmatrix}", command: "begin", cols: 2 }),
+  key({ id: "mat-1x2", tab: "setMatrix", group: "행렬", insert: "\\begin{pmatrix}#? & #?\\end{pmatrix}", label: "\\begin{pmatrix}\\square & \\square\\end{pmatrix}", command: "begin", cols: 2 }),
+  key({ id: "mat-1x3", tab: "setMatrix", group: "행렬", insert: "\\begin{pmatrix}#? & #? & #?\\end{pmatrix}", label: "\\begin{pmatrix}\\square & \\square & \\square\\end{pmatrix}", command: "begin", cols: 2 }),
+  key({ id: "mat-2x3", tab: "setMatrix", group: "행렬", insert: "\\begin{pmatrix}#? & #? & #?\\\\#? & #? & #?\\end{pmatrix}", label: "\\begin{pmatrix}\\square & \\square & \\square\\\\\\square & \\square & \\square\\end{pmatrix}", command: "begin", cols: 2 }),
+  key({ id: "mat-3x3", tab: "setMatrix", group: "행렬", insert: "\\begin{pmatrix}#? & #? & #?\\\\#? & #? & #?\\\\#? & #? & #?\\end{pmatrix}", label: "\\begin{pmatrix}\\square & \\square & \\square\\\\\\square & \\square & \\square\\\\\\square & \\square & \\square\\end{pmatrix}", command: "begin", cols: 2 }),
 ];
 
 /** 5) 통계 — 순열·조합·중복순열/조합·팩토리얼 */
