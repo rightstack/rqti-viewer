@@ -18,7 +18,7 @@ const NAV_ITEMS: readonly SampleItem[] = [
   ...LOCAL_SAMPLE_ITEMS,
 ];
 
-const QMS_API_TOKEN = "1786114799~Eg4k3QFE";
+const QMS_API_TOKEN = "1790780399~f2ly4i70";
 const DESIGN_WIDTH = 1000;
 
 const DEMO_PASSAGE_HTML = `
