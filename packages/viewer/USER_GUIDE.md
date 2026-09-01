@@ -4,7 +4,7 @@ QTI 문항을 **상세 API**로 조회해 **문항 1개**를 렌더링하는 가
 
 > `mode`는 `Question`이 기본값 `"preview"`(읽기 전용)입니다. `toQuestionProps`는 `mode`를 지정하지 않으므로, 풀이가 필요하면 호출측에서 `mode="practice"`를 전달하세요.
 
-현재 패키지 버전: **0.4.1**
+현재 패키지 버전: **0.4.2**
 
 ---
 
@@ -115,7 +115,7 @@ GET https://stgqms.mirae-n.com/api/v3/viewer/preview/{qtiIdentifier}
 `Authorization` header에 **Bearer 토큰**으로 전달합니다.
 
 ```
-Authorization: Bearer 1786114799~Eg4k3QFE
+Authorization: Bearer 1790780399~f2ly4i70
 ```
 
 ### 4.3 응답
@@ -158,7 +158,7 @@ import {
 import "@rightstack/rqti-viewer/styles.css";
 
 const API_BASE_URL = "https://stgqms.mirae-n.com";
-const API_TOKEN = "1786114799~Eg4k3QFE";
+const API_TOKEN = "1790780399~f2ly4i70";
 
 async function fetchItem(qtiIdentifier: string) {
   const res = await fetch(
