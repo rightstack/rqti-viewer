@@ -31,6 +31,20 @@ export interface MathKey {
   cols?: 1 | 2;
 }
 
+/** source에서 id로 키를 꺼내거나, 고등 전용 MathKey를 그대로 끼운다. */
+export function takeKeys(
+  source: readonly MathKey[],
+  ...items: Array<string | MathKey>
+): MathKey[] {
+  const map = new Map(source.map((item) => [item.id, item]));
+  return items.map((item) => {
+    if (typeof item !== "string") return item;
+    const found = map.get(item);
+    if (!found) throw new Error(`Unknown math key id: ${item}`);
+    return found;
+  });
+}
+
 /** 탭 라벨(전 레벨 공용). */
 export const MATH_TAB_LABEL: Record<MathTab, string> = {
   basic: "기본",

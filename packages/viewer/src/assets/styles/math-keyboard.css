@@ -1,7 +1,7 @@
 /* 수식입력기 — 입력창은 문항 흐름, 키패드는 플로팅+서랍 */
 
 .rqti-math-input {
-  --rqti-mlk-width: 220px; /* 좌측 서랍 4열 격자 + 세로 스크롤 여유 */
+  --rqti-mlk-width: 220px; /* 4열 격자 + 스크롤바 여유. 격자는 가운데. */
   --rqti-mlk-key-size: 3rem;
   --rqti-mlk-key-gap: 0.25rem;
   --rqti-mlk-right-rows: 5;
@@ -35,8 +35,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   background: #ffffff;
-  box-shadow:
-    0 8px 24px rgba(15, 23, 42, 0.12),
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12),
     0 2px 6px rgba(15, 23, 42, 0.06);
 }
 
@@ -262,7 +261,7 @@
   border-radius: 0;
   background: transparent;
   color: #2c2e2f;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   line-height: 1.2;
   white-space: nowrap;
   cursor: pointer;
@@ -286,33 +285,33 @@
   line-height: 1.4;
 }
 
-/* 심볼: 그룹 없이 4열. 넓은 키(행렬)는 2열을 쓴다. */
-.rqti-mlk-keys {
-  display: grid;
+/* 스크롤은 래퍼, 격자는 4열 고정폭을 가운데 둔다. overflow+center면 격자가 왼쪽으로 붙는다. */
+.rqti-mlk-keys-scroll {
   flex: 1 1 auto;
-  grid-template-columns: repeat(4, var(--rqti-mlk-key-size));
-  grid-auto-rows: minmax(var(--rqti-mlk-key-size), auto);
-  align-content: start;
-  gap: var(--rqti-mlk-key-gap);
-  justify-content: start;
   min-width: 0;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+  /* 커스텀 ::-webkit-scrollbar는 클래식 트랙을 만들어 키를 민다. 네이티브 오버레이만 쓴다. */
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
 
-.rqti-mlk-keys::-webkit-scrollbar {
-  width: 4px;
-  height: 0;
-}
-
-.rqti-mlk-keys::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 999px;
+/* 심볼: 그룹 없이 4열. 넓은 키(행렬)는 2열을 쓴다. */
+.rqti-mlk-keys {
+  display: grid;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  align-self: center;
+  width: max-content;
+  margin-inline: auto;
+  grid-template-columns: repeat(4, var(--rqti-mlk-key-size));
+  /* auto: 넓은 키 min-height가 행을 키운다. minmax(key-size, auto)는 행이 48px에 묶여 겹친다. */
+  grid-auto-rows: auto;
+  align-content: start;
+  gap: var(--rqti-mlk-key-gap);
+  justify-content: start;
 }
 
 .rqti-mlk-key {
@@ -352,8 +351,9 @@
   color: #fff;
 }
 
-.rqti-mlk-key-text {
-  font-size: var(--rqti-mlk-key-font);
+.rqti-mlk-key-text,
+.rqti-mlk-key-math {
+  font-size: calc(var(--rqti-mlk-key-font) * 0.8);
   line-height: 1;
 }
 
@@ -361,8 +361,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--rqti-mlk-key-font);
-  line-height: 1;
 }
 
 /* mathlive 정적 마크업이 키 폰트 크기를 따르도록 한다. */

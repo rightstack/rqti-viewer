@@ -21,14 +21,14 @@ export interface MathLevelConfig {
   tabLabel: Record<MathTab, string>;
   /** 탭별 키 목록. tabs에 나열된 탭만 채우면 된다. */
   keysByTab: Partial<Record<MathTab, readonly MathKey[]>>;
-  /** 좌측 수식 영역 고정 폭(px). 4열 격자 + 세로 스크롤 여유. 높이는 우측 5행과 같다. */
+  /** 좌측 수식 영역 고정 폭(px). 4열 격자 + OS 스크롤바 여유. 높이는 우측 5행과 같다. */
   width: number;
 }
 
 /** 좌측 심화 키 열 수. 우측 숫자 패드와 맞춘다. */
 export const LEFT_KEY_COLS = 4;
 
-/** 4×3rem + 3×0.25rem + 세로 스크롤 여유 16px (16px 루트 기준) */
+/** 4×3rem + 3×0.25rem + 스크롤바 여유 16px (16px 루트 기준). */
 export const LEFT_DRAWER_WIDTH = 220;
 
 export const MATH_LEVEL_CONFIG: Record<MathLevel, MathLevelConfig> = {

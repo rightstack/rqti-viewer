@@ -65,9 +65,13 @@ export {
   MIDDLE_SCHOOL_MATH_TABS,
   MIDDLE_SCHOOL_KEYS_BY_TAB,
   MIDDLE_SCHOOL_PAD_KEYS,
+  HIGH_SCHOOL_MATH_KEYS,
+  HIGH_SCHOOL_MATH_TABS,
+  HIGH_SCHOOL_KEYS_BY_TAB,
   extractFirstLatexCommand,
   resolveMathTab,
   type MathKeyboardProps,
   type MathKey,
   type MathTab,
+  type MathLevel,
 } from "./math-keyboard";

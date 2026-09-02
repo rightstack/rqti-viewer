@@ -1,7 +1,7 @@
 import type { MathLevel } from "./mathLevels";
 import type { MathTab } from "./mathSymbols";
 
-/** sessionStorage 키 접두사. `rqti:math-keyboard:{level}` 또는 `:{historyScope}` 접미. */
+/** localStorage 키 접두사. `rqti:math-keyboard:{level}` 또는 `:{historyScope}` 접미. */
 const STORAGE_PREFIX = "rqti:math-keyboard";
 
 /** 서랍 맨 앞 탭. 최근 누른 좌측 심화 키만 모은다. */
@@ -32,10 +32,10 @@ export function mathKeyboardHistoryKey(
     : `${STORAGE_PREFIX}:${level}`;
 }
 
-function getSessionStorage(): Storage | null {
+function getLocalStorage(): Storage | null {
   try {
-    if (typeof sessionStorage === "undefined") return null;
-    return sessionStorage;
+    if (typeof localStorage === "undefined") return null;
+    return localStorage;
   } catch {
     return null;
   }
@@ -69,12 +69,12 @@ function sanitizeHistory(raw: unknown): MathKeyboardHistory {
   return history;
 }
 
-/** sessionStorage가 없거나 파싱에 실패하면 빈 이력. */
+/** localStorage가 없거나 파싱에 실패하면 빈 이력. */
 export function readMathKeyboardHistory(
   level: MathLevel,
   historyScope?: string,
 ): MathKeyboardHistory {
-  const storage = getSessionStorage();
+  const storage = getLocalStorage();
   if (!storage) return {};
   try {
     const raw = storage.getItem(mathKeyboardHistoryKey(level, historyScope));
@@ -90,7 +90,7 @@ export function writeMathKeyboardHistory(
   history: MathKeyboardHistory,
   historyScope?: string,
 ): void {
-  const storage = getSessionStorage();
+  const storage = getLocalStorage();
   if (!storage) return;
   try {
     storage.setItem(

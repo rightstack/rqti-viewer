@@ -141,16 +141,16 @@ export interface MathKeyboardProps {
   onSubmit?: (latex: string) => void;
   /**
    * 호환용. 탭 선택에는 쓰지 않는다.
-   * 마지막 사용 탭은 sessionStorage 이력이 담당한다.
+   * 마지막 사용 탭은 localStorage 이력이 담당한다.
    */
   correctAnswer?: string | Record<string, unknown> | null;
   className?: string;
   readOnly?: boolean;
   /** true면 마운트 시 키패드를 열고 포커스를 잃어도 닫지 않는다(데모/상시 노출용). */
   alwaysOpen?: boolean;
-  /** 수식 레벨. 키캡 세트·배치 규칙(행 수·폭)을 레벨별로 다르게 적용한다. 기본 "middle". */
+  /** 수식 레벨. `"middle"` | `"high"`. 기본 `"middle"`. */
   level?: MathLevel;
-  /** sessionStorage 키를 퀴즈/응시 회차별로 나눈다. */
+  /** localStorage 키를 퀴즈/응시 회차별로 나눈다. */
   historyScope?: string;
 }
 
@@ -449,7 +449,9 @@ export function MathKeyboard({
   );
 
   const renderKeys = (keys: readonly MathKey[]) => (
-    <div className="rqti-mlk-keys">{keys.map(renderKeyButton)}</div>
+    <div className="rqti-mlk-keys-scroll">
+      <div className="rqti-mlk-keys">{keys.map(renderKeyButton)}</div>
+    </div>
   );
 
   const inputField = (
