@@ -1,19 +1,11 @@
-/**
- * LaTeX를 MathLive(math-field)로 렌더링해 React 요소로 변환합니다.
- * 에디터(MathElement)와 동일 엔진으로 미리보기·납품 표시를 맞춥니다.
- */
-import React, { type ElementType } from "react";
-import "mathlive";
-import { normalizeHline } from "../utils/latex";
-
-const MathField = "math-field" as unknown as ElementType;
-
-/** 한국 수학 교과서 스타일 매크로 (MathElement.tsx와 동기화) */
-const MATH_MACROS = {
-  sim: { def: '\\char"223D', args: 0 }, // ∽ 둥근 닮음 기호
-  neg: { def: '\\char"FF5E', args: 0 }, // ～ 전각 틸드 (교과서 스타일)
-  sslash: { def: "\\mathbin{/\\!/}", args: 0 }, // 중등 평행
-};
+/** LaTeX를 MathJax로 렌더링해 React 요소로 변환합니다. */
+import React from "react";
+import { MathJaxWithTextFont } from "../providers/MathJaxProviderWrapper";
+import {
+  closeUnbalancedLatexGroups,
+  normalizeArrayColumnsForMathJax,
+  stripOuterMathDelimiters,
+} from "../utils/latex";
 
 /**
  * 저장/전달 과정에서 백슬래시가 이중 이스케이프된 명령어만 정규화
@@ -22,71 +14,38 @@ const MATH_MACROS = {
 const normalizeLatexBackslashes = (latex: string): string =>
   latex.replace(/\\\\+([a-zA-Z])/g, (_, letter) => `\\${letter}`);
 
-/** MathLive enclose SVG viewBox width=0 버그 보정. 수정 시 true 반환 */
-const fixEncloseViewBox = (root: ShadowRoot): boolean => {
-  let fixed = false;
-  for (const svg of root.querySelectorAll<SVGSVGElement>(".ML__notation svg")) {
-    const vb = svg.getAttribute("viewBox");
-    if (!vb) continue;
-    const parts = vb.split(" ");
-    if (parseFloat(parts[2]) !== 0) continue;
-    const rect = svg.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) continue;
-    const h = parseFloat(parts[3]);
-    parts[2] = ((rect.width / rect.height) * h).toFixed(2);
-    svg.setAttribute("viewBox", parts.join(" "));
-    fixed = true;
-  }
-  return fixed;
-};
-
 export const renderLaTeX = (
   latex: string,
   key: string,
   displayMode: boolean
 ): React.ReactElement => {
-  const normalized = normalizeHline(
-    normalizeLatexBackslashes(latex.trim()).replace(/\\require\{[^}]*\}\s*/g, "")
+  const normalized = normalizeArrayColumnsForMathJax(
+    closeUnbalancedLatexGroups(
+      stripOuterMathDelimiters(
+        normalizeLatexBackslashes(latex).replace(/\\require\{[^}]*\}\s*/g, "")
+      )
+    )
   );
   if (!normalized) {
     return React.createElement("span", { key });
   }
 
-  const mathFieldProps = {
-    readOnly: true,
-    "default-mode": displayMode ? "math" : "inline-math",
-    "virtual-keyboard-mode": "manual",
-    "math-virtual-keyboard-policy": "off",
-    ref: (el: HTMLElement | null) => {
-      if (!el) return;
-      const mf = el as HTMLElement & {
-        macros: Record<string, unknown>;
-        value: string;
-        shadowRoot: ShadowRoot | null;
-      };
-      mf.macros = { ...mf.macros, ...MATH_MACROS };
-      mf.value = normalized;
-
-      // MathLive bug: \cancel 등 enclose SVG viewBox width=0 보정
-      const root = mf.shadowRoot;
-      if (root) {
-        const observer = new MutationObserver(() => {
-          if (fixEncloseViewBox(root)) observer.disconnect();
-        });
-        observer.observe(root, { childList: true, subtree: true });
-        setTimeout(() => observer.disconnect(), 3000);
-      }
-    },
-  };
+  const math = displayMode ? `\\[${normalized}\\]` : `\\(\\displaystyle ${normalized}\\)`;
 
   if (!displayMode) {
-    return React.createElement(MathField, { key, ...mathFieldProps });
+    return (
+      <MathJaxWithTextFont key={key} inline dynamic className="qti-ext-mathfield">
+        {math}
+      </MathJaxWithTextFont>
+    );
   }
 
-  return React.createElement(
-    "div",
-    { key, className: "qti-ext-math-display" },
-    React.createElement(MathField, mathFieldProps)
+  return (
+    <div key={key} className="qti-ext-math-display">
+      <MathJaxWithTextFont dynamic className="qti-ext-mathfield">
+        {math}
+      </MathJaxWithTextFont>
+    </div>
   );
 };
 

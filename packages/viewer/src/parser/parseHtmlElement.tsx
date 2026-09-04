@@ -10,12 +10,11 @@ import { AudioPlayer } from "../components/AudioPlayer";
 import { parseTextIndent } from "../themes/utils";
 import type { QTIParserOptions } from "../types";
 import { resolveMediaUrl } from "../utils/urlUtils";
-import { wrapMathFieldTextForInlineLatex } from "../utils/wrapMathFieldTextForInlineLatex";
 import { isInteraction } from "./constants";
 import { buildImageStyle } from "./imageUtils";
 import { groupListItems } from "./listGrouping";
 import { parseNode } from "./parseInteraction";
-import { parseTextWithLaTeX } from "./parseLatexToReact";
+import { parseTextWithLaTeX, renderLaTeX } from "./parseLatexToReact";
 
 interface MediaAttributes {
   src?: string;
@@ -70,8 +69,14 @@ export const parseHTMLElement = (
   // 자식 노드 처리 (HTML 요소, 텍스트, interaction 처리)
   const children: Array<React.ReactElement | string> = [];
 
-  // qti-ext-mathfield 클래스를 가진 요소는 내부 텍스트를 $...$로 감싸서 LaTeX 파싱
+  // qti-ext-mathfield는 저장된 LaTeX를 식별하는 XML 마커로만 사용한다.
+  // 렌더링 결과에는 원본 래퍼를 남기지 않고 MathJax 요소를 바로 반환한다.
   const isMathField = className?.includes("qti-ext-mathfield");
+  if (isMathField) {
+    const rawLatex = element.textContent ?? "";
+    if (!rawLatex) return null;
+    return renderLaTeX(rawLatex, `mathfield-${index}`, false);
+  }
 
   element.childNodes.forEach((child, idx) => {
     if (child.nodeType === Node.TEXT_NODE) {
@@ -81,18 +86,9 @@ export const parseHTMLElement = (
       if (isFormattingWhitespace(text)) return;
       // 완전히 빈 텍스트 노드만 제외
       if (text !== null && text !== undefined) {
-        // qti-ext-mathfield 클래스를 가진 요소 내부 텍스트는 LaTeX 파싱
-        if (isMathField) {
-          const mathText = wrapMathFieldTextForInlineLatex(text);
-          if (mathText) {
-            const parsedText = parseTextWithLaTeX(mathText, `mathfield-${index}-${idx}`);
-            children.push(...parsedText);
-          }
-        } else {
-          // LaTeX 수식이 포함된 텍스트 처리 (SAX 방식)
-          const parsedText = parseTextWithLaTeX(text, `text-${index}-${idx}`);
-          children.push(...parsedText);
-        }
+        // LaTeX 수식이 포함된 텍스트 처리 (SAX 방식)
+        const parsedText = parseTextWithLaTeX(text, `text-${index}-${idx}`);
+        children.push(...parsedText);
       }
       return;
     }

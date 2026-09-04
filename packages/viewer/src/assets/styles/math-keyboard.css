@@ -16,6 +16,141 @@
   min-width: 0;
 }
 
+/*
+ * 수식 input 셸. 값(MathJax/math-field)과 키보드 아이콘을 한 박스 안에 둔다.
+ * 최소 너비는 기본 10ch와 correctAnswer 추정 중 큰 값.
+ * 내용에 맞춰 늘고 줄며, 기본 최소 크기보다 작아지지 않는다.
+ */
+.rqti-math-input-shell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  box-sizing: border-box;
+  min-width: max(
+    var(--qti-text-entry-width, 10ch),
+    var(--rqti-math-input-auto-width, 0ch)
+  );
+  width: fit-content;
+  min-height: 2em;
+  overflow: hidden;
+  padding: 2px 0.25rem 2px 0.5rem;
+  vertical-align: baseline;
+
+  border-width: var(--qti-option-border-width, 1px);
+  border-style: solid;
+  border-color: var(--qti-option-border, #e5e5e5);
+  border-radius: var(--qti-option-border-radius, 0.375rem);
+  background-color: var(--qti-option-bg, #fff);
+
+  color: inherit;
+  font-size: var(--qti-font-size-base, inherit) !important;
+  font-weight: var(--qti-option-font-weight, inherit);
+  line-height: 1.5;
+}
+
+.rqti-math-input-shell:hover {
+  border-color: var(--qti-option-border-hover, #d4d4d4);
+  background-color: var(--qti-option-bg-hover, #fafafa);
+}
+
+/* 키패드가 열린 때만 선택 테두리. focus만으로는 열리지 않으므로 focus-within은 쓰지 않는다. */
+.rqti-math-input-shell--open {
+  border-color: var(--qti-option-border-selected, #0c75d8);
+  background-color: var(--qti-option-bg-selected, #f0f9ff);
+}
+
+.rqti-math-input-shell--empty .rqti-math-input-field {
+  width: 1ch;
+  min-width: 1ch;
+  max-width: 1ch;
+  overflow: hidden;
+}
+
+.rqti-math-input-value {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-width: 0;
+  min-height: 1.5em;
+  width: fit-content;
+  cursor: pointer;
+  outline: none;
+}
+
+.rqti-math-input-value .rqti-math-input-mathjax {
+  display: inline-flex;
+  align-items: center;
+}
+
+.rqti-math-input-field-empty {
+  display: block;
+  min-width: 1ch;
+  min-height: 1.5em;
+}
+
+/*
+ * readOnly는 아이콘 없이 표시만. 기존 text-entry와 같은 박스.
+ */
+.rqti-math-input-display {
+  box-sizing: border-box;
+  min-width: max(
+    var(--qti-text-entry-width, 10ch),
+    var(--rqti-math-input-auto-width, 0ch)
+  );
+  width: fit-content;
+  min-height: 2em;
+  padding: 2px 0.5rem;
+
+  border-width: var(--qti-option-border-width, 1px);
+  border-style: solid;
+  border-color: var(--qti-option-border, #e5e5e5);
+  border-radius: var(--qti-option-border-radius, 0.375rem);
+  background-color: var(--qti-option-bg, #fff);
+
+  color: inherit;
+  font-size: var(--qti-font-size-base, inherit) !important;
+  font-weight: var(--qti-option-font-weight, inherit);
+  line-height: 1.5;
+  white-space: nowrap;
+
+  display: flex;
+  align-items: center;
+}
+
+.rqti-math-input-display .rqti-math-input-mathjax {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 셸 안 키보드 아이콘 */
+.rqti-math-input-toggle {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.rqti-math-input-toggle:hover {
+  background: #e2e8f0;
+  color: #0c75d8;
+}
+
+.rqti-math-input-toggle--active {
+  color: #0c75d8;
+}
+
 /* 플로팅 팝업: 뷰포트 기준 고정. 위치는 인라인 left/top. */
 .rqti-math-input-float {
   --rqti-mlk-key-size: 3rem;
@@ -180,29 +315,28 @@
   font-size: inherit;
 }
 
+/* MathLive math-field (키패드 열림). 셸 안에서 테두리 없이 값만 그린다. */
 .rqti-math-input-field {
-  --qti-text-entry-width: 10ch;
   display: block;
   box-sizing: border-box;
-  width: var(--qti-text-entry-width);
-  min-width: 8ch;
-  max-width: 15ch;
-  min-height: 2em;
-  padding: 0 0.5rem;
-  border-width: var(--qti-option-border-width, 1px);
-  border-style: solid;
-  border-color: var(--qti-option-border, #e5e5e5);
-  border-radius: var(--qti-option-border-radius, 4px);
-  background-color: var(--qti-option-bg, #fff);
+  flex: 0 0 auto;
+  min-width: 1ch;
+  width: fit-content;
+  min-height: 1.5em;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
   color: inherit;
-  font-size: var(--qti-font-size-base, inherit) !important;
-  font-weight: var(--qti-option-font-weight, inherit);
+  font-size: inherit !important;
+  font-weight: inherit;
   line-height: 1.5;
+  white-space: nowrap;
 }
 
 .rqti-math-input-field::part(container) {
   padding: 0;
-  min-height: 0;
+  outline: none;
   background: transparent;
 }
 

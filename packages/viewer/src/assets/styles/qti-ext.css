@@ -1308,7 +1308,6 @@
 
   width: var(--qti-text-entry-width);
   min-width: 8ch;
-  max-width: 15ch;
 
   vertical-align: baseline;
 }
@@ -1371,13 +1370,17 @@
 }
 
 .qti-ext-text-entry-srq {
-  /* SRQ(단답형): 지문/예시 아래 하단 답안 입력 UI */
-  @apply rqti:mx-0 rqti:mt-10 rqti:mb-2 rqti:block rqti:w-full;
+  /* SRQ(단답형): 지문 아래 하단 우측정렬 인라인 입력 */
+  @apply rqti:mt-10 rqti:mb-2;
+
+  display: block;
+  float: right;
+  clear: both;
 }
 
 .qti-ext-text-entry-input-srq {
-  /* SRQ(단답형): 더 넓고 명확한 입력칸 */
-  @apply rqti:mx-auto rqti:block rqti:w-full rqti:px-4 rqti:font-medium;
+  /* SRQ(단답형): CLOZE와 동일한 인라인 입력 스타일 */
+  @apply rqti:px-4 rqti:font-medium;
 }
 
 .qti-ext-text-entry-input:disabled {
@@ -1717,7 +1720,7 @@
   /* TODO: 스타일 추가 */
 }
 
-/* 수식 (MathLive math-field, parseLatexToReact) — KaTeX 렌더 시와 동일 폰트 스택 */
+/* 수식 (MathJax, parseLatexToReact) */
 
 .qti-ext-mathfield {
   position: relative;
@@ -1725,7 +1728,6 @@
   display: inline-block;
 
   color: inherit;
-  font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif !important;
   font-size: inherit;
   line-height: inherit;
   vertical-align: middle;
@@ -1744,46 +1746,59 @@
   background-color: transparent;
 }
 
+/* MathJax mjx-container 여백 초기화 */
+.qti-ext-mathfield mjx-container {
+  margin: 0 !important;
+}
+
+.qti-ext-mathfield mjx-utext {
+  width: auto !important;
+}
+
+.qti-ext-mathfield mjx-mtext,
+.qti-ext-mathfield mjx-utext,
+.qti-ext-mathfield mjx-container[jax="SVG"] text {
+  font-style: normal !important;
+  font-synthesis: none;
+}
+
+/* MathJaxRenderer 래퍼 */
+.qti-edit__mathjax {
+  display: inline-flex;
+}
+
+.qti-edit__mathjax mjx-container {
+  margin: 0 !important;
+}
+
+.qti-edit__mathjax mjx-utext {
+  width: auto !important;
+}
+
+.qti-edit__mathjax mjx-mtext,
+.qti-edit__mathjax mjx-utext,
+.qti-edit__mathjax mjx-container[jax="SVG"] text {
+  font-style: normal !important;
+  font-synthesis: none;
+}
+
 /* 블록 수식 ($$...$$, \\[...\\]) */
+.qti-ext-math-display {
+  margin: 0.75em 0;
+
+  text-align: center;
+}
+
+.qti-ext-math-display .qti-ext-mathfield {
+  display: block;
+}
+
 .qti-ext-mathfield.qti-ext-mathfield--display {
   display: block;
 
   margin: 0.75em 0;
 
   text-align: center;
-}
-
-.qti-ext-mathfield math-field {
-  /* MathLive shadow 내 .ML__text·placeholder 등 텍스트 모드 */
-  --text-font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif;
-  display: inline-block;
-
-  border: none;
-
-  background: transparent !important;
-
-  color: inherit;
-  font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif !important;
-  font-size: inherit;
-  line-height: inherit;
-  vertical-align: text-bottom;
-}
-
-.qti-ext-mathfield math-field::part(container) {
-  padding: 0;
-
-  background: transparent !important;
-
-  font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif !important;
-}
-
-.qti-ext-mathfield math-field::part(content) {
-  padding: 2px 0;
-}
-
-.qti-ext-mathfield math-field::part(virtual-keyboard-toggle),
-.qti-ext-mathfield math-field::part(menu-toggle) {
-  display: none !important;
 }
 
 .qti-ext-feedback-section-answer-item math-field {

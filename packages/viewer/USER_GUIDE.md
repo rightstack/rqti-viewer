@@ -357,6 +357,7 @@ import { MathKeyboard } from "@rightstack/rqti-viewer";
 - React >= 18, React DOM >= 18
 - **클라이언트 전용** (`DOMParser` 사용 — SSR에서 동작하지 않음)
 - 스타일은 `.rqti-viewer` 아래로 격리됨 (`rqti:` Tailwind prefix)
+- 본문·선지·피드백의 수식 표시는 **MathJax** (better-react-mathjax + mathjax-full). 수식 키패드(MathKeyboard)는 **MathLive**. 키패드가 닫히면 입력 값을 MathJax로 조판한다.
 
 ---
 

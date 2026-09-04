@@ -30,6 +30,7 @@ import type {
   ResponseValueMap,
   Theme,
 } from "./types";
+import { MathJaxProviderWrapper } from "./providers/MathJaxProviderWrapper";
 import { loadThemeFont } from "./utils/fontLoader";
 import { formatQuestionNumber } from "./utils/formatQuestionNumber";
 import { injectInlineQuestionNumber } from "./utils/injectInlineQuestionNumber";
@@ -436,6 +437,7 @@ function Question({
     ) : null;
 
   const viewer = (
+    <MathJaxProviderWrapper>
     <div
       className={cn("rqti-viewer", className)}
       data-sizing={sizing}
@@ -514,6 +516,7 @@ function Question({
         />
       )}
     </div>
+    </MathJaxProviderWrapper>
   );
 
   if (isFixed) {

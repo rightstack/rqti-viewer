@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -10,7 +11,10 @@ import {
 import { createPortal } from "react-dom";
 import "mathlive";
 import { convertLatexToMarkup } from "mathlive";
+import { Keyboard } from "lucide-react";
 import { cn } from "../lib/utils";
+import MathJaxRenderer from "../components/MathJaxRenderer";
+import { MathJaxProviderWrapper } from "../providers/MathJaxProviderWrapper";
 import { type MathKey } from "./mathSymbols";
 import { MATH_LEVEL_CONFIG, type MathLevel } from "./mathLevels";
 import {
@@ -99,6 +103,90 @@ const RIGHT_KEYS: readonly RightKey[] = [
 ];
 
 const VIEWPORT_PAD = 8;
+const MATH_WIDTH_PADDING_CH = 2;
+const MATH_MIN_WIDTH_CH = 10;
+
+/** LaTeX 문자열에서 렌더링 문자 수를 추정하여 ch 단위 너비를 반환 */
+function estimateMathWidth(latex: string): number {
+  const stripped = latex.replace(/\\[a-zA-Z]+\{?|\}|\\|\$|\^|_/g, "");
+  return Math.max(MATH_MIN_WIDTH_CH, stripped.length + MATH_WIDTH_PADDING_CH);
+}
+
+function isEmptyMathLatex(latex: string): boolean {
+  return latex.trim().length === 0;
+}
+
+type DeviceKeyAction =
+  | { type: "insert"; latex: string }
+  | { type: "command"; command: string }
+  | { type: "submit" };
+
+/** 디바이스(물리/OS) 키보드 입력을 수식 키패드와 같은 LaTeX·명령으로 매핑 */
+function deviceKeyAction(event: {
+  key: string;
+  altKey: boolean;
+  ctrlKey: boolean;
+  metaKey: boolean;
+  isComposing?: boolean;
+}): DeviceKeyAction | null {
+  if (event.altKey || event.ctrlKey || event.metaKey) return null;
+  if (event.isComposing) return null;
+  const { key } = event;
+  if (key.length === 1 && key >= "0" && key <= "9") {
+    return { type: "insert", latex: key };
+  }
+  switch (key) {
+    case ".":
+    case "=":
+    case "+":
+    case "-":
+      return { type: "insert", latex: key };
+    case "*":
+      return { type: "insert", latex: "\\times" };
+    case "/":
+      return { type: "insert", latex: "\\div" };
+    case "x":
+    case "X":
+      return { type: "insert", latex: "x" };
+    case "y":
+    case "Y":
+      return { type: "insert", latex: "y" };
+    case "Backspace":
+      return { type: "command", command: "deleteBackward" };
+    case "ArrowLeft":
+      return { type: "command", command: "moveToPreviousChar" };
+    case "ArrowRight":
+      return { type: "command", command: "moveToNextChar" };
+    case "Enter":
+      return { type: "submit" };
+    default:
+      return null;
+  }
+}
+
+/** MathLive #? / \\placeholder 를 MathJax가 아는 기호로 바꿔 닫힘 시 폭이 뛰지 않게 한다. */
+function latexForInputMathJax(latex: string): string {
+  return latex
+    .replace(/\\placeholder(?:\[[^\]]*\])?\{[^}]*\}/g, "\\square")
+    .replace(/#\?/g, "\\square");
+}
+
+/** correctAnswer prop에서 문자열 추출 */
+function extractCorrectAnswerStr(
+  ca: string | Record<string, unknown> | null | undefined,
+): string | undefined {
+  if (!ca) return undefined;
+  if (typeof ca === "string") return ca;
+  const vals = Object.values(ca);
+  for (const v of vals) {
+    if (typeof v === "string" && v.length > 0) return v;
+    if (Array.isArray(v)) {
+      const first = v[0];
+      if (typeof first === "string" && first.length > 0) return first;
+    }
+  }
+  return undefined;
+}
 
 const MARKUP_CACHE = new Map<string, string>();
 function keyMarkup(item: MathKey | { id: string; label: string }): string {
@@ -158,6 +246,7 @@ export function MathKeyboard({
   value = "",
   onChange,
   onSubmit,
+  correctAnswer,
   className,
   readOnly = false,
   alwaysOpen = false,
@@ -165,8 +254,16 @@ export function MathKeyboard({
   historyScope,
 }: MathKeyboardProps) {
   const config = MATH_LEVEL_CONFIG[level];
+
+  const autoWidth = useMemo(() => {
+    const answerStr = extractCorrectAnswerStr(correctAnswer);
+    if (!answerStr) return undefined;
+    return estimateMathWidth(answerStr);
+  }, [correctAnswer]);
   const rootRef = useRef<HTMLDivElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<MathFieldEl | null>(null);
+  const pendingInsertRef = useRef<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{
     pointerX: number;
@@ -175,6 +272,7 @@ export function MathKeyboard({
     y: number;
   } | null>(null);
   const [keyboardOpen, setKeyboardOpen] = useState(alwaysOpen);
+  const [localLatex, setLocalLatex] = useState(value);
   const [initialHistory] = useState(() => historyToState(level, historyScope));
   const [drawerOpen, setDrawerOpen] = useState(initialHistory.drawerOpen);
   const [activeTab, setActiveTab] = useState<MathKeyboardTab>(
@@ -261,41 +359,148 @@ export function MathKeyboard({
     [config],
   );
 
+  const localLatexRef = useRef(localLatex);
+  localLatexRef.current = localLatex;
+  const keyboardOpenRef = useRef(keyboardOpen);
+  keyboardOpenRef.current = keyboardOpen;
+
   useEffect(() => {
+    if (value === localLatexRef.current) return;
+    localLatexRef.current = value;
+    setLocalLatex(value);
     const field = fieldRef.current;
     if (field && field.value !== value) field.value = value;
   }, [value]);
 
-  useEffect(() => {
-    const field = fieldRef.current;
-    if (!field || readOnly) return;
+  const commitLatex = useCallback(
+    (latest: string) => {
+      localLatexRef.current = latest;
+      setLocalLatex(latest);
+      onChange?.(latest);
+    },
+    [onChange],
+  );
 
-    const open = () => setKeyboardOpen(true);
+  /** math-field의 현재 값을 로컬 상태 + 부모에 동기화 */
+  const flushFieldValue = useCallback(() => {
+    const field = fieldRef.current;
+    if (!field) return;
+    commitLatex(field.value);
+  }, [commitLatex]);
+
+  const closeKeyboard = useCallback(() => {
+    flushFieldValue();
+    keyboardOpenRef.current = false;
+    setKeyboardOpen(false);
+  }, [flushFieldValue]);
+
+  const openKeyboard = useCallback((insertLatex?: string) => {
+    if (insertLatex) pendingInsertRef.current = insertLatex;
+    keyboardOpenRef.current = true;
+    setKeyboardOpen(true);
+  }, []);
+
+  const toggleKeyboard = useCallback(() => {
+    if (keyboardOpenRef.current) {
+      closeKeyboard();
+      return;
+    }
+    openKeyboard();
+  }, [closeKeyboard, openKeyboard]);
+
+  const applyDeviceKeyAction = useCallback(
+    (action: DeviceKeyAction) => {
+      const field = fieldRef.current;
+      if (action.type === "insert") {
+        if (!field) {
+          openKeyboard(action.latex);
+          return;
+        }
+        field.insert(action.latex, { focus: true });
+        field.focus();
+        flushFieldValue();
+        return;
+      }
+      if (!field) return;
+      if (action.type === "command") {
+        field.executeCommand(action.command);
+        field.focus();
+        flushFieldValue();
+        return;
+      }
+      onSubmit?.(field.value);
+      field.focus();
+    },
+    [flushFieldValue, onSubmit, openKeyboard],
+  );
+
+  useEffect(() => {
+    if (readOnly) return;
+
     const onDocPointerDown = (event: PointerEvent) => {
       if (alwaysOpen) return;
       const target = event.target as Node | null;
       if (!target) return;
-      if (field.contains(target)) return;
       if (rootRef.current?.contains(target)) return;
       if (panelRef.current?.contains(target)) return;
-      setKeyboardOpen(false);
+      closeKeyboard();
     };
 
-    field.addEventListener("focus", open);
-    field.addEventListener("pointerdown", open);
     document.addEventListener("pointerdown", onDocPointerDown);
     if (alwaysOpen) setKeyboardOpen(true);
     return () => {
-      field.removeEventListener("focus", open);
-      field.removeEventListener("pointerdown", open);
       document.removeEventListener("pointerdown", onDocPointerDown);
     };
-  }, [readOnly, alwaysOpen]);
+  }, [alwaysOpen, closeKeyboard, readOnly]);
+
+  useLayoutEffect(() => {
+    if (!keyboardOpen) return;
+    const field = fieldRef.current;
+    if (!field) return;
+    field.focus();
+    const pending = pendingInsertRef.current;
+    if (!pending) return;
+    pendingInsertRef.current = null;
+    field.insert(pending, { focus: true });
+    field.focus();
+    flushFieldValue();
+  }, [keyboardOpen, flushFieldValue]);
+
+  useEffect(() => {
+    if (!keyboardOpen || readOnly) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      const field = fieldRef.current;
+      const target = event.target as Node | null;
+      const inField = !!(
+        field &&
+        target &&
+        (field === target || field.contains(target))
+      );
+      const inUi = !!(
+        rootRef.current?.contains(target) ||
+        panelRef.current?.contains(target)
+      );
+      if (!inField && !inUi) return;
+      const action = deviceKeyAction(event);
+      if (!action) return;
+      if (action.type === "submit") {
+        if (!inField) return;
+        event.preventDefault();
+        onSubmit?.(field.value);
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      applyDeviceKeyAction(action);
+    };
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => document.removeEventListener("keydown", onKeyDown, true);
+  }, [applyDeviceKeyAction, keyboardOpen, onSubmit, readOnly]);
 
   const placeNearField = (): MathKeyboardPosition => {
-    const field = fieldRef.current;
-    if (!field) return { x: VIEWPORT_PAD, y: VIEWPORT_PAD };
-    const rect = field.getBoundingClientRect();
+    const anchor = shellRef.current ?? fieldRef.current;
+    if (!anchor) return { x: VIEWPORT_PAD, y: VIEWPORT_PAD };
+    const rect = anchor.getBoundingClientRect();
     return { x: rect.left, y: rect.bottom + VIEWPORT_PAD };
   };
 
@@ -334,9 +539,9 @@ export function MathKeyboard({
   }, [keyboardOpen]);
 
   const emitValue = () => {
-    const field = fieldRef.current;
-    if (!field) return;
-    onChange?.(field.value);
+    // 키패드 닫히며 math-field가 unmount될 때 빈 input이 올라오면 값을 지운다.
+    if (!keyboardOpenRef.current) return;
+    flushFieldValue();
   };
 
   const insertLatex = (latex: string) => {
@@ -454,7 +659,7 @@ export function MathKeyboard({
     </div>
   );
 
-  const inputField = (
+  const mathFieldNode = (
     <MathField
       ref={(el: MathFieldEl | null) => {
         fieldRef.current = el;
@@ -466,7 +671,7 @@ export function MathKeyboard({
           ...field.macros,
           sslash: { def: "\\mathbin{/\\!/}", args: 0 },
         };
-        field.value = value;
+        field.value = localLatexRef.current || value;
       }}
       read-only={readOnly ? true : undefined}
       default-mode="math"
@@ -475,13 +680,63 @@ export function MathKeyboard({
     />
   );
 
+  const widthStyle = autoWidth
+    ? ({ "--rqti-math-input-auto-width": `${autoWidth}ch` } as React.CSSProperties)
+    : undefined;
+
+  // readOnly: MathJax만 표시, 버튼·키패드 없음
   if (readOnly) {
     return (
-      <div ref={rootRef} className={cn("rqti-math-input", className)}>
-        {inputField}
-      </div>
+      <MathJaxProviderWrapper>
+        <div ref={rootRef} className={cn("rqti-math-input", className)} style={widthStyle}>
+          <div ref={shellRef} className="rqti-math-input-display">
+            {localLatex ? (
+              <MathJaxRenderer
+                latex={latexForInputMathJax(localLatex)}
+                displayStyle={false}
+                className="rqti-math-input-mathjax"
+              />
+            ) : (
+              <span className="rqti-math-input-field-empty" />
+            )}
+          </div>
+        </div>
+      </MathJaxProviderWrapper>
     );
   }
+
+  // 작성 중(키패드 열림): MathLive. 닫힘: MathJax.
+  const valueArea = keyboardOpen ? (
+    mathFieldNode
+  ) : (
+    <div
+      className="rqti-math-input-value"
+      onClick={toggleKeyboard}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleKeyboard();
+          return;
+        }
+        const action = deviceKeyAction(e);
+        if (!action || action.type !== "insert") return;
+        e.preventDefault();
+        applyDeviceKeyAction(action);
+      }}
+    >
+      {localLatex ? (
+        <MathJaxRenderer
+          latex={latexForInputMathJax(localLatex)}
+          displayStyle={false}
+          className="rqti-math-input-mathjax"
+        />
+      ) : (
+        <span className="rqti-math-input-field-empty" />
+      )}
+    </div>
+  );
 
   const floatingPanel =
     keyboardOpen && typeof document !== "undefined"
@@ -605,9 +860,37 @@ export function MathKeyboard({
       : null;
 
   return (
-    <div ref={rootRef} className={cn("rqti-math-input", className)}>
-      {inputField}
-      {floatingPanel}
-    </div>
+    <MathJaxProviderWrapper>
+      <div ref={rootRef} className={cn("rqti-math-input", className)} style={widthStyle}>
+        <div
+          ref={shellRef}
+          className={cn(
+            "rqti-math-input-shell",
+            keyboardOpen && "rqti-math-input-shell--open",
+            isEmptyMathLatex(localLatex) && "rqti-math-input-shell--empty",
+          )}
+        >
+          {valueArea}
+          <button
+            type="button"
+            className={cn(
+              "rqti-math-input-toggle",
+              keyboardOpen && "rqti-math-input-toggle--active",
+            )}
+            aria-label={keyboardOpen ? "수식 키패드 닫기" : "수식 키패드 열기"}
+            aria-pressed={keyboardOpen}
+            onPointerDown={(event) => event.preventDefault()}
+            onClick={(event) => {
+              event.stopPropagation();
+              event.currentTarget.blur();
+              toggleKeyboard();
+            }}
+          >
+            <Keyboard size={16} />
+          </button>
+        </div>
+        {floatingPanel}
+      </div>
+    </MathJaxProviderWrapper>
   );
 }

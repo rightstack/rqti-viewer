@@ -22,6 +22,31 @@ function getTextEntryResponseString(
   return fallback.trim();
 }
 
+/** correctAnswers에서 해당 식별자의 정답 문자열을 추출 */
+function getCorrectAnswerString(
+  correctAnswers: Record<string, ResponseValue> | undefined,
+  id: string
+): string | undefined {
+  if (!correctAnswers) return undefined;
+  const raw = correctAnswers[id] as unknown;
+  if (raw === undefined || raw === null) return undefined;
+  if (Array.isArray(raw)) {
+    const first = raw[0];
+    return typeof first === "string" ? first : undefined;
+  }
+  if (typeof raw === "string") return raw;
+  return undefined;
+}
+
+const CORRECT_ANSWER_WIDTH_PADDING = 2;
+
+/** 정답 문자열 길이 기반 expectedLength 추정 (ch 단위) */
+function estimateWidthFromAnswer(answer: string): number {
+  const stripped = answer.replace(/\\[a-zA-Z]+\{?|\}|\\|\$|\^|_/g, "");
+  const len = stripped.length;
+  return len + CORRECT_ANSWER_WIDTH_PADDING;
+}
+
 const PATTERNS = {
   korean: "[가-힣\\s]+",
   english: "[a-zA-Z\\s]+",
@@ -60,8 +85,15 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
   };
 
   const pattern = getPattern(patternMask);
-  const expectedLength = expectedLengthAttr ? Number.parseInt(expectedLengthAttr, 10) : undefined;
+  const xmlExpectedLength = expectedLengthAttr ? Number.parseInt(expectedLengthAttr, 10) : undefined;
   const maxLength = maxLengthAttr ? Number.parseInt(maxLengthAttr, 10) : undefined;
+
+  const correctAnswerStr = getCorrectAnswerString(options.correctAnswers, responseIdentifier);
+  const expectedLength = useMemo(() => {
+    if (Number.isFinite(xmlExpectedLength)) return xmlExpectedLength;
+    if (correctAnswerStr) return estimateWidthFromAnswer(correctAnswerStr);
+    return undefined;
+  }, [xmlExpectedLength, correctAnswerStr]);
 
   const isPreview = options.mode === "preview";
 
@@ -90,7 +122,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
 
   const isSRQ = options.questionType === ITEM_TYPE.SRQ;
   const isCLOZE = options.questionType === ITEM_TYPE.CLOZE;
-  const layout = isSRQ ? "rqti:block" : "rqti:inline";
+  const layout: "rqti:inline" | "rqti:block" = "rqti:inline";
 
   /**
    * CLOZE 타입은 input 영역 피드백 로직 미적용

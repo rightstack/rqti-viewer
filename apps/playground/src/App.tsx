@@ -446,7 +446,6 @@ export default function App() {
                 value={mathLatex}
                 onChange={setMathLatex}
                 level={mathLevel}
-                alwaysOpen
               />
             </div>
           )}

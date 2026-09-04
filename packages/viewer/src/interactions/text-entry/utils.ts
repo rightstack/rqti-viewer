@@ -1,7 +1,7 @@
 import type React from "react";
 
 const TEXT_ENTRY_MIN_WIDTH = 8;
-const TEXT_ENTRY_MAX_WIDTH = 15;
+const TEXT_ENTRY_MAX_WIDTH = 50;
 const TEXT_ENTRY_FALLBACK_WIDTH = 10;
 
 export const getTextEntryWidth = (expectedLength?: number): number => {
@@ -9,7 +9,7 @@ export const getTextEntryWidth = (expectedLength?: number): number => {
     return TEXT_ENTRY_FALLBACK_WIDTH;
   }
 
-  return Math.min(TEXT_ENTRY_MAX_WIDTH, Math.max(TEXT_ENTRY_MIN_WIDTH, expectedLength));
+  return Math.max(TEXT_ENTRY_MIN_WIDTH, Math.min(TEXT_ENTRY_MAX_WIDTH, expectedLength));
 };
 
 export const getTextEntryWidthStyle = (
