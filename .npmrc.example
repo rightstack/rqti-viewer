@@ -1,14 +1,11 @@
-# 고객/로컬 설치용 (read-only)
-# 이 파일을 프로젝트 루트의 .npmrc 로 복사한 뒤 토큰을 넣는다.
-# .npmrc 는 gitignore 대상이며 커밋하지 않는다.
+# 토큰은 ~/.npmrc 한 줄. 레포에 커밋하지 않는다. 값은 사내 문의 (장가영).
+# 설치 → read / 배포 → write (write는 read 포함)
+#   echo '//npm.pkg.github.com/:_authToken=ghp_...' >> ~/.npmrc
+#   grep 'npm.pkg.github.com' ~/.npmrc
+# 이미 있으면 echo 반복 금지. 배포 시 값을 write 로 교체.
 
 @rightstack:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=SHARED_READ_ONLY_TOKEN
 
 # 모노레포에서 playground가 GitHub Packages 배포본만 쓰려면:
 # link-workspace-packages=false
 # (로컬 packages/viewer 개발 시에는 설정하지 않음 — workspace:* 사용)
-
-# publish(쓰기)는 .npmrc에 쓰지 말고 환경변수로 전달한다.
-#   export NODE_AUTH_TOKEN=WRITE_TOKEN
-#   pnpm publish:viewer

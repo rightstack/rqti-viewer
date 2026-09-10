@@ -12,31 +12,51 @@ QTI 문항(Viewer) 렌더링 라이브러리. React 앱에서 문항 단위로 Q
 - React DOM >= 18
 - **클라이언트 컴포넌트 전용** — `DOMParser`를 사용하므로 SSR/Node 환경에서는 동작하지 않습니다.
 
-## 설치
+## GitHub Packages 인증
 
-### 1. Registry 인증 설정
+토큰은 `~/.npmrc`에만 둔다. 레포에는 커밋하지 않는다. 값은 사내에서 받는다.
 
-프로젝트 루트에 `.npmrc`를 추가합니다. 저장소 루트의 [`.npmrc.example`](../../.npmrc.example)를 복사해 사용할 수 있습니다.
+| 용도 | 토큰 | 가능 |
+|---|---|---|
+| 설치 | read | `pnpm add` |
+| 배포 | write | `pnpm add`, `pnpm publish:viewer` |
 
-```init
-@rightstack:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=SHARED_READ_ONLY_TOKEN
+write는 read를 포함한다. 배포하는 사람은 write만 두면 된다.  
+`~/.npmrc`의 `_authToken`은 한 줄만 둔다.
+
+```bash
+# 등록 (ghp_... 를 받은 토큰으로 교체)
+echo '//npm.pkg.github.com/:_authToken=ghp_...' >> ~/.npmrc
+
+# 확인. 이미 있으면 echo 를 반복하지 않는다.
+grep 'npm.pkg.github.com' ~/.npmrc
 ```
 
-- **읽기(설치)**: `read:packages` 권한이 있는 토큰을 `.npmrc`에 넣습니다. `.npmrc`는 gitignore 대상이며 커밋하지 않습니다.
-- **쓰기(publish)**: `write:packages` 토큰은 `.npmrc`에 넣지 말고 `NODE_AUTH_TOKEN` 환경변수로만 전달합니다.
+프로젝트 `.npmrc`에는 레지스트리만 둔다.
 
-`SHARED_READ_ONLY_TOKEN`은 Rightstack에서 발급한 GitHub Packages **read-only** 토큰으로 교체합니다.
+```ini
+@rightstack:registry=https://npm.pkg.github.com
+```
 
-### 2. 패키지 설치
+### 설치 (read)
 
 ```bash
 pnpm add @rightstack/rqti-viewer
-# 또는
-npm install @rightstack/rqti-viewer
 ```
 
-### 3. CI/CD (GitHub Actions 예시)
+### 배포 (write)
+
+`~/.npmrc`가 write 토큰이어야 한다. 줄이 있으면 값을 교체하고, `>>`로 추가하지 않는다.  
+`packages/viewer/package.json`과 `USER_GUIDE.md` 버전을 올린 뒤:
+
+```bash
+pnpm build:viewer
+pnpm publish:viewer
+```
+
+같은 버전은 다시 올릴 수 없다.
+
+### CI
 
 ```yaml
 - name: Install dependencies
@@ -47,6 +67,7 @@ npm install @rightstack/rqti-viewer
     echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" >> .npmrc
     pnpm install
 ```
+
 
 ## Quick Start
 
@@ -304,12 +325,14 @@ const themeWithoutNumber: Theme = {
 | `ITEM_TYPE.DRAWING` | `drawing` | 그리기 |
 | `ITEM_TYPE.SLIDER` | `slider` | 슬라이더 |
 | `ITEM_TYPE.UPLOAD` | `upload` | 파일 업로드 |
-| `ITEM_TYPE.VCQ` | `vcq` | 세로셈 |
+| `ITEM_TYPE.VCQ` | `vcq` | 세로셈 (`qti-portable-custom-interaction` + `math-input-blank`) |
+
+세로셈·수식 내 빈칸은 PCI `custom-interaction-type-identifier="math-input-blank"`로 렌더합니다. CLOZE에도 같은 PCI가 섞일 수 있으며, `canSubmit`은 해당 빈칸 개수를 포함합니다. QMS 대표 `qtiIdentifier`가 정해지기 전까지 `SAMPLE_ITEMS`에는 `vcq`가 없고 playground 로컬 XML로 확인합니다.
 
 ## LaTeX
 
 QTI 문항의 LaTeX 수식은 [MathJax](https://www.mathjax.org/)로 렌더링됩니다.
-호스트가 Provider를 감싸지 않아도 `Question`이 내부에서 `MathJaxProviderWrapper`를 제공합니다.
+호스트가 Provider를 감싸지 않아도 `Question`이 내부에서 `MathJaxProviderWrapper`를 제공합니다. 수식 키보드 입력(MathLive)은 기존과 같습니다.
 
 ## 스타일 격리
 
@@ -328,17 +351,10 @@ import {
   FeedbackInline,
   getThemeCSSVariables,
   ITEM_TYPE,
+  MathJaxProviderWrapper,
   type Theme,
   type FeedbackItem,
 } from "@rightstack/rqti-viewer";
 ```
 
-## 배포 (maintainer)
-
-GitHub Packages에 publish (쓰기 토큰은 환경변수로만 사용):
-
-```bash
-export NODE_AUTH_TOKEN=WRITE_TOKEN   # write:packages
-pnpm build:viewer
-pnpm publish:viewer
-```
+`MathJaxProviderWrapper`는 `Question`이 이미 감싸므로 보통 직접 쓸 필요는 없습니다.

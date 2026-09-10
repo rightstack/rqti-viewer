@@ -4,7 +4,7 @@ QTI 문항을 **상세 API**로 조회해 **문항 1개**를 렌더링하는 가
 
 > `mode`는 `Question`이 기본값 `"preview"`(읽기 전용)입니다. `toQuestionProps`는 `mode`를 지정하지 않으므로, 풀이가 필요하면 호출측에서 `mode="practice"`를 전달하세요.
 
-현재 패키지 버전: **0.4.2**
+현재 패키지 버전: **0.4.3**
 
 ---
 
@@ -12,15 +12,27 @@ QTI 문항을 **상세 API**로 조회해 **문항 1개**를 렌더링하는 가
 
 ### 1.1 Registry 인증
 
-프로젝트 루트 `.npmrc`:
+토큰은 `~/.npmrc`에만 둔다. 레포에는 커밋하지 않는다.
+
+| 용도 | 토큰 | 가능 |
+|---|---|---|
+| 설치 | read | `pnpm add` |
+| 배포 | write | `pnpm add`, `publish:viewer` |
+
+write는 read를 포함한다. `_authToken`은 한 줄만 둔다.
+
+```bash
+echo '//npm.pkg.github.com/:_authToken=ghp_...' >> ~/.npmrc
+grep 'npm.pkg.github.com' ~/.npmrc
+```
+
+프로젝트 `.npmrc`:
 
 ```ini
 @rightstack:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=READ_ONLY_TOKEN
 ```
 
-- `read:packages` 권한이 있는 GitHub 토큰을 사용합니다.
-- `.npmrc`는 커밋하지 마세요.
+배포는 README **배포 (write)** 를 따른다.
 
 ### 1.2 패키지 설치
 
