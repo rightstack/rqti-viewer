@@ -12,3 +12,4 @@ export {
 } from "./questionUtils";
 export { resolveMediaUrl } from "./urlUtils";
 export { getNodeKey } from "./getNodeKey";
+export { isMathLatexAnswer, isMathResponseId } from "./isMathLatexAnswer";

@@ -34,7 +34,7 @@ pnpm add @rightstack/rqti-viewer
 import "@rightstack/rqti-viewer/styles.css";
 ```
 
-스타일은 반드시 별도 import 합니다. (MathLive 스타일 포함)
+스타일은 반드시 별도 import 합니다. (MathJax 표시용 스타일 포함)
 
 ---
 
@@ -71,6 +71,8 @@ select / tab 등 UI는 호스트 앱에서 구현합니다.
 | 단답형      | `srq`   | 단답형 (SRQ)        | `i_gq5x41yc2t4biapu` |
 | 빈칸 채우기 | `cloze` | 빈칸 채우기 (CLOZE) | `i_lqenbou7mkjktvwo` |
 | 서술형      | `essay` | 서술형 (ESSAY)      | `i_1m7u6xcu9wdo59lt` |
+
+세로셈형(`vcq`)은 `ITEM_TYPE.VCQ`로 지원합니다. QMS 대표 identifier가 정해지기 전까지 playground 로컬 XML로 확인합니다.
 
 ### 타입
 

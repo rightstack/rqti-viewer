@@ -9,6 +9,7 @@ const external = [
   "react-dom",
   "react/jsx-runtime",
   "mathlive",
+  "better-react-mathjax",
   "lucide-react",
   "@radix-ui/react-dialog",
   "@radix-ui/react-slot",

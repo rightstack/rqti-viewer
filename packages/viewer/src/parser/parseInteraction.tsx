@@ -13,6 +13,7 @@ import {
   parseGapMatchInteraction,
   parseInlineChoiceInteraction,
   parseMatchInteraction,
+  parseMathInputBlankInteraction,
   parseOrderInteraction,
   parseTextEntryInteraction,
   parseUploadInteraction,
@@ -33,6 +34,7 @@ const QTI_SPECIFIC_ELEMENTS: Record<string, string[]> = {
   "qti-extended-text-interaction": ["qti-prompt"],
   "qti-upload-interaction": ["qti-prompt"],
   "qti-gap-match-interaction": ["qti-gap", "qti-gap-text", "qti-prompt"],
+  "qti-portable-custom-interaction": ["qti-interaction-markup", "qti-prompt"],
 };
 
 const isQtiSpecificElement = (tagName: string, interactionTag: string): boolean => {
@@ -85,6 +87,9 @@ export const parseNode = (
       break;
     case "qti-gap-match-interaction":
       parsedInteraction = parseGapMatchInteraction(element, options, index);
+      break;
+    case "qti-portable-custom-interaction":
+      parsedInteraction = parseMathInputBlankInteraction(element, options, index);
       break;
     default:
       break;

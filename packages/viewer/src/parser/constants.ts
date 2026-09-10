@@ -8,6 +8,7 @@ export const QTI_INTERACTION_TAGS = [
   "qti-extended-text-interaction",
   "qti-upload-interaction",
   "qti-gap-match-interaction",
+  "qti-portable-custom-interaction",
 ] as const;
 
 export const isInteraction = (tagName: string): boolean =>

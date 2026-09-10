@@ -3,9 +3,8 @@ import { getNodeKey } from "../utils/getNodeKey";
 import { AudioPlayer } from "../components/AudioPlayer";
 import type { QTIParserOptions } from "../types";
 import { resolveMediaUrl } from "../utils/urlUtils";
-import { wrapMathFieldTextForInlineLatex } from "../utils/wrapMathFieldTextForInlineLatex";
 import { buildImageStyle } from "./imageUtils";
-import { parseTextWithLaTeX } from "./parseLatexToReact";
+import { parseTextWithLaTeX, renderLaTeX } from "./parseLatexToReact";
 
 function parseCssString(css: string): React.CSSProperties {
   const style: Record<string, string> = {};
@@ -69,15 +68,11 @@ export function renderQtiNode(node: ChildNode, options?: QTIParserOptions): Reac
     const stableKey = getNodeKey(el);
     const isMathField = className.includes("qti-ext-mathfield");
 
-    // qti-ext-mathfield 요소: 내부 텍스트를 $...$로 감싸서 LaTeX 파싱
+    // qti-ext-mathfield는 저장된 LaTeX를 식별하는 XML 마커로만 사용한다.
     if (isMathField) {
-      const wrappedText = wrapMathFieldTextForInlineLatex(el.textContent ?? "");
-      if (wrappedText) {
-        const parsed = parseTextWithLaTeX(wrappedText, `mathfield-${stableKey}`);
-        const props: Record<string, unknown> = { key: stableKey };
-        if (className) props.className = className;
-        return React.createElement("span", props, parsed);
-      }
+      const rawLatex = el.textContent ?? "";
+      if (!rawLatex) return null;
+      return renderLaTeX(rawLatex, `mathfield-${stableKey}`, false);
     }
 
     // img: SVG는 token 없이 그대로, 그 외는 resolveMediaUrl + token
@@ -179,7 +174,10 @@ export function renderQtiNode(node: ChildNode, options?: QTIParserOptions): Reac
       <React.Fragment key={getNodeKey(child)}>{renderQtiNode(child, options)}</React.Fragment>
     ));
 
-    return React.createElement(tagName, props, childEls);
+    const renderedChildren =
+      className.includes("qti-ext-blank-content") && !el.textContent?.trim() ? "\u00A0" : childEls;
+
+    return React.createElement(tagName, props, renderedChildren);
   }
 
   return null;

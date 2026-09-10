@@ -12,7 +12,7 @@
  */
 import { parsePairs } from "../interactions/match/utils";
 import { extractListStyleType } from "../parser/listGrouping";
-import type { MatchingPairType, MediaContentType } from "../types";
+import type { MatchingPairType, MediaContentType, ResponseValueMap } from "../types";
 import { extractMediaFromElement } from "./extractMediaFromElement";
 import { removeMediaFromElementClone } from "./extractTextFromElement";
 import { wrapMathFieldTextForInlineLatex } from "./wrapMathFieldTextForInlineLatex";
@@ -408,7 +408,7 @@ export function buildChoiceIdentifierDisplayMapsFromQtiXml(
 
 /** 쉼표 선택자로 문서 순서 유지 (다중 TFQ·빈칸·인라인 선택·매칭 혼합) */
 const INTERACTION_ORDER_SELECTOR =
-  "qti-choice-interaction, qti-order-interaction, qti-inline-choice-interaction, qti-text-entry-interaction, qti-match-interaction, qti-gap-match-interaction";
+  "qti-choice-interaction, qti-order-interaction, qti-inline-choice-interaction, qti-text-entry-interaction, qti-match-interaction, qti-gap-match-interaction, qti-portable-custom-interaction";
 
 /**
  * 복습 정답 표시 순서용: 위 interaction들의 response-identifier를 XML 트리 순으로 수집.
@@ -466,10 +466,25 @@ function buildFractionLatexFromParts(
 
 export type CorrectAnswerFeedbackSegment =
   | { kind: "fractionLatex"; latex: string; key: string }
+  | { kind: "vcqGrid"; key: string; correctAnswer: ResponseValueMap }
   | { kind: "default"; key: string; value: unknown };
 
+export function getVcqResponseGridElementFromQtiXml(
+  qtiXml: string | null | undefined,
+): Element | null {
+  if (!qtiXml?.trim()) return null;
+  const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
+  if (doc.querySelector("parsererror")) return null;
+  return (
+    Array.from(doc.querySelectorAll("div")).find((el) => {
+      const cls = el.getAttribute("class") ?? "";
+      return cls.split(/\s+/).includes("qti-ext-vcq-grid--response");
+    }) ?? null
+  );
+}
+
 /**
- * 복습 정답 줄: `FRACTION_*_{N|D|W}` 는 베이스별로 묶어 한 덩어리 LaTeX로 표시.
+ * 복습 정답 줄: VCQ response 그리드면 `vcqGrid`, `FRACTION_*_{N|D|W}` 는 베이스별로 묶어 LaTeX.
  * 문서 순서는 `extractInteractionResponseIdentifiersInDocumentOrder`와 동일하며,
  * 그룹은 해당 베이스 파트 중 XML에서 가장 먼저 나오는 식별자 위치에 한 번만 출력.
  * n/d 불완전 시 기존처럼 키별 `default` 세그먼트로 폴백.
@@ -478,6 +493,13 @@ export function buildCorrectAnswerFeedbackSegments(
   correctAnswer: Record<string, unknown>,
   qtiXml: string | null | undefined,
 ): CorrectAnswerFeedbackSegment[] {
+  if (
+    Object.keys(correctAnswer).length > 0 &&
+    getVcqResponseGridElementFromQtiXml(qtiXml) !== null
+  ) {
+    return [{ kind: "vcqGrid", key: "vcq", correctAnswer: correctAnswer as ResponseValueMap }];
+  }
+
   const entries = Object.entries(correctAnswer);
   const order = extractInteractionResponseIdentifiersInDocumentOrder(qtiXml);
 

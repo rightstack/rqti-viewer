@@ -11,6 +11,7 @@ export const ITEM_TYPE = {
   HTQ: "htq",
   GMQ: "gmq",
   MATCH: "match",
+  VCQ: "vcq",
   MATRIX: "matrix",
   ORDER: "order",
   DRAWING: "drawing",

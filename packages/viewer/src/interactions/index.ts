@@ -7,3 +7,4 @@ export { parseMatchInteraction } from "./match/MatchParser";
 export { parseOrderInteraction } from "./order/OrderParser";
 export { parseUploadInteraction } from "./upload/UploadParser";
 export { parseGapMatchInteraction } from "./gap-match/GapMatchParser";
+export { parseMathInputBlankInteraction } from "./math-input-blank";

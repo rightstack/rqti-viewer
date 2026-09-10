@@ -8,3 +8,5 @@ export type { ButtonConfigType, FeedbackStyleVariant } from "./FeedbackSheet";
 export { FeedbackModal } from "./FeedbackModal";
 export { FeedbackInline } from "./FeedbackInline";
 export type { FeedbackInlineProps } from "./FeedbackInline";
+export { VcqCorrectAnswerPreview } from "./VcqCorrectAnswerPreview";
+export type { VcqCorrectAnswerPreviewProps } from "./VcqCorrectAnswerPreview";

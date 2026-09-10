@@ -15,6 +15,10 @@
      Wrapper - 최상위 래퍼 (iframe용 부모 컨테이너)
      ======================================== */
 .qti-ext-wrapper {
+  /* 수식·세로셈 빈칸 공통 */
+  --qti-math-blank-size: 2em;
+  --qti-math-blank-pad: 0.25em;
+  --qti-math-blank-display-scale: 0.85;
   width: 100%;
 
   background-color: var(--qti-container-bg, #ffffff);
@@ -26,6 +30,10 @@
          Container - 문항 컨테이너 (width 제어)
          ======================================== */
 .qti-ext-container {
+  /* 수식·세로셈 빈칸 공통 */
+  --qti-math-blank-size: 2em;
+  --qti-math-blank-pad: 0.2em;
+  --qti-math-blank-display-scale: 0.85;
   max-width: var(--qti-container-max-width);
 
   /* margin: 0 auto; */
@@ -1354,6 +1362,25 @@
   @apply rqti:px-2 rqti:transition-all rqti:duration-200 rqti:placeholder:text-gray-300;
 }
 
+/* 수식/세로셈 입력 빈칸 — TextEntry 테마, 크기는 math·VCQ */
+.qti-ext-input-blank.qti-ext-text-entry-input {
+  overflow: hidden;
+
+  width: max-content;
+  min-width: 1.15em;
+  min-height: 1.2em;
+  padding: 0.1em 0.2em;
+
+  color: inherit;
+  font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif;
+  font-size: inherit !important;
+  font-weight: 400;
+  line-height: 1;
+  white-space: normal;
+
+  transition: none;
+}
+
 .qti-ext-text-entry-input-cloze {
   /* CLOZE(빈칸 채우기): inline-choice 드롭다운과 유사한 높이/패딩 */
   @apply rqti:px-3;
@@ -1390,7 +1417,8 @@
   background-color: var(--qti-option-bg-hover);
 }
 
-.qti-ext-text-entry-input:focus:not(:disabled) {
+.qti-ext-text-entry-input:focus:not(:disabled),
+.qti-ext-input-blank.qti-ext-text-entry-input:focus-within {
   border-color: var(--qti-option-border-selected);
 
   background-color: var(--qti-option-bg-selected);
@@ -1416,6 +1444,13 @@
   background-color: var(--qti-option-bg-incorrect);
 
   @apply rqti:text-center rqti:text-lg;
+}
+
+/* 수식/세로셈 빈칸은 text-lg 정오답 스타일 제외 (칸 크기 유지) */
+.qti-ext-input-blank.qti-ext-text-entry-input-correct,
+.qti-ext-input-blank.qti-ext-text-entry-input-incorrect {
+  font-size: inherit !important;
+  line-height: inherit;
 }
 
 /* ========================================
@@ -1717,7 +1752,7 @@
   /* TODO: 스타일 추가 */
 }
 
-/* 수식 (MathLive math-field, parseLatexToReact) — KaTeX 렌더 시와 동일 폰트 스택 */
+/* 수식 (MathJax, parseLatexToReact) */
 
 .qti-ext-mathfield {
   position: relative;
@@ -1729,6 +1764,79 @@
   font-size: inherit;
   line-height: inherit;
   vertical-align: middle;
+}
+
+.qti-ext-mathfield mjx-container {
+  margin: 0 !important;
+}
+
+.qti-ext-mathfield .qti-geometry-arrow > mjx-over {
+  padding-bottom: 0.04em !important;
+}
+
+.qti-ext-mathfield .qti-geometry-overleftrightarrow > mjx-over > mjx-mo {
+  position: relative;
+  left: -0.012em;
+}
+
+.qti-ext-mathfield mjx-utext {
+  width: auto !important;
+}
+
+.qti-ext-mathfield mjx-mtext,
+.qti-ext-mathfield mjx-utext,
+.qti-ext-mathfield mjx-container[jax="SVG"] text {
+  font-style: normal !important;
+  font-synthesis: none;
+}
+
+.qti-ext-mathfield .qti-math-text-bold mjx-mtext,
+.qti-ext-mathfield mjx-container[jax="SVG"] .qti-math-text-bold text {
+  font-weight: 700 !important;
+}
+
+.qti-ext-mathfield .qti-math-text-medium mjx-mtext,
+.qti-ext-mathfield mjx-container[jax="SVG"] .qti-math-text-medium text {
+  font-weight: 400 !important;
+}
+
+.qti-ext-mathfield .qti-math-text-sans mjx-mtext,
+.qti-ext-mathfield mjx-container[jax="SVG"] .qti-math-text-sans text {
+  font-family: "Noto Sans KR", Pretendard, sans-serif !important;
+}
+
+.qti-ext-mathfield .qti-math-text-serif mjx-mtext,
+.qti-ext-mathfield mjx-container[jax="SVG"] .qti-math-text-serif text {
+  font-family: "Noto Serif KR", serif !important;
+}
+
+.qti-ext-mathfield .qti-math-text-mono mjx-mtext,
+.qti-ext-mathfield mjx-container[jax="SVG"] .qti-math-text-mono text {
+  font-family: monospace !important;
+}
+
+.qti-ext-mathfield .qti-math-text-italic mjx-mtext,
+.qti-ext-mathfield .qti-math-text-oblique mjx-mtext,
+.qti-ext-mathfield
+  mjx-container[jax="SVG"]
+  :is(.qti-math-text-italic, .qti-math-text-oblique)
+  text {
+  font-style: italic !important;
+}
+
+.qti-ext-mathfield .qti-math-text-upright mjx-mtext,
+.qti-ext-mathfield mjx-container[jax="SVG"] .qti-math-text-upright text {
+  font-style: normal !important;
+}
+
+.qti-ext-math-display {
+  margin: 0.75em 0;
+
+  text-align: center;
+}
+
+.qti-ext-math-display .qti-ext-mathfield {
+  display: block;
 }
 
 .qti-ext-mathfield::after {
@@ -2516,6 +2624,30 @@
   font-size: var(--qti-feedback-description-font-size);
 
   @apply rqti:mx-auto rqti:flex rqti:w-full rqti:flex-col rqti:rounded-md rqti:px-4 rqti:py-5;
+}
+
+/* Feedback 스코프 VCQ compact (정답·해설 공통) */
+.qti-ext-feedback-inline,
+.qti-ext-feedback-sections {
+  --qti-math-blank-size: 1.75em;
+}
+
+.qti-ext-feedback-inline .qti-ext-vcq-grid,
+.qti-ext-feedback-sections .qti-ext-vcq-grid {
+  --qti-math-blank-size: 1.75em;
+  --vcq-cell: var(--qti-math-blank-size);
+  --vcq-syn-cell: var(--vcq-cell);
+  --vcq-narrow: calc(var(--vcq-cell) * 0.325);
+  --vcq-pad: 2px;
+
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 100%;
+  padding: 0.35em 0.4em;
+
+  border-radius: min(6px, var(--qti-option-border-radius, 6px));
+
+  background-color: var(--qti-container-bg);
 }
 
 .qti-ext-feedback-inline .qti-ext-feedback-description
@@ -3942,4 +4074,1339 @@
   .qti-layout-row
   .qti-layout-offset1:first-child {
   margin-left: 8.4043% !important;
+}
+.qti-ext-math-input-blank {
+  position: relative;
+
+  display: inline-flex;
+
+  align-items: center;
+  gap: 0.15em;
+
+  font-weight: 400;
+}
+
+.qti-ext-math-blank-latex,
+.qti-ext-math-blank-latex::after {
+  pointer-events: none;
+}
+
+.qti-ext-math-blank-field {
+  position: relative;
+  z-index: 1;
+
+  display: inline-block;
+
+  vertical-align: baseline;
+}
+
+.qti-ext-input-blank {
+  position: relative;
+
+  display: inline-flex;
+
+  justify-content: center;
+  align-items: center;
+
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 1.15em;
+  min-height: 1.2em;
+  padding: 0.1em 0.2em;
+
+  color: inherit;
+  font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif;
+  font-size: inherit;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.qti-ext-input-blank__field {
+  display: block;
+
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+
+  border: none;
+  border-radius: 0;
+  outline: none;
+
+  background: transparent;
+  box-shadow: none;
+
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: center;
+  appearance: none;
+}
+
+/* 단독 빈칸: 입력 높이는 고정. 긴 입력은 너비만 커짐 */
+.qti-ext-math-input-blank .qti-ext-input-blank {
+  display: inline-grid;
+
+  place-items: center stretch;
+
+  box-sizing: border-box;
+  width: auto;
+  min-width: var(--qti-math-blank-size, 2em);
+  min-height: var(--qti-math-blank-size, 2em);
+  padding: var(--qti-math-blank-pad, 0.2em);
+}
+
+.qti-ext-mjx-blank-slot .qti-ext-input-blank {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+
+  display: inline-grid;
+
+  place-items: center stretch;
+
+  width: auto;
+  min-width: 100%;
+  min-height: 0;
+  padding: var(--qti-math-blank-pad, 0.2em);
+}
+
+.qti-ext-math-input-blank--display .qti-ext-input-blank {
+  pointer-events: none;
+}
+
+.qti-align-right .qti-ext-input-blank,
+.qti-ext-input-blank.qti-align-right {
+  justify-content: flex-end;
+}
+
+.qti-align-center .qti-ext-input-blank,
+.qti-ext-input-blank.qti-align-center {
+  justify-content: center;
+}
+
+.qti-ext-vcq-cell--merged .qti-ext-input-blank {
+  position: absolute;
+  inset: var(--vcq-pad) 0;
+
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  padding: var(--qti-math-blank-pad, 0.1em);
+
+  transform: none;
+}
+
+.qti-align-left .qti-ext-input-blank,
+.qti-ext-input-blank.qti-align-left {
+  justify-content: flex-start;
+}
+
+.qti-ext-math-input-blank .qti-ext-input-blank:has(> .qti-ext-input-blank__field) {
+  height: var(--qti-math-blank-size, 2em);
+}
+
+.qti-ext-math-input-blank .qti-ext-input-blank__sizer {
+  visibility: hidden;
+  overflow: hidden;
+
+  grid-area: 1 / 1;
+
+  height: 0;
+
+  font: inherit;
+  line-height: inherit;
+  white-space: pre;
+
+  pointer-events: none;
+}
+
+/* display 빈칸 — 입력형보다 살짝 작은 상자. 세로셈 overlay는 셀 크기를 유지 */
+.qti-ext-input-blank--display {
+  display: inline-flex;
+
+  justify-content: center;
+  align-items: center;
+
+  box-sizing: border-box;
+  width: auto;
+  min-width: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
+  height: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
+  min-height: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
+  padding: 0;
+
+  border: var(--qti-blank-border-width, 1px) solid
+    var(--qti-blank-border-color, var(--qti-option-border));
+  border-radius: var(--qti-blank-box-border-radius, 4px);
+
+  background-color: transparent;
+
+  pointer-events: none;
+}
+
+.qti-ext-input-blank__label {
+  font-size: 0.85em;
+  line-height: 1;
+}
+
+.qti-ext-math-input-blank .qti-ext-input-blank__label {
+  display: inline-block;
+
+  grid-area: 1 / 1;
+
+  width: max-content;
+}
+
+.qti-ext-math-input-blank .qti-ext-input-blank__field {
+  grid-area: 1 / 1;
+
+  width: 100%;
+  min-width: 0;
+}
+
+/* preview·표시용으로 값이 들어온 빈칸 — 분수·근호는 내용 높이 */
+.qti-ext-input-blank--latex-content,
+.qti-ext-math-input-blank .qti-ext-input-blank--latex-content,
+.qti-ext-math-input-blank
+  .qti-ext-input-blank.qti-ext-text-entry-input.qti-ext-input-blank--latex-content {
+  height: auto;
+  min-height: var(--qti-math-blank-size, 2em);
+}
+
+.qti-ext-math-input-blank--display .qti-ext-input-blank.qti-ext-input-blank--latex-content,
+.qti-ext-input-blank--display.qti-ext-input-blank--latex-content {
+  height: auto;
+  min-height: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
+}
+
+/* 식 통째 조판 슬롯. 지수·분수 자리는 수식 엔진, input만 포털 */
+
+/* MathJax \Rule이 inline style로 background-color: black을 넣으므로 !important 필요 */
+.qti-ext-mjx-blank-slot {
+  position: relative;
+
+  display: inline-block;
+
+  box-sizing: border-box;
+  min-width: var(--qti-math-blank-size, 2em);
+  height: var(--qti-math-blank-size, 2em);
+  min-height: var(--qti-math-blank-size, 2em);
+  margin: 0 0.1em;
+
+  background-color: transparent !important;
+
+  vertical-align: -0.75em;
+}
+
+:is(mjx-den, mjx-num, mjx-root, mjx-box) .qti-ext-mjx-blank-slot {
+  vertical-align: baseline;
+}
+
+.qti-ext-mjx-blank-slot:has(.qti-ext-input-blank--latex-content) {
+  height: auto;
+}
+
+/* 분수·근호 안에서는 입력형과 같이 슬롯 baseline */
+
+/* display 슬롯은 입력용 2em 하한을 쓰지 않음. 값이 있으면 내용 높이 */
+.qti-ext-math-input-blank--display .qti-ext-mjx-blank-slot {
+  min-width: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
+  height: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
+  min-height: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
+}
+
+.qti-ext-math-input-blank--display
+  .qti-ext-mjx-blank-slot:has(.qti-ext-input-blank--latex-content) {
+  height: auto;
+}
+
+.qti-ext-mjx-blank-slot .qti-ext-math-blank-inline {
+  display: contents;
+}
+
+/* 단독 수식 빈칸 최소 크기 (TextEntry max-content / 1.15em 덮어씀). 세로셈 overlay가 특이도로 이김 */
+.qti-ext-math-input-blank .qti-ext-input-blank.qti-ext-text-entry-input {
+  width: auto;
+  min-width: var(--qti-math-blank-size, 2em);
+  min-height: var(--qti-math-blank-size, 2em);
+  padding: var(--qti-math-blank-pad, 0.2em);
+
+  transition: none;
+}
+
+/* 입력 중 높이는 슬롯을 채움. 너비는 슬롯이 커지면 같이 늘어남 */
+.qti-ext-math-input-blank .qti-ext-mjx-blank-slot .qti-ext-input-blank.qti-ext-text-entry-input {
+  right: 0;
+  bottom: 0;
+
+  overflow: hidden;
+
+  width: auto;
+  min-width: 100%;
+  height: auto;
+  min-height: 0;
+}
+
+/* display 상자는 줄어든 슬롯을 채움 */
+.qti-ext-math-input-blank .qti-ext-mjx-blank-slot .qti-ext-input-blank--display {
+  right: 0;
+
+  width: auto;
+  min-width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+}
+
+.qti-ext-mjx-blank-slot .qti-ext-input-blank__sizer {
+  visibility: hidden;
+  overflow: hidden;
+
+  grid-area: 1 / 1;
+
+  height: 0;
+
+  font: inherit;
+  line-height: inherit;
+  white-space: pre;
+
+  pointer-events: none;
+}
+
+.qti-ext-mjx-blank-slot .qti-ext-input-blank__field {
+  grid-area: 1 / 1;
+
+  width: 100%;
+  min-width: 0;
+}
+
+.qti-ext-mjx-blank-slot .qti-ext-input-blank__label {
+  display: inline-block;
+
+  width: max-content;
+}
+
+.qti-ext-math-blank-formula {
+  display: inline;
+}
+
+.qti-ext-math-blank-formula__typeset[data-ready="false"] {
+  position: absolute;
+
+  visibility: hidden;
+  overflow: hidden;
+
+  width: 0;
+  height: 0;
+
+  pointer-events: none;
+}
+
+/* VCQ grid — 칸은 빈칸(1.1em)과 맞춤. 조립제만 syn-cell */
+.qti-ext-vcq-grid {
+  --vcq-cell: var(--qti-math-blank-size, 2em);
+  --vcq-syn-cell: 2em;
+  --vcq-narrow: 0.65em;
+  --vcq-narrow-box-nudge: 0.25em;
+  --vcq-carry: calc(var(--vcq-cell) * 0.75);
+  --vcq-spacer: calc(var(--qti-math-blank-size, 2em) * 0.75);
+  --vcq-pad: 4px;
+  --vcq-align-inset: calc(0.3 * var(--qti-font-size-base, 16px));
+  --vcq-line: 1px;
+  --vcq-ink: #1f2328;
+  --vcq-div-stroke: 1px;
+  --vcq-div-nudge: 5px;
+  --vcq-syn-stroke: 1.5px;
+  --vcq-syn-stack-gap: calc(var(--vcq-syn-cell) * 0.15);
+  position: relative;
+
+  display: flex;
+
+  flex-direction: column;
+
+  width: fit-content;
+  margin: 0.25em 0;
+
+  color: var(--vcq-ink);
+  font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif;
+  font-size: var(--qti-font-size-base, 16px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 그리드 블록 배치. justify는 문서대로 left fallback. 셀 내용 정렬(qti-align-*)과 별개 */
+.qti-ext-vcq-grid--align-left,
+.qti-ext-vcq-grid--align-justify {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+.qti-ext-vcq-grid--align-center {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.qti-ext-vcq-grid--align-right {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+.qti-ext-vcq-grid--template-synthetic,
+.qti-ext-vcq-grid--template-synthetic-2 {
+  --vcq-cell: var(--vcq-syn-cell);
+  --vcq-cols: 5;
+
+  display: grid;
+
+  align-items: stretch;
+  grid-template-columns: repeat(var(--vcq-cols), minmax(var(--vcq-cell), max-content));
+}
+
+.qti-ext-vcq-row {
+  display: grid;
+
+  align-items: stretch;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+
+  min-height: calc(var(--vcq-cell) + 2 * var(--vcq-pad));
+}
+
+.qti-ext-vcq-grid--shared-cols > .qti-ext-vcq-row {
+  grid-template-columns: var(--vcq-col-template);
+}
+
+.qti-ext-vcq-cell {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  box-sizing: border-box;
+  min-width: calc(var(--vcq-cell) + 2 * var(--vcq-pad));
+  min-height: calc(var(--vcq-cell) + 2 * var(--vcq-pad));
+  padding: var(--vcq-pad);
+
+  color: inherit;
+  text-align: center;
+}
+
+/* 받아올림: 일반 셀과 같은 폭·정렬·패딩. 높이만 --vcq-carry 로 축소 */
+.qti-ext-vcq-row--carry .qti-ext-vcq-cell,
+.qti-ext-vcq-cell--carry {
+  min-height: calc(var(--vcq-carry) + 2 * var(--vcq-pad));
+}
+
+.qti-ext-vcq-row--spacer .qti-ext-vcq-cell {
+  min-height: var(--vcq-row-height, var(--vcq-spacer));
+}
+
+.qti-ext-vcq-grid--shared-cols > .qti-ext-vcq-row > .qti-ext-vcq-cell {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.qti-ext-vcq-grid.qti-align-left
+  .qti-ext-vcq-cell:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow) {
+  justify-content: flex-start;
+
+  padding: var(--vcq-pad);
+
+  text-align: left;
+}
+
+.qti-ext-vcq-grid.qti-align-right
+  .qti-ext-vcq-cell:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow) {
+  justify-content: flex-end;
+
+  padding: var(--vcq-pad);
+
+  text-align: right;
+}
+
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-left:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow) {
+  justify-content: flex-start;
+
+  padding: var(--vcq-pad);
+
+  text-align: left;
+}
+
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-right:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow) {
+  justify-content: flex-end;
+
+  padding: var(--vcq-pad);
+
+  text-align: right;
+}
+
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-center:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow) {
+  justify-content: center;
+
+  text-align: center;
+}
+
+@supports (grid-template-columns: subgrid) {
+  .qti-ext-vcq-grid--shared-cols {
+    display: grid;
+
+    justify-content: start;
+    align-items: stretch;
+    grid-template-columns: var(--vcq-col-template);
+  }
+
+  .qti-ext-vcq-grid--shared-cols > .qti-ext-vcq-row {
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+  }
+}
+
+.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row,
+.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row,
+.qti-ext-vcq-grid--template-div-forward > .qti-ext-vcq-row,
+.qti-ext-vcq-grid--template-div-backward > .qti-ext-vcq-row {
+  display: contents;
+}
+
+.qti-ext-vcq-grid--template-div-forward,
+.qti-ext-vcq-grid--template-div-backward {
+  display: grid;
+
+  justify-content: start;
+  align-items: stretch;
+  row-gap: 0.15em;
+  grid-template-columns: var(--vcq-col-template, repeat(4, minmax(var(--vcq-cell), max-content)));
+}
+
+/* 셀을 명시 배치해야 ㄴ 오버레이가 auto-placement 칸을 뺏지 않는다 */
+.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row:nth-child(1) > .qti-ext-vcq-cell,
+.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row:nth-child(1) > .qti-ext-vcq-cell {
+  grid-row: 1;
+}
+
+.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row:nth-child(2) > .qti-ext-vcq-cell,
+.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row:nth-child(2) > .qti-ext-vcq-cell {
+  grid-row: 2;
+}
+
+.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row:nth-child(3) > .qti-ext-vcq-cell,
+.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row:nth-child(3) > .qti-ext-vcq-cell {
+  grid-row: 3;
+}
+
+.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row:nth-child(4) > .qti-ext-vcq-cell {
+  grid-row: 4;
+}
+
+.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row:nth-child(5) > .qti-ext-vcq-cell {
+  grid-row: 5;
+}
+
+.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(1),
+.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(1) {
+  grid-column: 1;
+}
+
+.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(2),
+.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(2) {
+  grid-column: 2;
+}
+
+.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(3),
+.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(3) {
+  grid-column: 3;
+}
+
+.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(4),
+.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(4) {
+  grid-column: 4;
+}
+
+.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(5),
+.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(5) {
+  grid-column: 5;
+}
+
+.qti-ext-vcq-row--carry {
+  height: auto;
+  min-height: calc(var(--vcq-carry) + 2 * var(--vcq-pad));
+}
+
+.qti-ext-vcq-row--spacer {
+  min-height: var(--vcq-row-height, var(--vcq-spacer));
+}
+
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow),
+.qti-ext-vcq-cell--blank[data-vcq-width-unit] {
+  overflow: hidden;
+}
+
+.qti-ext-vcq-row--carry .qti-ext-input-blank__field,
+.qti-ext-vcq-cell--carry .qti-ext-input-blank__field,
+.qti-ext-vcq-row--carry .qti-ext-mathfield,
+.qti-ext-vcq-cell--carry .qti-ext-mathfield {
+  font-size: 0.75em;
+}
+
+.qti-align-left .qti-ext-input-blank__field,
+.qti-align-left .qti-ext-input-blank__label,
+.qti-ext-input-blank__field.qti-align-left {
+  text-align: left;
+}
+
+.qti-align-right .qti-ext-input-blank__field,
+.qti-align-right .qti-ext-input-blank__label,
+.qti-ext-input-blank__field.qti-align-right {
+  text-align: right;
+}
+
+.qti-align-center .qti-ext-input-blank__field,
+.qti-align-center .qti-ext-input-blank__label,
+.qti-ext-input-blank__field.qti-align-center {
+  text-align: center;
+}
+
+.qti-ext-vcq-col--narrow .qti-ext-input-blank__field,
+.qti-ext-vcq-cell[data-vcq-width-unit] .qti-ext-input-blank__field {
+  min-width: 0;
+}
+
+.qti-ext-vcq-cell--blank .qti-ext-input-blank__label {
+  font-size: inherit;
+}
+
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged) .qti-ext-input-blank__field {
+  position: absolute;
+  inset: var(--vcq-pad);
+  z-index: 2;
+
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: transparent;
+  font: inherit;
+  line-height: 1;
+  text-align: center;
+
+  caret-color: currentcolor;
+  -webkit-text-fill-color: transparent;
+}
+
+.qti-ext-vcq-grid.qti-align-left .qti-ext-vcq-cell .qti-ext-input-blank__field,
+.qti-ext-vcq-grid.qti-align-left .qti-ext-vcq-cell .qti-ext-input-blank__label {
+  text-align: left;
+}
+
+.qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell .qti-ext-input-blank__field,
+.qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell .qti-ext-input-blank__label {
+  text-align: right;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-left .qti-ext-input-blank__field,
+.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-left .qti-ext-input-blank__label {
+  text-align: left;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-right .qti-ext-input-blank__field,
+.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-right .qti-ext-input-blank__label {
+  text-align: right;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-center .qti-ext-input-blank__field,
+.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-center .qti-ext-input-blank__label {
+  text-align: center;
+}
+
+/* 세로셈 빈칸: 텍스트는 셀, 상자는 overlay */
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged) {
+  position: relative;
+
+  justify-content: center;
+  align-items: center;
+
+  padding: var(--vcq-pad);
+}
+
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged):has(.qti-ext-math-blank-formula) {
+  overflow: visible;
+
+  min-width: max-content;
+  height: auto;
+  min-height: var(--vcq-cell);
+}
+
+.qti-ext-vcq-col--narrow {
+  justify-content: center;
+  align-items: center;
+
+  width: calc(var(--vcq-narrow) + 2 * var(--vcq-pad));
+  min-width: calc(var(--vcq-narrow) + 2 * var(--vcq-pad));
+  max-width: calc(var(--vcq-narrow) + 2 * var(--vcq-pad));
+  padding: var(--vcq-pad);
+}
+
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
+  :is(
+    .qti-ext-math-input-blank:not(.qti-ext-math-input-blank--display),
+    .qti-ext-math-blank-inline,
+    .qti-ext-math-blank-field,
+    qti-portable-custom-interaction,
+    qti-interaction-markup
+  ) {
+  display: contents;
+}
+
+/* 세로셈 칸 안 수식 빈칸은 overlay가 아니라 식 조판. 분모가 옆으로 빠지지 않게 */
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged) .qti-ext-math-input-blank--display {
+  display: inline;
+}
+
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
+  :is(
+    .qti-ext-input-blank,
+    .qti-ext-math-input-blank .qti-ext-input-blank.qti-ext-text-entry-input
+  ) {
+  position: absolute;
+  inset: var(--vcq-pad);
+  z-index: 0;
+
+  display: block;
+  overflow: hidden;
+
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+
+  pointer-events: none;
+}
+
+/* 좁은 칸은 radius가 원형처럼 보이므로 제외 */
+.qti-ext-vcq-cell--blank.qti-ext-vcq-col--narrow .qti-ext-input-blank,
+.qti-ext-vcq-cell--blank[data-vcq-width-unit] .qti-ext-input-blank {
+  border-radius: 0;
+}
+
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
+  .qti-ext-mjx-blank-slot
+  .qti-ext-input-blank {
+  inset: 0;
+
+  overflow: visible;
+
+  width: auto;
+  min-width: 100%;
+  height: auto;
+  min-height: 0;
+
+  transform: none;
+}
+
+/* narrow 상자: 정사각, 점 잉크 중심에 맞춤 (점은 셀 자리 유지) */
+.qti-ext-vcq-cell--blank:where(.qti-ext-vcq-col--narrow):not(.qti-ext-vcq-cell--merged)
+  :is(
+    .qti-ext-input-blank,
+    .qti-ext-math-input-blank .qti-ext-input-blank.qti-ext-text-entry-input,
+    .qti-ext-input-blank__field
+  ) {
+  inset: 50% auto auto 50%;
+
+  width: var(--vcq-narrow);
+  min-width: var(--vcq-narrow);
+  max-width: var(--vcq-narrow);
+  height: var(--vcq-narrow);
+  min-height: var(--vcq-narrow);
+  max-height: var(--vcq-narrow);
+
+  transform: translate(-50%, calc(-50% + var(--vcq-narrow-box-nudge)));
+}
+
+.qti-ext-vcq-cell .qti-ext-mathfield {
+  line-height: 1;
+}
+
+/* VCQ alignment, merged cells, division/synthetic brackets (adv 2567-3156) */
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged) .qti-ext-mathfield {
+  position: relative;
+  z-index: 1;
+
+  overflow: visible;
+}
+
+/* 좌·우 정렬 inset. narrow는 중앙 유지 */
+.qti-ext-vcq-grid.qti-align-left
+  .qti-ext-vcq-cell:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-mathfield {
+  padding-left: var(--vcq-align-inset);
+}
+
+.qti-ext-vcq-grid.qti-align-right
+  .qti-ext-vcq-cell:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-mathfield {
+  padding-right: var(--vcq-align-inset);
+}
+
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-left:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-mathfield {
+  padding-right: 0;
+  padding-left: var(--vcq-align-inset);
+}
+
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-right:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-mathfield {
+  padding-right: var(--vcq-align-inset);
+  padding-left: 0;
+}
+
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-center:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-mathfield {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.qti-ext-vcq-grid.qti-align-left
+  .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-input-blank__field {
+  padding-left: var(--vcq-align-inset);
+}
+
+.qti-ext-vcq-grid.qti-align-right
+  .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-input-blank__field {
+  padding-right: var(--vcq-align-inset);
+}
+
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell--blank.qti-align-left:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-input-blank__field {
+  padding-right: 0;
+  padding-left: var(--vcq-align-inset);
+}
+
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell--blank.qti-align-right:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-input-blank__field {
+  padding-right: var(--vcq-align-inset);
+  padding-left: 0;
+}
+
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell--blank.qti-align-center:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-input-blank__field {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.qti-ext-math-input-blank
+  .qti-ext-input-blank.qti-ext-text-entry-input:has(> .qti-ext-input-blank__field) {
+  height: var(--qti-math-blank-size, 2em);
+}
+
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
+  .qti-ext-input-blank.qti-ext-text-entry-input {
+  padding: 0;
+}
+
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged):focus-within
+  .qti-ext-input-blank.qti-ext-text-entry-input {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+}
+
+.qti-ext-vcq-cell .qti-ext-mathfield math-field,
+.qti-ext-vcq-cell .qti-ext-mathfield math-field::part(content) {
+  padding: 0;
+
+  line-height: 1;
+}
+
+.qti-ext-vcq-cell[data-vcq-width-unit] {
+  overflow: hidden;
+
+  width: calc(var(--vcq-cell) * var(--vcq-width-unit, 1) + 2 * var(--vcq-pad));
+  min-width: calc(var(--vcq-cell) * var(--vcq-width-unit, 1) + 2 * var(--vcq-pad));
+  max-width: calc(var(--vcq-cell) * var(--vcq-width-unit, 1) + 2 * var(--vcq-pad));
+}
+
+.qti-ext-vcq-cell--merged .qti-ext-math-input-blank,
+.qti-ext-vcq-cell--merged .qti-ext-math-input-blank--merged {
+  position: static;
+  inset: auto;
+
+  display: contents;
+
+  width: auto;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+
+  border: none;
+}
+
+.qti-ext-vcq-cell[data-vcq-width-unit] .qti-ext-math-input-blank {
+  width: auto;
+  min-width: 0;
+}
+
+.qti-ext-vcq-cell--merged:has(.qti-ext-vcq-merged-input--fallback),
+.qti-ext-vcq-cell--merged:has(.qti-ext-vcq-merged-display--fallback) {
+  min-width: max(
+    var(--vcq-merged-min-width, calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2))),
+    max-content
+  );
+}
+
+.qti-ext-vcq-cell.qti-ext-vcq-cell--merged {
+  position: relative;
+
+  display: grid;
+  overflow: visible;
+
+  justify-content: stretch;
+  align-items: center;
+  grid-template-columns: var(
+    --vcq-merged-col-template,
+    repeat(var(--vcq-blank-col-span, 2), minmax(0, 1fr))
+  );
+  grid-column: span var(--vcq-blank-col-span, 2);
+
+  min-width: var(--vcq-merged-min-width, calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2)));
+  min-height: calc(var(--vcq-cell) + 2 * var(--vcq-pad));
+  padding: var(--vcq-pad) 0;
+
+  text-align: center;
+}
+
+.qti-ext-vcq-grid.qti-align-left .qti-ext-vcq-cell--merged {
+  text-align: left;
+}
+
+.qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell--merged {
+  text-align: right;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-left {
+  text-align: left;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-right {
+  text-align: right;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-center {
+  text-align: center;
+}
+
+.qti-ext-vcq-grid--response .qti-ext-vcq-cell--blank.qti-ext-vcq-cell--merged {
+  text-align: center;
+}
+
+.qti-ext-vcq-grid--response
+  .qti-ext-vcq-cell--blank.qti-ext-vcq-cell--merged
+  :is(.qti-ext-input-blank__field, .qti-ext-input-blank__label) {
+  text-align: center;
+}
+
+.qti-ext-vcq-grid--shared-cols
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell--merged:has(.qti-ext-vcq-merged-input--fallback),
+.qti-ext-vcq-grid--shared-cols
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell--merged:has(.qti-ext-vcq-merged-display--fallback) {
+  width: auto;
+  min-width: max(
+    var(--vcq-merged-min-width, calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2))),
+    max-content
+  );
+  max-width: none;
+}
+
+@supports (grid-template-columns: subgrid) {
+  .qti-ext-vcq-cell--merged {
+    grid-template-columns: subgrid;
+  }
+}
+
+.qti-ext-vcq-merged-answer-slot {
+  position: relative;
+  z-index: 3;
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  min-width: 0;
+
+  color: inherit;
+  font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif;
+  line-height: inherit;
+  text-align: center;
+
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.qti-ext-vcq-grid.qti-align-left .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
+  justify-content: flex-start;
+
+  padding-left: var(--vcq-align-inset);
+
+  text-align: left;
+}
+
+.qti-ext-vcq-grid.qti-align-right .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
+  justify-content: flex-end;
+
+  padding-right: var(--vcq-align-inset);
+
+  text-align: right;
+}
+
+.qti-ext-vcq-cell--merged.qti-align-left > .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
+  justify-content: flex-start;
+
+  padding-right: 0;
+  padding-left: var(--vcq-align-inset);
+
+  text-align: left;
+}
+
+.qti-ext-vcq-cell--merged.qti-align-right > .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
+  justify-content: flex-end;
+
+  padding-right: var(--vcq-align-inset);
+  padding-left: 0;
+
+  text-align: right;
+}
+
+.qti-ext-vcq-cell--merged.qti-align-center > .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
+  justify-content: center;
+
+  padding-right: 0;
+  padding-left: 0;
+
+  text-align: center;
+}
+
+.qti-ext-vcq-merged-input {
+  position: absolute;
+  inset: var(--vcq-pad) 0;
+  z-index: 2;
+
+  display: block;
+
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  padding: var(--qti-math-blank-pad, 0.1em);
+
+  outline: none;
+
+  color: inherit;
+
+  transform: none;
+
+  caret-color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.qti-ext-vcq-merged-input.qti-ext-text-entry-input {
+  overflow: visible;
+
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  padding: var(--qti-math-blank-pad, 0.1em);
+
+  font-size: inherit !important;
+  line-height: 1;
+  white-space: normal;
+}
+
+.qti-ext-vcq-merged-fallback-sizer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+
+  visibility: hidden;
+  overflow: visible;
+
+  width: max-content;
+  height: auto;
+
+  font: inherit;
+  line-height: inherit;
+  white-space: pre;
+
+  pointer-events: none;
+}
+
+.qti-ext-vcq-cell--merged .qti-ext-vcq-merged-input.qti-ext-vcq-merged-input--fallback {
+  position: relative;
+  inset: auto;
+  z-index: 2;
+
+  overflow: visible;
+  overflow-x: visible;
+
+  justify-self: stretch;
+  grid-column: 1 / -1;
+
+  width: 100%;
+  min-width: 100%;
+  padding: var(--qti-math-blank-pad, 0.2em);
+
+  text-align: center;
+
+  transform: none;
+
+  caret-color: auto;
+  -webkit-text-fill-color: currentcolor;
+}
+
+.qti-ext-vcq-merged-display {
+  position: absolute;
+  inset: var(--vcq-pad) 0;
+  z-index: 2;
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  padding: var(--qti-math-blank-pad, 0.1em);
+
+  transform: none;
+
+  pointer-events: none;
+}
+
+.qti-ext-vcq-merged-display.qti-ext-text-entry-input {
+  overflow: visible;
+
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  padding: var(--qti-math-blank-pad, 0.1em);
+
+  font-size: inherit !important;
+  line-height: 1;
+  white-space: normal;
+}
+
+.qti-ext-vcq-cell--merged .qti-ext-vcq-merged-display.qti-ext-vcq-merged-display--fallback {
+  position: relative;
+  inset: auto;
+  z-index: 2;
+
+  overflow: visible;
+
+  justify-self: stretch;
+  grid-column: 1 / -1;
+
+  width: 100%;
+  min-width: 100%;
+  padding: var(--qti-math-blank-pad, 0.2em);
+
+  transform: none;
+}
+
+.qti-ext-vcq-grid.qti-align-left .qti-ext-vcq-cell--merged .qti-ext-vcq-merged-display--fallback {
+  justify-content: flex-start;
+
+  text-align: left;
+}
+
+.qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell--merged .qti-ext-vcq-merged-display--fallback {
+  justify-content: flex-end;
+
+  text-align: right;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-left .qti-ext-vcq-merged-display--fallback {
+  justify-content: flex-start;
+
+  text-align: left;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-right .qti-ext-vcq-merged-display--fallback {
+  justify-content: flex-end;
+
+  text-align: right;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-center .qti-ext-vcq-merged-display--fallback {
+  justify-content: center;
+
+  text-align: center;
+}
+
+.qti-ext-vcq-grid--response
+  .qti-ext-vcq-cell--blank.qti-ext-vcq-cell--merged
+  :is(.qti-ext-vcq-merged-display--fallback, .qti-ext-vcq-merged-input--fallback) {
+  justify-content: center;
+
+  text-align: center;
+}
+
+.qti-ext-vcq-cell--merged .qti-ext-math-blank-latex {
+  grid-column: 1 / -1;
+}
+
+.qti-ext-vcq-grid.qti-align-left .qti-ext-vcq-cell--merged .qti-ext-math-blank-latex {
+  justify-self: start;
+
+  text-align: left;
+}
+
+.qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell--merged .qti-ext-math-blank-latex {
+  justify-self: end;
+
+  text-align: right;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-left .qti-ext-math-blank-latex {
+  justify-self: start;
+
+  text-align: left;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-right .qti-ext-math-blank-latex {
+  justify-self: end;
+
+  text-align: right;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-center .qti-ext-math-blank-latex {
+  justify-self: center;
+
+  text-align: center;
+}
+
+.qti-ext-vcq-grid--response
+  .qti-ext-vcq-cell--blank.qti-ext-vcq-cell--merged
+  .qti-ext-math-blank-latex {
+  justify-self: center;
+
+  text-align: center;
+}
+
+/* 나눗셈 브래킷 — 셀 뒤 overlay. data-vcq-grid-column/row 로 좌표. --reverse 는 track 에만 */
+.qti-ext-vcq-division-bar-track {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  overflow: visible;
+
+  pointer-events: none;
+}
+
+.qti-ext-vcq-division-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: calc(-1 * var(--vcq-div-nudge));
+
+  height: 0;
+
+  border-top: var(--vcq-div-stroke) solid currentcolor;
+}
+
+.qti-ext-vcq-division-bracket {
+  position: absolute;
+  top: calc(var(--vcq-div-stroke) / 2);
+  left: calc(-1 * var(--vcq-div-nudge));
+
+  display: block;
+  overflow: visible;
+
+  width: 12px;
+  height: calc(100% - 2 * var(--vcq-div-stroke));
+
+  pointer-events: none;
+}
+
+.qti-ext-vcq-division-bar-track--reverse {
+  transform: translateY(var(--vcq-div-stroke));
+}
+
+.qti-ext-vcq-division-bar-track--reverse .qti-ext-vcq-division-bar {
+  top: auto;
+  bottom: 0;
+
+  border-top: none;
+  border-bottom: var(--vcq-div-stroke) solid currentcolor;
+}
+
+.qti-ext-vcq-division-bar-track--reverse .qti-ext-vcq-division-bracket {
+  top: calc(100% - var(--vcq-div-stroke) / 2);
+
+  transform: scaleY(-1);
+  transform-origin: top left;
+}
+
+/* 조립제법 ㄴ — 저작과 같이 셀 범위에 L (absolute 전체 덮개 아님) */
+.qti-ext-vcq-synthetic-bracket,
+.qti-ext-vcq-remainder {
+  box-sizing: border-box;
+  min-width: var(--vcq-cell);
+  min-height: var(--vcq-cell);
+
+  border-bottom: var(--vcq-syn-stroke) solid currentcolor;
+  border-left: var(--vcq-syn-stroke) solid currentcolor;
+
+  pointer-events: none;
+}
+
+.qti-ext-vcq-synthetic-bracket {
+  z-index: 1;
+}
+
+.qti-ext-vcq-synthetic-bracket--stacked {
+  clip-path: inset(var(--vcq-syn-stack-gap) 0 0 0);
+}
+
+.qti-ext-vcq-remainder {
+  z-index: 2;
+}
+
+/* stylelint-disable-next-line selector-class-pattern -- MathLive vendor class */
+.qti-ext-vcq-grid .ML__notation {
+  color: inherit;
 }

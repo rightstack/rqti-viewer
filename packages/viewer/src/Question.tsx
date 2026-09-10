@@ -30,6 +30,8 @@ import type {
   ResponseValueMap,
   Theme,
 } from "./types";
+import { MathJaxProviderWrapper } from "./providers/MathJaxProviderWrapper";
+import { extractMathBlankIdsFromItemXml } from "./interactions/math-input-blank/utils";
 import { loadThemeFont } from "./utils/fontLoader";
 import { formatQuestionNumber } from "./utils/formatQuestionNumber";
 import { injectInlineQuestionNumber } from "./utils/injectInlineQuestionNumber";
@@ -250,9 +252,11 @@ function Question({
     }
 
     if (type === ITEM_TYPE.CLOZE) {
-      expectedResponseCount =
-        (data.match(/<qti-text-entry-interaction\b/g) ?? []).length ||
-        undefined;
+      const textEntryCount = (data.match(/<qti-text-entry-interaction\b/g) ?? []).length;
+      const mathBlankCount = extractMathBlankIdsFromItemXml(data).length;
+      expectedResponseCount = textEntryCount + mathBlankCount || undefined;
+    } else if (type === ITEM_TYPE.VCQ) {
+      expectedResponseCount = extractMathBlankIdsFromItemXml(data).length || undefined;
     } else if (type === ITEM_TYPE.DDQ) {
       expectedResponseCount =
         (data.match(/<qti-inline-choice-interaction\b/g) ?? []).length ||
@@ -516,19 +520,19 @@ function Question({
     </div>
   );
 
-  if (isFixed) {
-    return (
-      <FixedScaleContainer
-        designWidth={designWidth}
-        overlay={annotationOverlay}
-        className="rqti-viewer-scale"
-      >
-        {viewer}
-      </FixedScaleContainer>
-    );
-  }
+  const wrapped = isFixed ? (
+    <FixedScaleContainer
+      designWidth={designWidth}
+      overlay={annotationOverlay}
+      className="rqti-viewer-scale"
+    >
+      {viewer}
+    </FixedScaleContainer>
+  ) : (
+    viewer
+  );
 
-  return viewer;
+  return <MathJaxProviderWrapper>{wrapped}</MathJaxProviderWrapper>;
 }
 
 export default Question;

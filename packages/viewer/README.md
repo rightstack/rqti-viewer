@@ -304,11 +304,12 @@ const themeWithoutNumber: Theme = {
 | `ITEM_TYPE.DRAWING` | `drawing` | 그리기 |
 | `ITEM_TYPE.SLIDER` | `slider` | 슬라이더 |
 | `ITEM_TYPE.UPLOAD` | `upload` | 파일 업로드 |
+| `ITEM_TYPE.VCQ` | `vcq` | 세로셈 |
 
 ## LaTeX
 
-LaTeX 수식은 [MathLive](https://cortexjs.io/mathlive/)로 렌더링됩니다.
-`styles.css` import 시 MathLive 스타일이 포함되므로 **별도 CSS import는 필요 없습니다**.
+QTI 문항의 LaTeX 수식은 [MathJax](https://www.mathjax.org/)로 렌더링됩니다.
+호스트가 Provider를 감싸지 않아도 `Question`이 내부에서 `MathJaxProviderWrapper`를 제공합니다.
 
 ## 스타일 격리
 

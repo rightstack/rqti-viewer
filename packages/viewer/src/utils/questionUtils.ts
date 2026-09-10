@@ -64,7 +64,12 @@ export function canSubmitUtil(responses: ResponseValueMap, options?: CanSubmitOp
     return Object.values(responses).some((v) => Array.isArray(v) && v.length >= maxChoices);
   }
 
-  if (type === ITEM_TYPE.DDQ || type === ITEM_TYPE.CLOZE || type === ITEM_TYPE.GMQ) {
+  if (
+    type === ITEM_TYPE.DDQ ||
+    type === ITEM_TYPE.CLOZE ||
+    type === ITEM_TYPE.GMQ ||
+    type === ITEM_TYPE.VCQ
+  ) {
     const values = Object.values(responses);
     if (expectedResponseCount !== undefined && values.length < expectedResponseCount) return false;
     return values.every(isNonEmpty);

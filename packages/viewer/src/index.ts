@@ -57,3 +57,5 @@ export {
   toQuestionProps,
   type QuestionItemProps,
 } from "./utils/toQuestionProps";
+
+export { MathJaxProviderWrapper } from "./providers/MathJaxProviderWrapper";
