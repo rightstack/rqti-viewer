@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_THEME,
+  MathJaxProviderWrapper,
   Question,
   SAMPLE_ITEMS,
+  parseFeedbackContentToReact,
   toQuestionProps,
   type SampleItem,
   type QuestionItem,
@@ -11,6 +13,46 @@ import {
   type Theme,
 } from "@rightstack/rqti-viewer";
 import { LOCAL_ITEMS, LOCAL_SAMPLE_ITEMS } from "./localItems";
+
+/** 호스트 API `hints[]` 형태. `content`만 라이브러리에 넘긴다. */
+type HostHint = {
+  title: string;
+  content: string;
+  display_order: number;
+};
+
+const SAMPLE_HINTS: HostHint[] = [
+  {
+    title: "힌트 1",
+    content: "<p>첫 번째 힌트입니다.</p>",
+    display_order: 1,
+  },
+  {
+    title: "힌트 2",
+    content: "<p>두 번째 힌트입니다.</p>",
+    display_order: 2,
+  },
+];
+
+const HINT_FONT_OPTIONS = [
+  { label: "시스템", value: "system-ui, sans-serif" },
+  { label: "본고딕", value: '"Noto Sans KR", sans-serif' },
+  { label: "본명조", value: '"Noto Serif KR", serif' },
+  { label: "세리프", value: 'Georgia, "Times New Roman", serif' },
+] as const;
+
+function resolveHints(item: QuestionItem | null, useSample: boolean): HostHint[] {
+  if (useSample) return SAMPLE_HINTS;
+  const fromApi = (item?.feedbacks ?? [])
+    .filter((f) => f.content.trim() !== "")
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map((f, i) => ({
+      title: f.title || f.feedbackTypeLabel || `힌트 ${i + 1}`,
+      content: f.content,
+      display_order: f.displayOrder || i + 1,
+    }));
+  return fromApi.length > 0 ? fromApi : SAMPLE_HINTS;
+}
 
 /** API 문항 + 로컬(XML 직접 주입) 문항 통합 목록 */
 const NAV_ITEMS: readonly SampleItem[] = [
@@ -132,8 +174,18 @@ export default function App() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [sizing, setSizing] = useState<Sizing>("fixed");
-  const [showInlineFeedback, setShowInlineFeedback] = useState(true);
   const [mode, setMode] = useState<"practice" | "preview">("practice");
+  const [hintBoxBg, setHintBoxBg] = useState("#fff8e7");
+  const [hintBoxPadding, setHintBoxPadding] = useState(16);
+  const [hintBoxRadius, setHintBoxRadius] = useState(12);
+  const [hintBoxBorder, setHintBoxBorder] = useState("#f59e0b");
+  const [hintFontFamily, setHintFontFamily] = useState<string>(
+    HINT_FONT_OPTIONS[0].value,
+  );
+  const [hintFontSize, setHintFontSize] = useState(16);
+  const [hintColor, setHintColor] = useState("#1f2937");
+  const [hintLineHeight, setHintLineHeight] = useState(1.6);
+  const [useSampleHint, setUseSampleHint] = useState(true);
   const [lastSubmit, setLastSubmit] = useState<ResponseValueMap | null>(null);
   const [drawing, setDrawing] = useState(true);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
@@ -206,6 +258,11 @@ export default function App() {
   const props = useMemo<QuestionItemProps | null>(
     () => (item ? toQuestionProps(item) : null),
     [item],
+  );
+
+  const hostHints = useMemo(
+    () => resolveHints(item, useSampleHint),
+    [item, useSampleHint],
   );
 
   return (
@@ -303,15 +360,111 @@ export default function App() {
           </label>
           <p style={styles.hint}>지문은 문항 왼쪽에 가로로 고정됩니다.</p>
 
-          <h2 style={styles.stateTitle}>정답·피드백</h2>
+          <h2 style={styles.stateTitle}>호스트 힌트 박스</h2>
           <label style={styles.checkboxRow}>
             <input
               type="checkbox"
-              checked={showInlineFeedback}
-              onChange={(e) => setShowInlineFeedback(e.target.checked)}
+              checked={useSampleHint}
+              onChange={(e) => setUseSampleHint(e.target.checked)}
             />
-            인라인 피드백 표시 (preview 정답·해설)
+            에디터 샘플 HTML (`qti-ext-mathfield`)
           </label>
+          <label style={styles.controlRow}>
+            <span>배경</span>
+            <input
+              type="color"
+              value={hintBoxBg}
+              onChange={(e) => setHintBoxBg(e.target.value)}
+            />
+          </label>
+          <label style={styles.controlRow}>
+            <span>테두리 색</span>
+            <input
+              type="color"
+              value={hintBoxBorder}
+              onChange={(e) => setHintBoxBorder(e.target.value)}
+            />
+          </label>
+          <label style={styles.sliderRow}>
+            <span style={styles.sliderLabel}>
+              패딩<b style={styles.sliderValue}>{hintBoxPadding}px</b>
+            </span>
+            <input
+              type="range"
+              min={8}
+              max={32}
+              step={2}
+              value={hintBoxPadding}
+              onChange={(e) => setHintBoxPadding(Number(e.target.value))}
+            />
+          </label>
+          <label style={styles.sliderRow}>
+            <span style={styles.sliderLabel}>
+              모서리<b style={styles.sliderValue}>{hintBoxRadius}px</b>
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={24}
+              step={2}
+              value={hintBoxRadius}
+              onChange={(e) => setHintBoxRadius(Number(e.target.value))}
+            />
+          </label>
+
+          <h2 style={styles.stateTitle}>호스트 힌트 본문</h2>
+          <label style={styles.controlRow}>
+            <span>글꼴</span>
+            <select
+              value={hintFontFamily}
+              onChange={(e) => setHintFontFamily(e.target.value)}
+              style={styles.select}
+            >
+              {HINT_FONT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label style={styles.controlRow}>
+            <span>글 색</span>
+            <input
+              type="color"
+              value={hintColor}
+              onChange={(e) => setHintColor(e.target.value)}
+            />
+          </label>
+          <label style={styles.sliderRow}>
+            <span style={styles.sliderLabel}>
+              크기<b style={styles.sliderValue}>{hintFontSize}px</b>
+            </span>
+            <input
+              type="range"
+              min={12}
+              max={28}
+              step={1}
+              value={hintFontSize}
+              onChange={(e) => setHintFontSize(Number(e.target.value))}
+            />
+          </label>
+          <label style={styles.sliderRow}>
+            <span style={styles.sliderLabel}>
+              줄간격<b style={styles.sliderValue}>{hintLineHeight.toFixed(1)}</b>
+            </span>
+            <input
+              type="range"
+              min={1.2}
+              max={2}
+              step={0.1}
+              value={hintLineHeight}
+              onChange={(e) => setHintLineHeight(Number(e.target.value))}
+            />
+          </label>
+          <p style={styles.hint}>
+            에디터에서 지정한 인라인 색이 있으면 그 색이 이깁니다. 이 박스는
+            앱 스타일만 씁니다.
+          </p>
 
           <h2 style={styles.stateTitle}>마지막 onSubmit</h2>
           <pre style={styles.pre}>
@@ -396,30 +549,57 @@ export default function App() {
             <p style={styles.statusText}>API 오류: {error}</p>
           )} */}
           {status === "ready" && props && (
-            <Question
-              key={props.itemKey}
-              theme={FULL_WIDTH_THEME}
-              mode={mode}
-              {...props}
-              showFeedback={false}
-              showInlineFeedback={showInlineFeedback}
-              responses={
-                mode === "preview" ? lastSubmit ?? undefined : undefined
-              }
-              passage={demoPassage ? DEMO_PASSAGE_HTML : props.passage}
-              onSubmit={setLastSubmit}
-              sizing={sizing}
-              designWidth={DESIGN_WIDTH}
-              // annotationOverlay={
-              //   sizing === "fixed" ? (
-              //     <Whiteboard
-              //       strokes={strokes}
-              //       onChange={setStrokes}
-              //       enabled={drawing}
-              //     />
-              //   ) : undefined
-              // }
-            />
+            <>
+              <Question
+                key={props.itemKey}
+                theme={FULL_WIDTH_THEME}
+                mode={mode}
+                {...props}
+                showFeedback={false}
+                showInlineFeedback={false}
+                responses={
+                  mode === "preview" ? lastSubmit ?? undefined : undefined
+                }
+                passage={demoPassage ? DEMO_PASSAGE_HTML : props.passage}
+                onSubmit={setLastSubmit}
+                sizing={sizing}
+                designWidth={DESIGN_WIDTH}
+                // annotationOverlay={
+                //   sizing === "fixed" ? (
+                //     <Whiteboard
+                //       strokes={strokes}
+                //       onChange={setStrokes}
+                //       enabled={drawing}
+                //     />
+                //   ) : undefined
+                // }
+              />
+              <MathJaxProviderWrapper>
+                <div
+                  style={{
+                    marginTop: 24,
+                    background: hintBoxBg,
+                    padding: hintBoxPadding,
+                    borderRadius: hintBoxRadius,
+                    border: `1px solid ${hintBoxBorder}`,
+                    fontFamily: hintFontFamily,
+                    fontSize: hintFontSize,
+                    color: hintColor,
+                    lineHeight: hintLineHeight,
+                  }}
+                >
+                  {hostHints.map((hint, index) => (
+                    <section
+                      key={hint.display_order}
+                      style={index > 0 ? { marginTop: 16 } : undefined}
+                    >
+                      <div style={styles.hintBoxLabel}>{hint.title}</div>
+                      {parseFeedbackContentToReact(hint.content)}
+                    </section>
+                  ))}
+                </div>
+              </MathJaxProviderWrapper>
+            </>
           )}
         </div>
       </main>
@@ -485,6 +665,30 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 8,
     fontSize: 13,
     margin: "4px 0 10px",
+  },
+  controlRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    fontSize: 13,
+    color: "#444",
+    margin: "6px 0",
+  },
+  select: {
+    maxWidth: 160,
+    padding: "4px 8px",
+    borderRadius: 6,
+    border: "1px solid #ddd",
+    background: "#fff",
+    fontSize: 13,
+  },
+  hintBoxLabel: {
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: "0.04em",
+    marginBottom: 8,
+    opacity: 0.7,
   },
   hint: { fontSize: 11, color: "#999", marginTop: 4, lineHeight: 1.5 },
   sliderRow: {

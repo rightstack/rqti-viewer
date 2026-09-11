@@ -23,6 +23,7 @@
     "README.md",
     "USER_GUIDE.md",
     "THEME_GUIDE.md",
+    "HINT_GUIDE.md",
     "font-preview.html"
   ],
   "publishConfig": {

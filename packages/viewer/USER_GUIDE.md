@@ -4,6 +4,8 @@ QTI 문항을 **상세 API**로 조회해 **문항 1개**를 렌더링하는 가
 
 > `mode`는 `Question`이 기본값 `"preview"`(읽기 전용)입니다. `toQuestionProps`는 `mode`를 지정하지 않으므로, 풀이가 필요하면 호출측에서 `mode="practice"`를 전달하세요.
 
+> 호스트가 힌트를 직접 그릴 때: **[HINT_GUIDE.md](./HINT_GUIDE.md)**
+
 현재 패키지 버전: **0.4.3**
 
 ---

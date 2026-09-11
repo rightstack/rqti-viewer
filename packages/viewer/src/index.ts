@@ -59,3 +59,4 @@ export {
 } from "./utils/toQuestionProps";
 
 export { MathJaxProviderWrapper } from "./providers/MathJaxProviderWrapper";
+export { parseFeedbackContentToReact } from "./parser/parseFeedbackContent";

@@ -4,7 +4,8 @@ QTI 문항(Viewer) 렌더링 라이브러리. React 앱에서 문항 단위로 Q
 
 `Question`은 **문항 1개**를 렌더합니다.
 
-> 사용자 연동 가이드(유형별 샘플 ID·practice/preview): **[USER_GUIDE.md](./USER_GUIDE.md)**
+> 사용자 연동 가이드(유형별 샘플 ID·practice/preview): **[USER_GUIDE.md](./USER_GUIDE.md)**  
+> 호스트가 힌트를 직접 그릴 때: **[HINT_GUIDE.md](./HINT_GUIDE.md)**
 
 ## 요구사항
 
@@ -118,7 +119,7 @@ GET /api/v3/viewer/preview/{qtiIdentifier}?t={token}
 | `feedbackType` | `string` | `HINT`, `TRANSLATION`, `SOLUTION`, … |
 | `feedbackTypeLabel` | `string` | 표시 라벨 |
 | `title` | `string` | 제목 |
-| `content` | `string` | 본문 HTML (뷰어가 렌더) |
+| `content` | `string` | 본문 HTML. 인라인 피드백 또는 호스트가 `parseFeedbackContentToReact`로 렌더 |
 | `editorJson` | `QuestionEditorNode[]` | 에디터 JSON (타입만 보존, 렌더 미사용) |
 | `effectiveCondition` | `string` | 표시 조건식 (현재 뷰어는 평가하지 않음) |
 | `displayOrder` | `number` | 정렬 순서 |
@@ -352,9 +353,11 @@ import {
   getThemeCSSVariables,
   ITEM_TYPE,
   MathJaxProviderWrapper,
+  parseFeedbackContentToReact,
   type Theme,
   type FeedbackItem,
 } from "@rightstack/rqti-viewer";
 ```
 
 `MathJaxProviderWrapper`는 `Question`이 이미 감싸므로 보통 직접 쓸 필요는 없습니다.
+`parseFeedbackContentToReact`는 호스트가 힌트 HTML을 직접 그릴 때 수식만 노드로 바꿉니다. 박스·본문 톤은 호스트가 줍니다. 절차는 **[HINT_GUIDE.md](./HINT_GUIDE.md)**.

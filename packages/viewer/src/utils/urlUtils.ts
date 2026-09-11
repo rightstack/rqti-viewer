@@ -22,3 +22,14 @@ export function resolveMediaUrl(
 
   return `${normalizedBaseUrl}${normalizedSrc}`;
 }
+
+/** `token`이 있고 URL에 `t`가 아직 없을 때만 붙인다. 이미 있으면 그대로 둔다. */
+export function appendMediaToken(
+  src: string | undefined,
+  token?: string
+): string | undefined {
+  if (!src) return undefined;
+  if (!token) return src;
+  if (/[?&]t=/.test(src)) return src;
+  return `${src}${src.includes("?") ? "&" : "?"}t=${token}`;
+}

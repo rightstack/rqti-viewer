@@ -20,7 +20,7 @@ import {
 } from "../interactions/math-input-blank/vcqMergedAlign";
 import { parseTextIndent } from "../themes/utils";
 import type { QTIParserOptions } from "../types";
-import { resolveMediaUrl } from "../utils/urlUtils";
+import { appendMediaToken, resolveMediaUrl } from "../utils/urlUtils";
 import { isInteraction } from "./constants";
 import { buildImageStyle } from "./imageUtils";
 import { groupListItems } from "./listGrouping";
@@ -423,7 +423,7 @@ export const parseHTMLElement = (
         : `${className} qti-ext-image`.trim();
 
       const imgStyle = buildImageStyle(mediaAttrs.width, mediaAttrs.height);
-      const srcWithToken = `${mediaAttrs.src}?t=${options.token}`;
+      const srcWithToken = appendMediaToken(mediaAttrs.src, options.token);
 
       return (
         <img
@@ -437,7 +437,7 @@ export const parseHTMLElement = (
     }
     case "video": {
       const mediaAttrs = getMediaAttributes();
-      const videoSrcWithToken = mediaAttrs.src ? `${mediaAttrs.src}?t=${options.token}` : undefined;
+      const videoSrcWithToken = appendMediaToken(mediaAttrs.src, options.token);
       return (
         // eslint-disable-next-line jsx-a11y/media-has-caption
         <video
@@ -453,7 +453,7 @@ export const parseHTMLElement = (
     }
     case "audio": {
       const mediaAttrs = getMediaAttributes();
-      const audioSrcWithToken = mediaAttrs.src ? `${mediaAttrs.src}?t=${options.token}` : undefined;
+      const audioSrcWithToken = appendMediaToken(mediaAttrs.src, options.token);
       const title = mediaAttrs.alt ?? undefined;
       if (!audioSrcWithToken) return null;
       return (
