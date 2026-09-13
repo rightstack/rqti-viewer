@@ -15,6 +15,10 @@
      Wrapper - 최상위 래퍼 (iframe용 부모 컨테이너)
      ======================================== */
 .qti-ext-wrapper {
+  /* 수식·세로셈 빈칸 공통 */
+  --qti-math-blank-size: 2em;
+  --qti-math-blank-pad: 0.25em;
+  --qti-math-blank-display-scale: 0.85;
   width: 100%;
 
   background-color: var(--qti-container-bg, #ffffff);
@@ -26,6 +30,10 @@
          Container - 문항 컨테이너 (width 제어)
          ======================================== */
 .qti-ext-container {
+  /* 수식·세로셈 빈칸 공통 */
+  --qti-math-blank-size: 2em;
+  --qti-math-blank-pad: 0.2em;
+  --qti-math-blank-display-scale: 0.85;
   max-width: var(--qti-container-max-width);
 
   /* margin: 0 auto; */
@@ -1324,6 +1332,14 @@
   @apply rqti:relative rqti:m-1;
 }
 
+/* 수식 칸: 고정/100% 폭 없음. 최소 크기에서 내용(가로·세로)만큼만 커진다 */
+.qti-ext-text-entry-math {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  vertical-align: baseline;
+}
+
 .qti-text-entry__label {
   @apply rqti:sr-only;
 }
@@ -1353,6 +1369,25 @@
   @apply rqti:px-2 rqti:transition-all rqti:duration-200 rqti:placeholder:text-gray-300;
 }
 
+/* 수식/세로셈 입력 빈칸 — TextEntry 테마, 크기는 math·VCQ */
+.qti-ext-input-blank.qti-ext-text-entry-input {
+  overflow: hidden;
+
+  width: max-content;
+  min-width: 1.15em;
+  min-height: 1.2em;
+  padding: 0.1em 0.2em;
+
+  color: inherit;
+  font-family: "KaTeX_Main", "KaTeX_Math", "Times New Roman", serif;
+  font-size: inherit !important;
+  font-weight: 400;
+  line-height: 1;
+  white-space: normal;
+
+  transition: none;
+}
+
 .qti-ext-text-entry-input-cloze {
   /* CLOZE(빈칸 채우기): inline-choice 드롭다운과 유사한 높이/패딩 */
   @apply rqti:px-3;
@@ -1378,6 +1413,11 @@
   clear: both;
 }
 
+.qti-ext-text-entry-srq.qti-ext-text-entry-math {
+  width: fit-content;
+  max-width: 100%;
+}
+
 .qti-ext-text-entry-input-srq {
   /* SRQ(단답형): CLOZE와 동일한 인라인 입력 스타일 */
   @apply rqti:px-4 rqti:font-medium;
@@ -1393,7 +1433,8 @@
   background-color: var(--qti-option-bg-hover);
 }
 
-.qti-ext-text-entry-input:focus:not(:disabled) {
+.qti-ext-text-entry-input:focus:not(:disabled),
+.qti-ext-input-blank.qti-ext-text-entry-input:focus-within {
   border-color: var(--qti-option-border-selected);
 
   background-color: var(--qti-option-bg-selected);
@@ -1419,6 +1460,13 @@
   background-color: var(--qti-option-bg-incorrect);
 
   @apply rqti:text-center rqti:text-lg;
+}
+
+/* 수식/세로셈 빈칸은 text-lg 정오답 스타일 제외 (칸 크기 유지) */
+.qti-ext-input-blank.qti-ext-text-entry-input-correct,
+.qti-ext-input-blank.qti-ext-text-entry-input-incorrect {
+  font-size: inherit !important;
+  line-height: inherit;
 }
 
 /* ========================================

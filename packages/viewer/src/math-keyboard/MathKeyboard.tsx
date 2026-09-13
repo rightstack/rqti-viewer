@@ -103,14 +103,6 @@ const RIGHT_KEYS: readonly RightKey[] = [
 ];
 
 const VIEWPORT_PAD = 8;
-const MATH_WIDTH_PADDING_CH = 2;
-const MATH_MIN_WIDTH_CH = 10;
-
-/** LaTeX 문자열에서 렌더링 문자 수를 추정하여 ch 단위 너비를 반환 */
-function estimateMathWidth(latex: string): number {
-  const stripped = latex.replace(/\\[a-zA-Z]+\{?|\}|\\|\$|\^|_/g, "");
-  return Math.max(MATH_MIN_WIDTH_CH, stripped.length + MATH_WIDTH_PADDING_CH);
-}
 
 function isEmptyMathLatex(latex: string): boolean {
   return latex.trim().length === 0;
@@ -171,22 +163,6 @@ function latexForInputMathJax(latex: string): string {
     .replace(/#\?/g, "\\square");
 }
 
-/** correctAnswer prop에서 문자열 추출 */
-function extractCorrectAnswerStr(
-  ca: string | Record<string, unknown> | null | undefined,
-): string | undefined {
-  if (!ca) return undefined;
-  if (typeof ca === "string") return ca;
-  const vals = Object.values(ca);
-  for (const v of vals) {
-    if (typeof v === "string" && v.length > 0) return v;
-    if (Array.isArray(v)) {
-      const first = v[0];
-      if (typeof first === "string" && first.length > 0) return first;
-    }
-  }
-  return undefined;
-}
 
 const MARKUP_CACHE = new Map<string, string>();
 function keyMarkup(item: MathKey | { id: string; label: string }): string {
@@ -246,7 +222,6 @@ export function MathKeyboard({
   value = "",
   onChange,
   onSubmit,
-  correctAnswer,
   className,
   readOnly = false,
   alwaysOpen = false,
@@ -255,13 +230,8 @@ export function MathKeyboard({
 }: MathKeyboardProps) {
   const config = MATH_LEVEL_CONFIG[level];
 
-  const autoWidth = useMemo(() => {
-    const answerStr = extractCorrectAnswerStr(correctAnswer);
-    if (!answerStr) return undefined;
-    return estimateMathWidth(answerStr);
-  }, [correctAnswer]);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const shellRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLElement>(null);
+  const shellRef = useRef<HTMLElement>(null);
   const fieldRef = useRef<MathFieldEl | null>(null);
   const pendingInsertRef = useRef<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -701,33 +671,22 @@ export function MathKeyboard({
     />
   );
 
-  const widthStyle = autoWidth
-    ? ({
-        "--rqti-math-input-auto-width": `${autoWidth}ch`,
-      } as React.CSSProperties)
-    : undefined;
-
   // readOnly: MathJax만 표시, 버튼·키패드 없음
   if (readOnly) {
     return (
       <MathJaxProviderWrapper>
-        <div
-          ref={rootRef}
-          className={cn("rqti-math-input", className)}
-          style={widthStyle}
-        >
-          <div ref={shellRef} className="rqti-math-input-display">
+        <span ref={rootRef} className={cn("rqti-math-input", className)}>
+          <span ref={shellRef} className="rqti-math-input-display">
             {localLatex ? (
               <MathJaxRenderer
                 latex={latexForInputMathJax(localLatex)}
-                displayStyle={false}
                 className="rqti-math-input-mathjax"
               />
             ) : (
               <span className="rqti-math-input-field-empty" />
             )}
-          </div>
-        </div>
+          </span>
+        </span>
       </MathJaxProviderWrapper>
     );
   }
@@ -736,7 +695,7 @@ export function MathKeyboard({
   const valueArea = editing ? (
     mathFieldNode
   ) : (
-    <div
+    <span
       className="rqti-math-input-value"
       onClick={() => startEditing()}
       role="button"
@@ -756,13 +715,12 @@ export function MathKeyboard({
       {localLatex ? (
         <MathJaxRenderer
           latex={latexForInputMathJax(localLatex)}
-          displayStyle={false}
           className="rqti-math-input-mathjax"
         />
       ) : (
         <span className="rqti-math-input-field-empty" />
       )}
-    </div>
+    </span>
   );
 
   const floatingPanel =
@@ -888,12 +846,8 @@ export function MathKeyboard({
 
   return (
     <MathJaxProviderWrapper>
-      <div
-        ref={rootRef}
-        className={cn("rqti-math-input", className)}
-        style={widthStyle}
-      >
-        <div
+      <span ref={rootRef} className={cn("rqti-math-input", className)}>
+        <span
           ref={shellRef}
           className={cn(
             "rqti-math-input-shell",
@@ -919,9 +873,9 @@ export function MathKeyboard({
           >
             <Keyboard size={16} />
           </button>
-        </div>
+        </span>
         {floatingPanel}
-      </div>
+      </span>
     </MathJaxProviderWrapper>
   );
 }

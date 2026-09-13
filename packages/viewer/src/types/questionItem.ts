@@ -45,6 +45,11 @@ export interface QuestionItem {
   type: ItemsType;
   qtiXml: string;
   correctAnswer: Record<string, ResponseValue> | null;
+  /**
+   * 입력형(SRQ/CLOZE) 수식 칸 여부. 에디터(mqti-frontend)와 동일 키.
+   * 없으면 false. QTI XML/`settings`에 넣지 않는다.
+   */
+  isMath?: boolean;
   settings: unknown | null;
   feedbacks: QuestionFeedback[];
   /** 연결지문. `content` HTML이 있으면 `toQuestionProps`가 `passage`로 넘긴다. */

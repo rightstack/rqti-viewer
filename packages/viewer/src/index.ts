@@ -46,11 +46,18 @@ export type {
   FeedbackType,
   ResponseValue,
   ResponseValueMap,
+  TextEntryResponse,
   FeedbackSubmitResponse,
   FeedbackItem,
   QuestionItem,
   QuestionFeedback,
   QuestionEditorNode,
+} from "./types";
+
+export {
+  isTextEntryResponse,
+  getTextEntryValue,
+  getResponseIdentifiers,
 } from "./types";
 
 export {

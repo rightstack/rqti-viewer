@@ -7,6 +7,17 @@
  */
 import React from "react";
 import { AudioPlayer } from "../components/AudioPlayer";
+import { VcqDivisionBarTrack } from "../components/VcqDivisionBarTrack";
+import { MathInputBlankDisplayMarkup } from "../interactions/math-input-blank/MathInputBlankInteraction";
+import {
+  extractResponseIds,
+  isStandaloneMathBlankMarkup,
+} from "../interactions/math-input-blank/utils";
+import {
+  alignVCQAnswerTokens,
+  readNarrowSlotsInMerge,
+  tokenizeVCQColumnAnswer,
+} from "../interactions/math-input-blank/vcqMergedAlign";
 import { parseTextIndent } from "../themes/utils";
 import type { QTIParserOptions } from "../types";
 import { resolveMediaUrl } from "../utils/urlUtils";
@@ -15,6 +26,12 @@ import { buildImageStyle } from "./imageUtils";
 import { groupListItems } from "./listGrouping";
 import { parseNode } from "./parseInteraction";
 import { parseTextWithLaTeX, renderLaTeX } from "./parseLatexToReact";
+import { collectVcqDomProps } from "./vcqDomProps";
+
+/** 세로셈 레이아웃 들여쓰기는 그리드 트랙이 되면 안 된다. */
+function isVcqLayoutClass(className: string): boolean {
+  return className.includes("qti-ext-vcq-");
+}
 
 interface MediaAttributes {
   src?: string;
@@ -41,6 +58,13 @@ export const parseHTMLElement = (
 ): React.ReactElement | null => {
   const tagName = element.tagName.toLowerCase();
   const className = element.getAttribute("class") || element.getAttribute("className") || "";
+
+  if (
+    isStandaloneMathBlankMarkup(className) &&
+    element.closest("qti-portable-custom-interaction") === null
+  ) {
+    return <MathInputBlankDisplayMarkup element={element} options={options} index={index} />;
+  }
 
   if (tagName === "br") {
     return <br key={`br-${index}`} />;
@@ -73,15 +97,30 @@ export const parseHTMLElement = (
   // 렌더링 결과에는 원본 래퍼를 남기지 않고 MathJax 요소를 바로 반환한다.
   const isMathField = className?.includes("qti-ext-mathfield");
   if (isMathField) {
-    const rawLatex = element.textContent ?? "";
+    const rawLatex =
+      String(element.getAttribute("data-latex") ?? "").trim() ||
+      String(element.textContent ?? "").trim();
+    if (element.querySelector(".qti-ext-input-blank") || extractResponseIds(rawLatex).length > 0) {
+      return (
+        <MathInputBlankDisplayMarkup
+          element={element}
+          options={{ ...options, correctAnswers: undefined, responses: undefined }}
+          index={index}
+        />
+      );
+    }
     if (!rawLatex) return null;
     return renderLaTeX(rawLatex, `mathfield-${index}`, false);
   }
+
+  const dropLayoutWhitespace = isVcqLayoutClass(className);
 
   element.childNodes.forEach((child, idx) => {
     if (child.nodeType === Node.TEXT_NODE) {
       // 텍스트 노드는 공백을 보존해야 함 (요소 사이의 공백이 의미가 있을 수 있음)
       const text = child.textContent;
+      // 들여쓰기·개행이 parseTextWithLaTeX에서 &nbsp;가 되면 grid 열로 잡힌다
+      if (dropLayoutWhitespace && text?.trim() === "") return;
       // XML 들여쓰기/줄바꿈으로 생긴 포맷팅 전용 공백은 제외 (pre-line 빈 줄 방지)
       if (isFormattingWhitespace(text)) return;
       // 완전히 빈 텍스트 노드만 제외
@@ -209,19 +248,107 @@ export const parseHTMLElement = (
         : className;
 
       const groupedChildren = groupListItems(processedChildren);
+      const vcq = collectVcqDomProps(element);
+      const sharedCols = Boolean(
+        (vcq.style as Record<string, unknown> | undefined)?.["--vcq-col-template"]
+      );
+      const gridClassName = sharedCols
+        ? `${divClassName} qti-ext-vcq-grid--shared-cols`.trim()
+        : divClassName;
+
+      /* 정적 merged 셀: mathfield 자릿수를 열별 span으로 분리 배치 */
+      if (
+        className.includes("qti-ext-vcq-cell--merged") &&
+        !className.includes("qti-ext-vcq-cell--blank")
+      ) {
+        const mathfieldEl = Array.from(element.children).find((child) =>
+          (child.getAttribute("class") ?? "").includes("qti-ext-mathfield")
+        );
+        if (mathfieldEl) {
+          const rawLatex = (
+            mathfieldEl.getAttribute("data-latex") ??
+            mathfieldEl.textContent ??
+            ""
+          ).trim();
+          const tokens = tokenizeVCQColumnAnswer(rawLatex);
+          const colSpanN = Number.parseInt(element.getAttribute("data-vcq-colspan") ?? "1", 10);
+          if (tokens && Number.isFinite(colSpanN) && colSpanN >= 2) {
+            const narrowSlots = readNarrowSlotsInMerge(element);
+            const slots = alignVCQAnswerTokens(tokens, colSpanN, narrowSlots);
+            if (slots) {
+              return (
+                <div
+                  key={`div-${index}`}
+                  className={gridClassName}
+                  style={vcq.style}
+                  {...vcq.dataAttrs}
+                >
+                  {slots.map((slot) => (
+                    <span
+                      key={`merged-digit-${slot.column}`}
+                      className="qti-ext-vcq-merged-answer-slot"
+                      style={{ gridColumn: slot.column }}
+                    >
+                      {slot.token
+                        ? renderLaTeX(slot.token, `digit-${index}-${slot.column}`, false)
+                        : null}
+                    </span>
+                  ))}
+                </div>
+              );
+            }
+          }
+
+          if (rawLatex) {
+            return (
+              <div
+                key={`div-${index}`}
+                className={gridClassName}
+                style={vcq.style}
+                {...vcq.dataAttrs}
+              >
+                <span
+                  className="qti-ext-mathfield qti-ext-vcq-merged-answer-slot"
+                  style={{ gridColumn: "1 / -1" }}
+                >
+                  {renderLaTeX(rawLatex, `merged-latex-${index}`, false)}
+                </span>
+              </div>
+            );
+          }
+        }
+      }
 
       return (
-        <div key={`div-${index}`} className={divClassName}>
+        <div key={`div-${index}`} className={gridClassName} style={vcq.style} {...vcq.dataAttrs}>
           {groupedChildren}
         </div>
       );
     }
-    case "span":
+    case "span": {
+      const vcq = collectVcqDomProps(element);
+
+      if (className.includes("qti-ext-vcq-division-bar-track")) {
+        return (
+          <VcqDivisionBarTrack
+            key={`span-${index}`}
+            className={className}
+            style={vcq.style}
+            dataAttrs={vcq.dataAttrs}
+          >
+            {processedChildren}
+          </VcqDivisionBarTrack>
+        );
+      }
+
       return (
-        <span key={`span-${index}`} className={className}>
-          {processedChildren}
+        <span key={`span-${index}`} className={className} style={vcq.style} {...vcq.dataAttrs}>
+          {className.includes("qti-ext-blank-content") && !element.textContent?.trim()
+            ? "\u00A0"
+            : processedChildren}
         </span>
       );
+    }
     case "p":
       // p 태그 안에 p 태그가 들어가는 것을 방지
       // 부모가 p 태그이고 자식도 p 태그인 경우 span으로 감싸기

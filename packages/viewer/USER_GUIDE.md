@@ -268,6 +268,7 @@ const exampleTheme: Theme = {
 | `passage`            | 연결지문 HTML. 있으면 문항 왼쪽에 가로로 같이 렌더                 |
 | `mode`               | `"preview"`(기본, 읽기 전용) 또는 `"practice"`(풀이)               |
 | `onSubmit`           | practice 전용. 제출 시 응답 수신                                   |
+| `isMath`             | 입력형(SRQ/CLOZE) 수식 칸. 없으면 `false`. 선택형은 무시           |
 | `responses`          | preview 전용. 저장해 둔 응답을 선택·입력으로 표시                  |
 | `theme`              | `"default"` 또는 커스텀 `Theme`(JSON/객체) — `THEME_GUIDE.md` 참고 |
 | `sizing`             | `"responsive"`(기본) 또는 `"fixed"`                                |
@@ -304,11 +305,15 @@ const exampleTheme: Theme = {
 ```
 
 `onSubmit`으로 받은 값을 preview의 `responses`에 그대로 넣으면 됩니다.  
-실제 형태는 `onSubmit`에서 확인하면 됩니다. SCQ 예시:
+실제 형태는 `onSubmit`에서 확인하면 됩니다.
 
 ```ts
-{ RESPONSE: "C" }
+{ RESPONSE: "C" } // 선택형
+{ RESPONSE: { value: "서울", isMath: false } } // 입력형 일반
+{ RESPONSE: { value: "2", isMath: true } } // 입력형 수식. $ 없음
 ```
+
+입력형 조회(`isMath`)·제출 JSON·XML `qti-value`(`$2$`) 계약은 [MATH_INPUT_CONTRACT.md](./MATH_INPUT_CONTRACT.md)를 본다.
 
 ---
 

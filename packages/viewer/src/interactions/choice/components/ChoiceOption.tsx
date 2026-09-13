@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { ChoiceType, FeedbackSubmitResponse } from "../../../types";
+import { getResponseIdentifiers, type ChoiceType, type FeedbackSubmitResponse } from "../../../types";
 import { cn } from "../../../lib/utils";
 
 interface ChoiceOptionProps {
@@ -32,13 +32,17 @@ export const ChoiceOption = ({
     isSubmit &&
     !!submitResponse &&
     submitResponse.correct &&
-    submitResponse.response?.[responseIdentifier]?.includes(choice.identifier);
+    getResponseIdentifiers(submitResponse.response?.[responseIdentifier]).includes(
+      choice.identifier
+    );
 
   const isIncorrect =
     isSubmit &&
     !!submitResponse &&
     !submitResponse.correct &&
-    submitResponse.response?.[responseIdentifier]?.includes(choice.identifier);
+    getResponseIdentifiers(submitResponse.response?.[responseIdentifier]).includes(
+      choice.identifier
+    );
 
   const isAnswerReveal =
     isSubmit &&

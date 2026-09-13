@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ITEM_TYPE } from "../../constants/itemType";
 import { renderQtiNode } from "../../parser";
-import type {
-  ChoiceButtonType,
-  ChoiceType,
-  FeedbackSubmitResponse,
-  QTIParserOptions,
-  ResponseValue,
+import {
+  getResponseIdentifiers,
+  type ChoiceButtonType,
+  type ChoiceType,
+  type FeedbackSubmitResponse,
+  type QTIParserOptions,
+  type ResponseValue,
 } from "../../types";
 import { extractMediaFromElement, extractTextFromElement } from "../../utils";
 import { ChoiceButtons, ChoiceOption, McqChoiceOption } from "./components";
@@ -186,7 +187,7 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
 
         if (isMcq) {
           const submitAnswersSet = new Set(
-            effectiveSubmitResponse?.response?.[responseIdentifier] ?? []
+            getResponseIdentifiers(effectiveSubmitResponse?.response?.[responseIdentifier])
           );
           return (
             <McqChoiceOption
@@ -206,7 +207,8 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
           );
         }
 
-        const submitAnswerStr = effectiveSubmitResponse?.response?.[responseIdentifier]?.[0] ?? "";
+        const submitAnswerStr =
+          getResponseIdentifiers(effectiveSubmitResponse?.response?.[responseIdentifier])[0] ?? "";
 
         return (
           <ChoiceOption

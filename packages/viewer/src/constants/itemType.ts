@@ -13,6 +13,7 @@ export const ITEM_TYPE = {
   MATCH: "match",
   MATRIX: "matrix",
   ORDER: "order",
+  VCQ: "vcq",
   DRAWING: "drawing",
   SLIDER: "slider",
   UPLOAD: "upload",

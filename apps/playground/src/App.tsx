@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_THEME,
+  ITEM_TYPE,
   MathKeyboard,
   Question,
   SAMPLE_ITEMS,
@@ -144,6 +145,9 @@ export default function App() {
   const [showMathKeyboard, setShowMathKeyboard] = useState(true);
   const [mathLatex, setMathLatex] = useState("");
   const [mathLevel, setMathLevel] = useState<"middle" | "high">("high");
+  const [forceIsMath, setForceIsMath] = useState(false);
+  const isTextEntry =
+    selected.type === ITEM_TYPE.SRQ || selected.type === ITEM_TYPE.CLOZE;
 
   const saveAnnotations = () => {
     localStorage.setItem(
@@ -173,11 +177,13 @@ export default function App() {
     setError(null);
     setItem(null);
     setLastSubmit(null);
+    setForceIsMath(false);
 
     // 로컬(XML 직접 주입) 문항은 API 호출 없이 바로 렌더
     const local = LOCAL_ITEMS[selected.qtiIdentifier];
     if (local) {
       setItem(local);
+      setForceIsMath(local.isMath === true);
       setStatus("ready");
       return () => controller.abort();
     }
@@ -196,6 +202,7 @@ export default function App() {
       })
       .then((data) => {
         setItem(data);
+        setForceIsMath(data.isMath === true);
         setStatus("ready");
       })
       .catch((err: unknown) => {
@@ -295,6 +302,27 @@ export default function App() {
               ? `폭을 ${DESIGN_WIDTH}px 아래로 줄이면 문항이 scale로 축소됩니다.`
               : "폭을 줄이면 UI가 반응형으로 재배치됩니다."}
           </p>
+
+          {isTextEntry && (
+            <>
+              <h2 style={styles.stateTitle}>입력형 isMath</h2>
+              <label style={styles.checkboxRow}>
+                <input
+                  type="checkbox"
+                  checked={forceIsMath}
+                  onChange={(e) => {
+                    setForceIsMath(e.target.checked);
+                    setLastSubmit(null);
+                  }}
+                />
+                수식 칸 (키보드 아이콘)
+              </label>
+              <p style={styles.hint}>
+                API `isMath`가 없어도 토글로 일반/수식 칸을 확인합니다. 제출은
+                항상 {"{ value, isMath }"}.
+              </p>
+            </>
+          )}
 
           <h2 style={styles.stateTitle}>수식입력기</h2>
           <label style={styles.checkboxRow}>
@@ -451,10 +479,11 @@ export default function App() {
           )}
           {!showMathKeyboard && status === "ready" && props && (
             <Question
-              key={props.itemKey}
+              key={`${props.itemKey}-${isTextEntry && forceIsMath ? "math" : "text"}`}
               theme={FULL_WIDTH_THEME}
               mode={mode}
               {...props}
+              isMath={isTextEntry ? forceIsMath : props.isMath}
               showFeedback={false}
               showInlineFeedback={showInlineFeedback}
               responses={

@@ -10,9 +10,19 @@
  *
  * @see qti-ext.css @counter-style (circled_number, hangul-* …)
  */
+import {
+  extractResponseIds,
+  findMarkupDiv,
+  MATH_INPUT_BLANK_TYPE,
+} from "../interactions/math-input-blank/utils";
 import { parsePairs } from "../interactions/match/utils";
 import { extractListStyleType } from "../parser/listGrouping";
-import type { MatchingPairType, MediaContentType } from "../types";
+import {
+  isTextEntryResponse,
+  type MatchingPairType,
+  type MediaContentType,
+  type ResponseValueMap,
+} from "../types";
 import { extractMediaFromElement } from "./extractMediaFromElement";
 import { removeMediaFromElementClone } from "./extractTextFromElement";
 import { wrapMathFieldTextForInlineLatex } from "./wrapMathFieldTextForInlineLatex";
@@ -408,7 +418,7 @@ export function buildChoiceIdentifierDisplayMapsFromQtiXml(
 
 /** 쉼표 선택자로 문서 순서 유지 (다중 TFQ·빈칸·인라인 선택·매칭 혼합) */
 const INTERACTION_ORDER_SELECTOR =
-  "qti-choice-interaction, qti-order-interaction, qti-inline-choice-interaction, qti-text-entry-interaction, qti-match-interaction, qti-gap-match-interaction";
+  "qti-choice-interaction, qti-order-interaction, qti-inline-choice-interaction, qti-text-entry-interaction, qti-match-interaction, qti-gap-match-interaction, qti-portable-custom-interaction";
 
 /**
  * 복습 정답 표시 순서용: 위 interaction들의 response-identifier를 XML 트리 순으로 수집.
@@ -447,7 +457,12 @@ export function parseFractionResponsePart(
 
 function responseScalarStringForCorrectAnswer(value: unknown): string {
   if (value === undefined || value === null) return "";
-  if (Array.isArray(value)) return String(value[0] ?? "").trim();
+  if (isTextEntryResponse(value)) return value.value.trim();
+  if (Array.isArray(value)) {
+    const first = value[0];
+    if (isTextEntryResponse(first)) return first.value.trim();
+    return String(first ?? "").trim();
+  }
   if (typeof value === "string") return value.trim();
   return String(value).trim();
 }
@@ -466,10 +481,12 @@ function buildFractionLatexFromParts(
 
 export type CorrectAnswerFeedbackSegment =
   | { kind: "fractionLatex"; latex: string; key: string }
+  | { kind: "vcqGrid"; key: string; correctAnswer: ResponseValueMap }
+  | { kind: "mathInputBlank"; key: string; correctAnswer: ResponseValueMap }
   | { kind: "default"; key: string; value: unknown };
 
 /**
- * 복습 정답 줄: `FRACTION_*_{N|D|W}` 는 베이스별로 묶어 한 덩어리 LaTeX로 표시.
+ * 복습 정답 줄: VCQ response 그리드면 `vcqGrid`, FRACTION_* 는 묶어 LaTeX, 그 외 default.
  * 문서 순서는 `extractInteractionResponseIdentifiersInDocumentOrder`와 동일하며,
  * 그룹은 해당 베이스 파트 중 XML에서 가장 먼저 나오는 식별자 위치에 한 번만 출력.
  * n/d 불완전 시 기존처럼 키별 `default` 세그먼트로 폴백.
@@ -478,6 +495,21 @@ export function buildCorrectAnswerFeedbackSegments(
   correctAnswer: Record<string, unknown>,
   qtiXml: string | null | undefined,
 ): CorrectAnswerFeedbackSegment[] {
+  if (
+    Object.keys(correctAnswer).length > 0 &&
+    getVcqResponseGridElementFromQtiXml(qtiXml) !== null
+  ) {
+    return [{ kind: "vcqGrid", key: "vcq", correctAnswer: correctAnswer as ResponseValueMap }];
+  }
+
+  const mathPciElements = getMathInputBlankPciElementsFromQtiXml(qtiXml);
+  const mathPciResponseIds = new Set(
+    mathPciElements
+      .map((el) => el.getAttribute("response-identifier")?.trim() ?? "")
+      .filter((id) => id.length > 0)
+  );
+  const mathBlankIds = collectMathInputBlankIds(mathPciElements);
+
   const entries = Object.entries(correctAnswer);
   const order = extractInteractionResponseIdentifiersInDocumentOrder(qtiXml);
 
@@ -485,7 +517,9 @@ export function buildCorrectAnswerFeedbackSegments(
   const used = new Set<string>();
   if (order && order.length > 0) {
     for (const id of order) {
-      if (!Object.prototype.hasOwnProperty.call(correctAnswer, id)) continue;
+      if (!mathPciResponseIds.has(id) && !Object.prototype.hasOwnProperty.call(correctAnswer, id)) {
+        continue;
+      }
       orderedIds.push(id);
       used.add(id);
     }
@@ -522,7 +556,12 @@ export function buildCorrectAnswerFeedbackSegments(
 
   const out: CorrectAnswerFeedbackSegment[] = [];
   for (const rid of orderedIds) {
+    if (mathPciResponseIds.has(rid)) {
+      out.push({ kind: "mathInputBlank", key: rid, correctAnswer: correctAnswer as ResponseValueMap });
+      continue;
+    }
     if (!Object.prototype.hasOwnProperty.call(correctAnswer, rid)) continue;
+    if (mathBlankIds.has(rid)) continue;
     const seg = segmentForId(rid);
     if (seg) out.push(seg);
   }
@@ -602,6 +641,70 @@ export function getMatchInteractionElementFromQtiXml(
     Array.from(doc.querySelectorAll("qti-match-interaction")).find(
       (el) => el.getAttribute("response-identifier")?.trim() === rid,
     ) ?? null
+  );
+}
+
+export function getMathInputBlankPciElementsFromQtiXml(
+  qtiXml: string | null | undefined
+): Element[] {
+  if (!qtiXml?.trim()) return [];
+  const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
+  if (doc.querySelector("parsererror")) return [];
+  return Array.from(doc.querySelectorAll("qti-portable-custom-interaction")).filter(
+    (el) => el.getAttribute("custom-interaction-type-identifier") === MATH_INPUT_BLANK_TYPE
+  );
+}
+
+function collectMathInputBlankIds(pciElements: Element[]): Set<string> {
+  const ids = new Set<string>();
+  for (const el of pciElements) {
+    const latex = findMarkupDiv(el)?.getAttribute("data-latex") ?? "";
+    for (const id of extractResponseIds(latex)) ids.add(id);
+  }
+  return ids;
+}
+
+export function extractCorrectAnswerMapFromQtiXml(
+  qtiXml: string | null | undefined
+): ResponseValueMap {
+  if (!qtiXml?.trim()) return {};
+  const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
+  if (doc.querySelector("parsererror")) return {};
+
+  const out: ResponseValueMap = {};
+  doc.querySelectorAll("qti-response-declaration").forEach((decl) => {
+    const id = decl.getAttribute("identifier")?.trim();
+    if (!id) return;
+    const values = Array.from(decl.querySelectorAll("qti-correct-response qti-value"));
+    if (values.length === 0) return;
+
+    const parentValues: string[] = [];
+    for (const valueEl of values) {
+      const text = (valueEl.textContent ?? "").trim();
+      parentValues.push(text);
+      const fieldId = valueEl.getAttribute("field-identifier")?.trim();
+      if (fieldId) out[fieldId] = [text];
+    }
+    out[id] = parentValues;
+  });
+  return out;
+}
+
+/**
+ * VCQ 정답 미리보기용 `qti-ext-vcq-grid--response` 요소.
+ * display 그리드 제외. 파싱 실패·없으면 null.
+ */
+export function getVcqResponseGridElementFromQtiXml(
+  qtiXml: string | null | undefined
+): Element | null {
+  if (!qtiXml?.trim()) return null;
+  const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
+  if (doc.querySelector("parsererror")) return null;
+  return (
+    Array.from(doc.querySelectorAll("div")).find((el) => {
+      const cls = el.getAttribute("class") ?? "";
+      return cls.split(/\s+/).includes("qti-ext-vcq-grid--response");
+    }) ?? null
   );
 }
 
@@ -837,12 +940,22 @@ export function formatCorrectAnswerValueForDisplay(
     ? " - "
     : ", ";
 
+  if (isTextEntryResponse(value)) {
+    return value.isMath
+      ? wrapMathFieldTextForInlineLatex(value.value)
+      : value.value;
+  }
   if (typeof value === "string") {
     return mapOne(value);
   }
   if (Array.isArray(value)) {
     return value
-      .map((v) => (typeof v === "string" ? mapOne(v) : String(v)))
+      .map((v) => {
+        if (isTextEntryResponse(v)) {
+          return v.isMath ? wrapMathFieldTextForInlineLatex(v.value) : v.value;
+        }
+        return typeof v === "string" ? mapOne(v) : String(v);
+      })
       .join(separator);
   }
   if (value === null || value === undefined) {

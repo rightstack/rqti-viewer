@@ -4,6 +4,7 @@ import { FixedScaleContainer } from "./components/FixedScaleContainer";
 import { PassageLayout } from "./components/PassageLayout";
 import { QuestionNumber } from "./components/QuestionNumber";
 import { ITEM_TYPE, type ItemsType } from "./constants/itemType";
+import { extractMathBlankIdsFromItemXml } from "./interactions/math-input-blank/utils";
 import { cn } from "./lib/utils";
 import {
   parseFeedbackContentToReact,
@@ -127,6 +128,11 @@ export interface QuestionProps {
    * 콘텐츠와 동일한 스케일 안에 놓여 좌표가 함께 변환된다.
    */
   annotationOverlay?: React.ReactNode;
+  /**
+   * 입력형(SRQ/CLOZE) 수식 칸 여부. 문항 API `isMath`. 없으면 false.
+   * 선택형·매칭 등은 무시한다.
+   */
+  isMath?: boolean;
 }
 
 function Question({
@@ -161,6 +167,7 @@ function Question({
   sizing = "responsive",
   designWidth = 720,
   annotationOverlay,
+  isMath = false,
 }: QuestionProps) {
   const [responses, setResponses] = useState<ResponseValueMap>(
     responsesProp ?? {},
@@ -205,13 +212,28 @@ function Question({
   };
 
   const handleSubmit = useCallback(() => {
-    onSubmit?.(responses);
+    let submitted = responses;
+    if (type === ITEM_TYPE.VCQ) {
+      const filtered: Record<string, unknown> = {};
+      for (const [identifier, value] of Object.entries(responses as Record<string, unknown>)) {
+        if (typeof value === "string") {
+          if (value.trim() !== "") filtered[identifier] = value;
+          continue;
+        }
+        if (Array.isArray(value) && value.length > 0) {
+          filtered[identifier] = value;
+        }
+      }
+      submitted = filtered as ResponseValueMap;
+    }
+
+    onSubmit?.(submitted);
     // 외부에서 채점 결과를 주입하지 않는 경우 자체 채점
     if (showFeedback && !submitResponse) {
-      const isCorrect = checkAnswerUtil(responses, correctAnswers);
-      setInternalSubmitResponse({ correct: isCorrect, response: responses });
+      const isCorrect = checkAnswerUtil(submitted, correctAnswers);
+      setInternalSubmitResponse({ correct: isCorrect, response: submitted });
     }
-  }, [onSubmit, responses, showFeedback, submitResponse, correctAnswers]);
+  }, [onSubmit, responses, showFeedback, submitResponse, correctAnswers, type]);
 
   // 정오답을 가릴 수 없는 유형(서술형/업로드 등 또는 정답 정보 부재)은 "제출 완료"만 표시
   const hasGrading =
@@ -251,9 +273,9 @@ function Question({
     }
 
     if (type === ITEM_TYPE.CLOZE) {
-      expectedResponseCount =
-        (data.match(/<qti-text-entry-interaction\b/g) ?? []).length ||
-        undefined;
+      const textEntryCount = (data.match(/<qti-text-entry-interaction\b/g) ?? []).length;
+      const mathBlankCount = extractMathBlankIdsFromItemXml(data).length;
+      expectedResponseCount = textEntryCount + mathBlankCount || undefined;
     } else if (type === ITEM_TYPE.DDQ) {
       expectedResponseCount =
         (data.match(/<qti-inline-choice-interaction\b/g) ?? []).length ||
@@ -299,6 +321,7 @@ function Question({
     correctAnswers: correctAnswers ?? effectiveSubmitResponse?.correctAnswer,
     isSubmit: internalIsSubmit,
     itemKey: itemKeyProp,
+    isMath,
     onResponseChange: mode === "preview" ? undefined : handleResponseChange,
   };
 

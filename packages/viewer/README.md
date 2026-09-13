@@ -209,8 +209,12 @@ const item = (await res.json()) as QuestionItem;
 `onSubmit`으로 받은 값을 preview의 `responses`에 그대로 넣으면 됩니다. 실제 형태는 `onSubmit`에서 확인하면 됩니다.
 
 ```ts
-{ RESPONSE: "C" }
+{ RESPONSE: "C" } // 선택형
+{ RESPONSE: { value: "서울", isMath: false } } // 입력형 일반
+{ RESPONSE: { value: "2", isMath: true } } // 입력형 수식. $ 없음
 ```
+
+입력형 조회(`isMath`)·제출·XML `$value$` 저장은 [MATH_INPUT_CONTRACT.md](./MATH_INPUT_CONTRACT.md)를 본다.
 
 연결지문이 있으면 `passage`에 HTML을 넘깁니다. 파싱과 가로 배치는 `Question` 내부에서 처리합니다.
 

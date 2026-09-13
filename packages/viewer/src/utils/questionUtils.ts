@@ -1,9 +1,11 @@
 import { ITEM_TYPE, type ItemsType } from "../constants/itemType";
-import type { FeedbackType, ResponseValue, ResponseValueMap, Theme } from "../types";
+import { isTextEntryResponse, type FeedbackType, type ResponseValue, type ResponseValueMap, type Theme } from "../types";
+import { stripOuterMathDelimiters } from "./latex";
 
 /**
  * 응답 값을 비교 가능한 정규화 문자열로 변환.
- * - 문자열: 앞뒤 공백 제거
+ * - 문자열: 앞뒤 공백 제거. `$...$`면 unwrap
+ * - 입력형 객체: `.value`만 비교 (`{ value, isMath }` 통째 stringify 금지)
  * - 배열(MCQ/순서 무관 다중선택 등): 각 요소 정규화 후 정렬하여 순서 무관 비교
  * - 객체(point 등): JSON 직렬화
  */
@@ -15,8 +17,11 @@ function normalizeAnswer(value: ResponseValue | undefined | null): string {
       .sort()
       .join("|");
   }
+  if (isTextEntryResponse(value)) {
+    return stripOuterMathDelimiters(value.value);
+  }
   if (typeof value === "object") return JSON.stringify(value);
-  return String(value).trim();
+  return stripOuterMathDelimiters(String(value).trim());
 }
 
 /**
@@ -52,13 +57,14 @@ function isNonEmpty(value: unknown): boolean {
   if (value === undefined || value === null) return false;
   if (typeof value === "string") return value.trim() !== "";
   if (Array.isArray(value)) return value.length > 0;
+  if (isTextEntryResponse(value)) return value.value.trim() !== "";
   return true;
 }
 
 export function canSubmitUtil(responses: ResponseValueMap, options?: CanSubmitOptions): boolean {
   const { type, maxChoices, expectedResponseCount } = options ?? {};
 
-  if (type === ITEM_TYPE.ORDER) return true;
+  if (type === ITEM_TYPE.ORDER || type === ITEM_TYPE.VCQ) return true;
 
   if (type === ITEM_TYPE.MCQ && maxChoices && maxChoices > 0) {
     return Object.values(responses).some((v) => Array.isArray(v) && v.length >= maxChoices);

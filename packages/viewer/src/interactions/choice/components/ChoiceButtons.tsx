@@ -1,4 +1,4 @@
-import type { ChoiceButtonType, FeedbackSubmitResponse } from "../../../types";
+import { getResponseIdentifiers, type ChoiceButtonType, type FeedbackSubmitResponse } from "../../../types";
 import { cn } from "../../../lib/utils";
 import { getOrientationStyle } from "../../../themes";
 
@@ -33,18 +33,12 @@ export const ChoiceButtons = ({
     <div className="rqti:my-4 rqti:flex rqti:gap-4" style={getOrientationStyle(effectiveOrientation, stacking)}>
       {choices.map((choice) => {
         const selected = isSelected(choice.identifier);
-        const selectedIds = submitResponse?.response?.[responseIdentifier];
-        const selectedArray = Array.isArray(selectedIds)
-          ? selectedIds
-          : selectedIds !== undefined && selectedIds !== null
-            ? [selectedIds]
-            : [];
-        const correctIds = submitResponse?.correctAnswer?.[responseIdentifier];
-        const correctArray: string[] = Array.isArray(correctIds)
-          ? correctIds.map(String)
-          : correctIds !== undefined && correctIds !== null
-            ? [String(correctIds)]
-            : [];
+        const selectedArray = getResponseIdentifiers(
+          submitResponse?.response?.[responseIdentifier]
+        );
+        const correctArray = getResponseIdentifiers(
+          submitResponse?.correctAnswer?.[responseIdentifier]
+        );
         const isRowCorrect =
           correctArray.length > 0
             ? selectedArray.length === correctArray.length &&

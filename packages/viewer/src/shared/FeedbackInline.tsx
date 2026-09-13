@@ -23,6 +23,8 @@ import {
 } from "../utils/choiceAnswerDisplayFromQti";
 import type { CSSVariables } from "../utils/themeToCSS";
 import { MatchAnswerView } from "./MatchAnswerView";
+import { MathInputBlankCorrectAnswerPreview } from "./MathInputBlankCorrectAnswerPreview";
+import { VcqCorrectAnswerPreview } from "./VcqCorrectAnswerPreview";
 
 const SECTION_ICONS: Record<FeedbackType, React.ComponentType<{ className?: string }>> = {
   CORRECT: CheckCircle,
@@ -203,15 +205,29 @@ export const FeedbackInline = ({
                   segment.kind === "default"
                     ? getMatchCorrectResponseStrings(qtiXml, segment.key, segment.value)
                     : null;
+                const isBlockAnswer = matchStrings !== null || segment.kind === "vcqGrid";
                 return (
                   <React.Fragment key={`${segment.kind}-${segment.key}`}>
                     <span
                       className={cn(
                         "qti-ext-feedback-section-answer-item",
-                        matchStrings !== null && "rqti:block rqti:w-full rqti:basis-full"
+                        isBlockAnswer && "rqti:block rqti:w-full rqti:basis-full"
                       )}
                     >
-                      {segment.kind === "fractionLatex" ? (
+                      {segment.kind === "vcqGrid" ? (
+                        <VcqCorrectAnswerPreview
+                          qtiXml={qtiXml ?? ""}
+                          correctAnswer={segment.correctAnswer}
+                          token={token}
+                        />
+                      ) : segment.kind === "mathInputBlank" ? (
+                        <MathInputBlankCorrectAnswerPreview
+                          qtiXml={qtiXml ?? ""}
+                          correctAnswer={segment.correctAnswer}
+                          token={token}
+                          responseIdentifier={segment.key}
+                        />
+                      ) : segment.kind === "fractionLatex" ? (
                         <span className="qti-ext-mathfield align-middle">
                           {renderLaTeX(segment.latex, `fb-correct-${segment.key}`, false)}
                         </span>

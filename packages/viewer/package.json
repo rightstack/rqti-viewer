@@ -23,6 +23,7 @@
     "README.md",
     "USER_GUIDE.md",
     "THEME_GUIDE.md",
+    "MATH_INPUT_CONTRACT.md",
     "font-preview.html"
   ],
   "publishConfig": {

@@ -10,7 +10,7 @@ import type { QuestionFeedback, QuestionItem } from "../types/questionItem";
  */
 export type QuestionItemProps = Pick<
   QuestionProps,
-  "data" | "type" | "itemKey" | "correctAnswers" | "feedbacks" | "passage"
+  "data" | "type" | "itemKey" | "correctAnswers" | "feedbacks" | "passage" | "isMath"
 >;
 
 function mapFeedbacks(feedbacks: QuestionFeedback[]): FeedbackItem[] {
@@ -43,6 +43,7 @@ export function toQuestionProps(item: QuestionItem): QuestionItemProps {
     itemKey: item.qtiIdentifier,
     correctAnswers: item.correctAnswer ?? undefined,
     feedbacks: mapFeedbacks(item.feedbacks ?? []),
+    isMath: item.isMath === true,
     ...(passage ? { passage } : {}),
   };
 }

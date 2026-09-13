@@ -1,41 +1,46 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ITEM_TYPE } from "../../constants/itemType";
-import type {
-  FeedbackSubmitResponse,
-  QTIParserOptions,
-  ResponseValue,
-  ResponseValueMap,
+import { MathKeyboard } from "../../math-keyboard/MathKeyboard";
+import {
+  getTextEntryValue,
+  type FeedbackSubmitResponse,
+  type QTIParserOptions,
+  type ResponseValue,
+  type ResponseValueMap,
 } from "../../types";
+import { cn } from "../../lib/utils";
+import { stripOuterMathDelimiters } from "../../utils/latex";
 import { TextEntryInput } from "./components";
 
-/** API/맵에 문자열 또는 string[]로 올 수 있는 응답에서 표시용 문자열 추출 */
+function readTextEntryString(raw: unknown, fallback: string): string {
+  if (raw === undefined || raw === null) return fallback.trim();
+  return getTextEntryValue(raw, fallback).trim();
+}
+
+/** API/맵에 문자열·객체·string[]로 올 수 있는 응답에서 표시용 문자열 추출 */
 function getTextEntryResponseString(
   map: ResponseValueMap | undefined,
   id: string,
-  fallback: string
+  fallback: string,
+  unwrapMath: boolean
 ): string {
   if (!map) return fallback.trim();
-  const raw = map[id] as unknown;
-  if (raw === undefined || raw === null) return fallback.trim();
-  if (Array.isArray(raw)) return String(raw[0] ?? "").trim();
-  if (typeof raw === "string") return raw.trim();
-  return fallback.trim();
+  const extracted = readTextEntryString(map[id], fallback);
+  return unwrapMath ? stripOuterMathDelimiters(extracted) : extracted;
 }
 
 /** correctAnswers에서 해당 식별자의 정답 문자열을 추출 */
 function getCorrectAnswerString(
   correctAnswers: Record<string, ResponseValue> | undefined,
-  id: string
+  id: string,
+  unwrapMath: boolean
 ): string | undefined {
   if (!correctAnswers) return undefined;
-  const raw = correctAnswers[id] as unknown;
+  const raw = correctAnswers[id];
   if (raw === undefined || raw === null) return undefined;
-  if (Array.isArray(raw)) {
-    const first = raw[0];
-    return typeof first === "string" ? first : undefined;
-  }
-  if (typeof raw === "string") return raw;
-  return undefined;
+  const extracted = readTextEntryString(raw, "");
+  if (!extracted) return undefined;
+  return unwrapMath ? stripOuterMathDelimiters(extracted) : extracted;
 }
 
 const CORRECT_ANSWER_WIDTH_PADDING = 2;
@@ -84,11 +89,16 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
     return mask;
   };
 
-  const pattern = getPattern(patternMask);
+  const isMath = options.isMath === true;
+  const pattern = isMath ? undefined : getPattern(patternMask);
   const xmlExpectedLength = expectedLengthAttr ? Number.parseInt(expectedLengthAttr, 10) : undefined;
-  const maxLength = maxLengthAttr ? Number.parseInt(maxLengthAttr, 10) : undefined;
+  const maxLength = isMath ? undefined : maxLengthAttr ? Number.parseInt(maxLengthAttr, 10) : undefined;
 
-  const correctAnswerStr = getCorrectAnswerString(options.correctAnswers, responseIdentifier);
+  const correctAnswerStr = getCorrectAnswerString(
+    options.correctAnswers,
+    responseIdentifier,
+    isMath
+  );
   const expectedLength = useMemo(() => {
     if (Number.isFinite(xmlExpectedLength)) return xmlExpectedLength;
     if (correctAnswerStr) return estimateWidthFromAnswer(correctAnswerStr);
@@ -98,8 +108,8 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
   const isPreview = options.mode === "preview";
 
   const initialValue = useMemo(
-    () => getTextEntryResponseString(options.responses, responseIdentifier, ""),
-    [options.responses, responseIdentifier]
+    () => getTextEntryResponseString(options.responses, responseIdentifier, "", isMath),
+    [options.responses, responseIdentifier, isMath]
   );
   const [value, setValue] = useState<string>("");
 
@@ -143,17 +153,40 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
   // SRQ 타입은 최대 50자로 제한
 
   const handleAnswerChange = (id: string, val: string) => {
-    if (isSRQ && val.length > 50) {
+    const next = isMath ? stripOuterMathDelimiters(val) : val;
+    if (!isMath && isSRQ && next.length > 50) {
       return;
     }
 
-    setValue(val);
-    options.onResponseChange?.(id, val);
+    setValue(next);
+    options.onResponseChange?.(id, { value: next, isMath });
   };
 
   useEffect(() => {
     setValue(initialValue);
   }, [initialValue]);
+
+  if (isMath) {
+    return (
+      <span
+        className={cn(
+          "qti-ext-text-entry",
+          "qti-ext-text-entry-math",
+          isCLOZE && "qti-ext-text-entry-cloze",
+          isSRQ && "qti-ext-text-entry-srq",
+          isPreview && "rqti:pointer-events-none"
+        )}
+      >
+        <MathKeyboard
+          key={`math-${responseIdentifier}-${index}`}
+          value={value}
+          onChange={(latex) => handleAnswerChange(responseIdentifier, latex)}
+          readOnly={isPreview}
+          historyScope={options.itemKey}
+        />
+      </span>
+    );
+  }
 
   return (
     <TextEntryInput
@@ -172,7 +205,6 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
       layout={layout}
       maxLength={Number.isFinite(maxLength) ? maxLength : undefined}
       ariaLabel={`${responseIdentifier} 입력`}
-      // showCharacterCounter={layout === "rqti:block" && Number.isFinite(effectiveMaxLength)}
       variant={isSRQ ? "srq" : isCLOZE ? "cloze" : "default"}
     />
   );

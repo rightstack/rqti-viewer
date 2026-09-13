@@ -9,30 +9,31 @@
     var(--rqti-mlk-right-rows) * var(--rqti-mlk-key-size) +
       (var(--rqti-mlk-right-rows) - 1) * var(--rqti-mlk-key-gap)
   );
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  min-width: 0;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  vertical-align: baseline;
+  width: fit-content;
+  height: auto;
+  max-width: 100%;
 }
 
 /*
  * 수식 input 셸. 값(MathJax/math-field)과 키보드 아이콘을 한 박스 안에 둔다.
- * 최소 너비는 기본 10ch와 correctAnswer 추정 중 큰 값.
- * 내용에 맞춰 늘고 줄며, 기본 최소 크기보다 작아지지 않는다.
+ * 기본 최소 10ch × 2em. 수식 내용(분수·행렬 등)에 맞춰 가로·세로로 커진다.
  */
 .rqti-math-input-shell {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.125rem;
   box-sizing: border-box;
-  min-width: max(
-    var(--qti-text-entry-width, 10ch),
-    var(--rqti-math-input-auto-width, 0ch)
-  );
-  width: fit-content;
+  min-width: 10ch;
+  width: max-content;
+  max-width: none;
   min-height: 2em;
-  overflow: hidden;
+  height: max-content;
+  overflow: visible;
   padding: 2px 0.25rem 2px 0.5rem;
   vertical-align: baseline;
 
@@ -68,19 +69,36 @@
 
 .rqti-math-input-value {
   position: relative;
-  display: flex;
-  flex: 0 0 auto;
+  display: inline-flex;
+  flex: 1 1 auto;
   align-items: center;
-  min-width: 0;
+  min-width: min-content;
   min-height: 1.5em;
-  width: fit-content;
+  width: max-content;
+  height: max-content;
+  max-width: none;
+  overflow: visible;
   cursor: pointer;
   outline: none;
 }
 
-.rqti-math-input-value .rqti-math-input-mathjax {
+.rqti-math-input-value .rqti-math-input-mathjax,
+.rqti-math-input-display .rqti-math-input-mathjax {
   display: inline-flex;
   align-items: center;
+  width: max-content;
+  height: max-content;
+  max-width: none;
+  overflow: visible;
+}
+
+.rqti-math-input-mathjax mjx-container,
+.rqti-math-input-mathjax .qti-edit__mathjax {
+  display: inline-block;
+  width: max-content;
+  height: max-content;
+  overflow: visible;
+  vertical-align: middle;
 }
 
 .rqti-math-input-field-empty {
@@ -94,12 +112,12 @@
  */
 .rqti-math-input-display {
   box-sizing: border-box;
-  min-width: max(
-    var(--qti-text-entry-width, 10ch),
-    var(--rqti-math-input-auto-width, 0ch)
-  );
-  width: fit-content;
+  min-width: 10ch;
+  width: max-content;
+  max-width: none;
   min-height: 2em;
+  height: max-content;
+  overflow: visible;
   padding: 2px 0.5rem;
 
   border-width: var(--qti-option-border-width, 1px);
@@ -112,26 +130,23 @@
   font-size: var(--qti-font-size-base, inherit) !important;
   font-weight: var(--qti-option-font-weight, inherit);
   line-height: 1.5;
-  white-space: nowrap;
 
-  display: flex;
-  align-items: center;
-}
-
-.rqti-math-input-display .rqti-math-input-mathjax {
   display: inline-flex;
   align-items: center;
+  vertical-align: baseline;
 }
 
-/* 셸 안 키보드 아이콘 */
+
+/* 셸 안 키보드 아이콘: 크기 고정, 항상 우측 */
 .rqti-math-input-toggle {
-  flex: 0 0 auto;
+  flex: 0 0 1.75rem;
+  align-self: center;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 1.75rem;
   height: 1.75rem;
-  margin: 0 0 0 auto;
+  margin-left: auto;
   padding: 0;
   border: none;
   border-radius: 4px;
@@ -319,10 +334,12 @@
 .rqti-math-input-field {
   display: block;
   box-sizing: border-box;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   min-width: 1ch;
-  width: fit-content;
+  width: max-content;
+  max-width: none;
   min-height: 1.5em;
+  height: max-content;
   padding: 0;
   border: none;
   outline: none;
@@ -331,17 +348,22 @@
   font-size: inherit !important;
   font-weight: inherit;
   line-height: 1.5;
-  white-space: nowrap;
+  overflow: visible;
 }
 
 .rqti-math-input-field::part(container) {
   padding: 0;
   outline: none;
   background: transparent;
+  width: max-content;
+  height: max-content;
+  overflow: visible;
 }
 
 .rqti-math-input-field::part(content) {
   padding: 2px 0;
+  width: max-content;
+  height: max-content;
 }
 
 .rqti-math-input math-field::part(virtual-keyboard-toggle),

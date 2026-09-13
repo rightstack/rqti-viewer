@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { ChoiceType, FeedbackSubmitResponse } from "../../../types";
+import { getResponseIdentifiers, type ChoiceType, type FeedbackSubmitResponse } from "../../../types";
 import { cn } from "../../../lib/utils";
 
 interface McqChoiceOptionProps {
@@ -32,12 +32,9 @@ export const McqChoiceOption = ({
     onSelect(choice.identifier);
   }, [onSelect, choice.identifier, disabled]);
 
-  const selectedIds = submitResponse?.response?.[responseIdentifier];
-  const selectedArray = Array.isArray(selectedIds)
-    ? selectedIds
-    : selectedIds !== undefined && selectedIds !== null
-      ? [selectedIds]
-      : [];
+  const selectedArray = getResponseIdentifiers(
+    submitResponse?.response?.[responseIdentifier]
+  );
   const chosen = selectedArray.includes(choice.identifier);
   /** 만점 또는(오답 제출이어도) 선택+정답 ID면 correct — answer-reveal보다 우선 */
   const isCorrect =

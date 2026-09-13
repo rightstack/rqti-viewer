@@ -50,6 +50,45 @@ export interface ChoiceButtonType {
   isCorrect?: boolean;
 }
 
+/** 입력형(SRQ/CLOZE, qti-text-entry) 제출 값. 칸 타입(isMath)은 입력 방식과 무관하다. */
+export interface TextEntryResponse {
+  value: string;
+  isMath: boolean;
+}
+
+export function isTextEntryResponse(value: unknown): value is TextEntryResponse {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+  const record = value as Record<string, unknown>;
+  return typeof record.value === "string" && typeof record.isMath === "boolean";
+}
+
+/** 선택형 등 identifier 목록으로 읽는다. string / string[] 만. */
+export function getResponseIdentifiers(
+  value: ResponseValue | undefined | null
+): string[] {
+  if (value === undefined || value === null) return [];
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value) && value.every((v): v is string => typeof v === "string")) {
+    return value;
+  }
+  return [];
+}
+
+/** 입력형 응답에서 표시·채점용 문자열만 꺼낸다. 옛 문자열/`string[]`도 읽는다. */
+export function getTextEntryValue(value: unknown, fallback = ""): string {
+  if (isTextEntryResponse(value)) return value.value;
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    const first = value[0];
+    if (isTextEntryResponse(first)) return first.value;
+    if (first === undefined || first === null) return fallback;
+    return String(first);
+  }
+  return fallback;
+}
+
 // 타입 정의
 export type ResponseValue =
   | string // single identifier/string
@@ -57,12 +96,13 @@ export type ResponseValue =
   | Array<[string, string]> // pairs/directedPairs
   | number // integer/float
   | boolean // boolean
-  | { x: number; y: number }; // point
+  | { x: number; y: number } // point
+  | TextEntryResponse;
 
 export interface ResponseByInteraction {
   choice: string | string[]; // single or multiple
   "inline-choice": string; // single only
-  "text-entry": string; // single string
+  "text-entry": TextEntryResponse;
   "extended-text": string; // single string
   hotspot: string | string[]; // single or multiple
   order: string[]; // ordered
@@ -71,11 +111,11 @@ export interface ResponseByInteraction {
 }
 
 export interface ResponseValueMap {
-  [responseIdentifier: string]: string[];
+  [responseIdentifier: string]: ResponseValue;
 }
 
 /** Question/파서 동작 모드. preview: 정적 미리보기(인터랙션 비활성) */
-export type QuestionMode = "practice" | "preview";
+export type QuestionMode = "practice" | "preview" | "paper";
 
 /**
  * 레이아웃 사이징 모드.
@@ -104,6 +144,13 @@ export interface QTIParserOptions {
   submitAnswers?: string | Set<string>; // SCQ/TFQ는 string, MCQ는 Set<string>
   submitResponse?: FeedbackSubmitResponse;
   questionType?: (typeof ITEM_TYPE)[keyof typeof ITEM_TYPE]; // 질문 유형
+  /**
+   * 입력형(SRQ/CLOZE) 칸이 수식인지. 문항 API `isMath`. 없으면 false.
+   * 정답/입력 문자열로 추론하지 않는다.
+   */
+  isMath?: boolean;
+  /** 정답 키 미리보기(피드백). 정오답 스타일을 숨긴다 */
+  answerKeyPreview?: boolean;
   totalTextEntries?: number; // CLOZE용: 전체 텍스트 입력 필드 개수
   inputWidths?: Record<string, string>; // response identifier -> width
   // MTQ용
