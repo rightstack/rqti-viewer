@@ -5,7 +5,8 @@ QTI 문항(Viewer) 렌더링 라이브러리. React 앱에서 문항 단위로 Q
 `Question`은 **문항 1개**를 렌더합니다.
 
 > 사용자 연동 가이드(유형별 샘플 ID·practice/preview): **[USER_GUIDE.md](./USER_GUIDE.md)**  
-> 호스트가 힌트를 직접 그릴 때: **[HINT_GUIDE.md](./HINT_GUIDE.md)**
+> 호스트가 힌트를 직접 그릴 때: **[HINT_GUIDE.md](./HINT_GUIDE.md)**  
+> 힌트만 그리는 화면은 `HINT_GUIDE`를 보고 `styles.css`와 `MathJaxProviderWrapper`를 그 화면에 넣습니다.
 
 ## 요구사항
 
@@ -359,5 +360,6 @@ import {
 } from "@rightstack/rqti-viewer";
 ```
 
-`MathJaxProviderWrapper`는 `Question`이 이미 감싸므로 보통 직접 쓸 필요는 없습니다.
-`parseFeedbackContentToReact`는 호스트가 힌트 HTML을 직접 그릴 때 수식만 노드로 바꿉니다. 박스·본문 톤은 호스트가 줍니다. 절차는 **[HINT_GUIDE.md](./HINT_GUIDE.md)**.
+`MathJaxProviderWrapper`를 직접 쓸 필요가 없는 경우는 `Question`에만 해당합니다. `Question`이 내부에서 이미 감쌉니다.
+힌트만 그리는 화면은 `Question`의 Provider가 없으므로 **[HINT_GUIDE.md](./HINT_GUIDE.md)** 를 보고 `styles.css`와 `MathJaxProviderWrapper`를 그 화면에 넣습니다.
+`parseFeedbackContentToReact`는 호스트가 힌트 HTML을 직접 그릴 때 수식만 노드로 바꿉니다. 박스·본문 톤은 호스트가 줍니다.

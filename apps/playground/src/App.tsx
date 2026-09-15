@@ -23,14 +23,16 @@ type HostHint = {
 
 const SAMPLE_HINTS: HostHint[] = [
   {
-    title: "힌트 1",
-    content: "<p>첫 번째 힌트입니다.</p>",
+    title: "에디터 샘플",
+    content: [
+      '<figure class="qti-ext-figure qti-align-right"><img src="/api/v3/assessment-resource/object/14992" alt="스크린샷 2026-09-09 090803" width="317"/></figure>',
+      "<p></p>",
+      '<p><span class="qti-ext-mathfield" data-latex="2\\sin3\\times\\frac{2}{5}">2\\sin3\\times\\frac{2}{5}</span>  테스트 중입니다.</p>',
+      '<div class="qti-ext-column-group"><div class="qti-ext-column"><p>1단</p></div><div class="qti-ext-column"><p>2단</p><p class="qti-align-right">정렬까지</p></div></div>',
+      '<div class="qti-ext-vcq-grid qti-ext-vcq-grid--display qti-ext-vcq-grid--template-div-forward qti-align-center"><div class="qti-ext-vcq-row"><div class="qti-ext-vcq-cell"></div><div class="qti-ext-vcq-cell"></div><div class="qti-ext-vcq-cell"><span class="qti-ext-mathfield" data-latex="1">1</span></div><div class="qti-ext-vcq-cell"><span class="qti-ext-mathfield" data-latex="3">3</span></div></div><div class="qti-ext-vcq-row"><div class="qti-ext-vcq-cell"><span class="qti-ext-mathfield" data-latex="2">2</span></div><div class="qti-ext-vcq-cell"></div><div class="qti-ext-vcq-cell qti-ext-vcq-cell--blank"><span class="qti-ext-input-blank" data-latex="\\inputblank{RESPONSE_1}{1}">①</span></div><div class="qti-ext-vcq-cell"><span class="qti-ext-mathfield" data-latex="2">2</span></div></div><div class="qti-ext-vcq-row"><div class="qti-ext-vcq-cell"></div><div class="qti-ext-vcq-cell"></div><div class="qti-ext-vcq-cell"></div><div class="qti-ext-vcq-cell"></div></div><span class="qti-ext-vcq-division-bar-track" data-vcq-grid-column="2 / 5" data-vcq-grid-row="2 / 3" aria-hidden="true"><span class="qti-ext-vcq-division-bar"></span></span></div>',
+      "<p></p>",
+    ].join(""),
     display_order: 1,
-  },
-  {
-    title: "힌트 2",
-    content: "<p>두 번째 힌트입니다.</p>",
-    display_order: 2,
   },
 ];
 
@@ -41,7 +43,10 @@ const HINT_FONT_OPTIONS = [
   { label: "세리프", value: 'Georgia, "Times New Roman", serif' },
 ] as const;
 
-function resolveHints(item: QuestionItem | null, useSample: boolean): HostHint[] {
+function resolveHints(
+  item: QuestionItem | null,
+  useSample: boolean,
+): HostHint[] {
   if (useSample) return SAMPLE_HINTS;
   const fromApi = (item?.feedbacks ?? [])
     .filter((f) => f.content.trim() !== "")
@@ -186,6 +191,7 @@ export default function App() {
   const [hintColor, setHintColor] = useState("#1f2937");
   const [hintLineHeight, setHintLineHeight] = useState(1.6);
   const [useSampleHint, setUseSampleHint] = useState(true);
+  const [hideQuestion, setHideQuestion] = useState(false);
   const [lastSubmit, setLastSubmit] = useState<ResponseValueMap | null>(null);
   const [drawing, setDrawing] = useState(true);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
@@ -264,6 +270,7 @@ export default function App() {
     () => resolveHints(item, useSampleHint),
     [item, useSampleHint],
   );
+  const showHostHints = useSampleHint || status === "ready";
 
   return (
     <div style={styles.page}>
@@ -364,6 +371,14 @@ export default function App() {
           <label style={styles.checkboxRow}>
             <input
               type="checkbox"
+              checked={hideQuestion}
+              onChange={(e) => setHideQuestion(e.target.checked)}
+            />
+            문항 숨김 (힌트만)
+          </label>
+          <label style={styles.checkboxRow}>
+            <input
+              type="checkbox"
               checked={useSampleHint}
               onChange={(e) => setUseSampleHint(e.target.checked)}
             />
@@ -450,7 +465,8 @@ export default function App() {
           </label>
           <label style={styles.sliderRow}>
             <span style={styles.sliderLabel}>
-              줄간격<b style={styles.sliderValue}>{hintLineHeight.toFixed(1)}</b>
+              줄간격
+              <b style={styles.sliderValue}>{hintLineHeight.toFixed(1)}</b>
             </span>
             <input
               type="range"
@@ -462,8 +478,8 @@ export default function App() {
             />
           </label>
           <p style={styles.hint}>
-            에디터에서 지정한 인라인 색이 있으면 그 색이 이깁니다. 이 박스는
-            앱 스타일만 씁니다.
+            박스 톤은 호스트 스타일입니다. 수식·목록은 styles.css의 클래스
+            표현만 유지됩니다.
           </p>
 
           <h2 style={styles.stateTitle}>마지막 onSubmit</h2>
@@ -548,58 +564,61 @@ export default function App() {
           {status === "error" && (
             <p style={styles.statusText}>API 오류: {error}</p>
           )} */}
-          {status === "ready" && props && (
-            <>
-              <Question
-                key={props.itemKey}
-                theme={FULL_WIDTH_THEME}
-                mode={mode}
-                {...props}
-                showFeedback={false}
-                showInlineFeedback={false}
-                responses={
-                  mode === "preview" ? lastSubmit ?? undefined : undefined
-                }
-                passage={demoPassage ? DEMO_PASSAGE_HTML : props.passage}
-                onSubmit={setLastSubmit}
-                sizing={sizing}
-                designWidth={DESIGN_WIDTH}
-                // annotationOverlay={
-                //   sizing === "fixed" ? (
-                //     <Whiteboard
-                //       strokes={strokes}
-                //       onChange={setStrokes}
-                //       enabled={drawing}
-                //     />
-                //   ) : undefined
-                // }
-              />
-              <MathJaxProviderWrapper>
-                <div
-                  style={{
-                    marginTop: 24,
-                    background: hintBoxBg,
-                    padding: hintBoxPadding,
-                    borderRadius: hintBoxRadius,
-                    border: `1px solid ${hintBoxBorder}`,
-                    fontFamily: hintFontFamily,
-                    fontSize: hintFontSize,
-                    color: hintColor,
-                    lineHeight: hintLineHeight,
-                  }}
-                >
-                  {hostHints.map((hint, index) => (
-                    <section
-                      key={hint.display_order}
-                      style={index > 0 ? { marginTop: 16 } : undefined}
-                    >
-                      <div style={styles.hintBoxLabel}>{hint.title}</div>
-                      {parseFeedbackContentToReact(hint.content)}
-                    </section>
-                  ))}
-                </div>
-              </MathJaxProviderWrapper>
-            </>
+          {!hideQuestion && status === "ready" && props && (
+            <Question
+              key={props.itemKey}
+              theme={FULL_WIDTH_THEME}
+              mode={mode}
+              {...props}
+              showFeedback={false}
+              showInlineFeedback={false}
+              responses={
+                mode === "preview" ? lastSubmit ?? undefined : undefined
+              }
+              passage={demoPassage ? DEMO_PASSAGE_HTML : props.passage}
+              onSubmit={setLastSubmit}
+              sizing={sizing}
+              designWidth={DESIGN_WIDTH}
+              // annotationOverlay={
+              //   sizing === "fixed" ? (
+              //     <Whiteboard
+              //       strokes={strokes}
+              //       onChange={setStrokes}
+              //       enabled={drawing}
+              //     />
+              //   ) : undefined
+              // }
+            />
+          )}
+          {showHostHints && (
+            <MathJaxProviderWrapper>
+              <div
+                style={{
+                  marginTop: hideQuestion ? 0 : 24,
+                  background: hintBoxBg,
+                  padding: hintBoxPadding,
+                  borderRadius: hintBoxRadius,
+                  border: `1px solid ${hintBoxBorder}`,
+                  fontFamily: hintFontFamily,
+                  fontSize: hintFontSize,
+                  color: hintColor,
+                  lineHeight: hintLineHeight,
+                }}
+              >
+                {hostHints.map((hint, index) => (
+                  <section
+                    key={hint.display_order}
+                    style={index > 0 ? { marginTop: 16 } : undefined}
+                  >
+                    <div style={styles.hintBoxLabel}>{hint.title}</div>
+                    {parseFeedbackContentToReact(hint.content, {
+                      token: QMS_API_TOKEN,
+                      baseUrl: "/qms-api",
+                    })}
+                  </section>
+                ))}
+              </div>
+            </MathJaxProviderWrapper>
           )}
         </div>
       </main>

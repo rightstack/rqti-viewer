@@ -1,8 +1,10 @@
 # 호스트 힌트 가이드
 
-힌트 레이아웃과 본문은 **호스트 앱**이 그립니다. 라이브러리는 에디터 HTML의 **수식만** React 노드로 바꿉니다.
+힌트 레이아웃은 **호스트 앱**이 그립니다. 라이브러리는 에디터 `content` HTML을 React 노드로 바꾸고, `styles.css`의 `qti-*`로 본문 모양을 유지합니다.
 
 `Question`의 인라인 피드백(`showInlineFeedback`)을 쓰지 않고, 문항 **밖**에서 `hints[]`를 그릴 때 이 문서를 따릅니다.
+
+`Question`과 힌트는 **같은 파일·같은 라우트가 아닐 수 있습니다.** 힌트만 있는 화면에는 문항용 Provider·테마 변수가 따라오지 않습니다. 그 화면에서 `styles.css`와 `MathJaxProviderWrapper`를 직접 넣습니다.
 
 문항 연동은 **[USER_GUIDE.md](./USER_GUIDE.md)** 를 봅니다.
 
@@ -12,10 +14,16 @@
 
 | | 라이브러리 | 호스트 |
 | --- | --- | --- |
-| 할 일 | `parseFeedbackContentToReact`로 `content`의 수식·이미지를 노드로 변환. `MathJaxProviderWrapper`로 수식 표시 | `hints[]`를 한 레이아웃 안에 제목·순서로 그림. 레이아웃과 본문 폰트 |
-| 하지 않음 | 힌트 전용 컴포넌트, 타이포 CSS 변수, 클래스 계약 | `styles.css`를 힌트용으로 쓰지 않음 |
+| 할 일 | `parseFeedbackContentToReact`로 수식·이미지·목록·단·세로셈을 노드로 변환. `MathJaxProviderWrapper`로 수식 표시. `styles.css`의 `qti-*`로 본문 클래스 유지 | `hints[]`를 한 레이아웃 안에 제목·순서로 그림. 박스 배경·패딩·제목·본문 폰트 |
+| 하지 않음 | 힌트 전용 컴포넌트, 타이포 CSS 변수, 박스용 클래스 계약 | `qti-ext-feedback-*` 등 라이브러리 피드백 클래스로 박스를 꾸미지 않음 |
 
-`Question`은 문항만 그립니다. 힌트를 호스트가 그리면 `showInlineFeedback={false}`로 둡니다.
+| | 누가 | 무엇 |
+| --- | --- | --- |
+| 박스 | 호스트 | 배경, 제목, 아이콘. 라이브러리 피드백 클래스 없음 |
+| 본문 | `styles.css` | 에디터 클래스 유지. 빼면 수식·목록·이미지·단·정렬·세로셈이 깨짐 |
+| 힌트 단독 화면 | 그 엔트리 | `import "@rightstack/rqti-viewer/styles.css"` 와 `MathJaxProviderWrapper` |
+
+`Question`은 문항만 그립니다. 힌트를 호스트가 그리면 `showInlineFeedback={false}`로 둡니다. 힌트만 있는 페이지라면 `Question`을 렌더하지 않아도 됩니다.
 
 ---
 
@@ -33,13 +41,9 @@ type Hint = {
 const hints: Hint[] = [
   {
     title: "힌트 1",
-    content: "<p>첫 번째 힌트입니다.</p>",
+    content:
+      '<p><span class="qti-ext-mathfield" data-latex="2\\sin3\\times\\frac{2}{5}">2\\sin3\\times\\frac{2}{5}</span> 테스트 중입니다.</p>',
     display_order: 1,
-  },
-  {
-    title: "힌트 2",
-    content: "<p>두 번째 힌트입니다.</p>",
-    display_order: 2,
   },
 ];
 ```
@@ -58,9 +62,12 @@ const hints: Hint[] = [
 
 힌트는 `Question` 밖이므로 Provider를 호스트가 한 번 감쌉니다. (`Question` 안의 Provider는 문항용입니다.)
 
+같은 트리에 `Question`이 있어도 힌트는 그 안 Provider 밖에 있으므로 감쌉니다. **다른 페이지면 `Question`만으로는 부족합니다.** 힌트 화면에서 `styles.css`와 `MathJaxProviderWrapper`를 직접 import 합니다.
+
 박스에는 호스트 `className` 또는 `style`을 씁니다. 라이브러리 클래스는 없습니다.
 
 ```tsx
+import "@rightstack/rqti-viewer/styles.css";
 import {
   parseFeedbackContentToReact,
   MathJaxProviderWrapper,
@@ -73,7 +80,7 @@ const ordered = [...hints].sort((a, b) => a.display_order - b.display_order);
     {ordered.map((hint) => (
       <section key={hint.display_order}>
         <h2>{hint.title}</h2>
-        {parseFeedbackContentToReact(hint.content)}
+        {parseFeedbackContentToReact(hint.content, { token, baseUrl })}
       </section>
     ))}
   </div>
@@ -97,7 +104,7 @@ const ordered = [...hints].sort((a, b) => a.display_order - b.display_order);
 }
 ```
 
-`token` / `baseUrl`은 이미지 URL에 아직 토큰이 없을 때만 넘깁니다. URL에 `?t=`가 이미 있으면 생략합니다.
+이미지는 상대 경로(`/api/v3/assessment-resource/...`)이면 `baseUrl`로 절대 경로를 만들고, URL에 `?t=`가 없으면 `token`을 붙입니다. URL에 `?t=`가 이미 있으면 둘 다 생략합니다.
 
 ```tsx
 parseFeedbackContentToReact(hint.content);
@@ -110,11 +117,23 @@ parseFeedbackContentToReact(hint.content, { token, baseUrl });
 
 ## 4. 스타일
 
-호스트 클래스(또는 `style`)에 값을 넣습니다. 글은 브라우저 상속입니다. 글꼴은 호스트가 로드합니다.
+박스 타이포(글꼴·크기·색·줄간격)는 호스트입니다. 글은 브라우저 상속입니다. 글꼴은 호스트가 로드합니다.
+
+본문 레이아웃·수식·미디어는 라이브러리 `styles.css`의 `qti-*` 클래스입니다. 파서는 인라인 `style`을 복사하지 않으므로 **클래스 기반 표현만 유지**됩니다.
+
+| 에디터 클래스 | 역할 |
+| --- | --- |
+| `qti-ext-mathfield` | 수식 (`data-latex` 또는 `$...$`) |
+| `qti-list-style-type-*` | 목록 마커 |
+| `qti-ext-figure` / `qti-align-*` | 이미지 정렬 |
+| `qti-ext-column-group` / `qti-ext-column` | 다단 |
+| `qti-ext-vcq-grid` | 세로셈 칸·나눗셈 막대 |
 
 | | 본문 글 | 수식 |
 | --- | --- | --- |
 | 글꼴 | 박스 `font-family`를 따름 | 수식 폰트 유지 |
 | 크기·색·줄간격 | 박스를 따름 | 박스를 따름 |
 
-제목·아이콘·힌트별 다른 톤은 호스트가 `title` 옆과 클래스 변형으로 그립니다. 에디터에서 지정한 인라인 색이 있으면 그 색이 이깁니다.
+제목·아이콘·힌트별 다른 톤은 호스트가 `title` 옆과 클래스 변형으로 그립니다.
+
+세로셈 칸의 `qti-ext-input-blank`(표시용 빈칸) 테두리 색은 `Question`이 넣는 테마 변수(`--qti-option-border` 등)를 씁니다. 힌트 단독 화면에는 그 변수가 없어 상자 선이 안 보일 수 있습니다.
