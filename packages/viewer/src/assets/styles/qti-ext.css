@@ -87,7 +87,7 @@
 }
 
 .qti-ext-passage-wrapper {
-  @apply  rqti:flex rqti:min-h-full rqti:min-w-0 rqti:flex-1 rqti:flex-row;
+  @apply rqti:flex rqti:min-h-full rqti:min-w-0 rqti:flex-1 rqti:flex-row;
 }
 
 .qti-ext-passage-wrapper[data-orientation-type="horizontal"] {
@@ -578,7 +578,7 @@
 
   color: var(--qti-base-text-color);
   font-family: var(--qti-font-family);
-  font-size: var(--qti-font-size-base);
+  font-size: var(--qti-option-font-size);
   font-weight: var(--qti-font-weight-bold);
   line-height: var(--qti-line-height-base);
 }
@@ -4207,7 +4207,8 @@
   justify-content: flex-start;
 }
 
-.qti-ext-math-input-blank .qti-ext-input-blank:has(> .qti-ext-input-blank__field) {
+.qti-ext-math-input-blank
+  .qti-ext-input-blank:has(> .qti-ext-input-blank__field) {
   height: var(--qti-math-blank-size, 2em);
 }
 
@@ -4235,9 +4236,15 @@
 
   box-sizing: border-box;
   width: auto;
-  min-width: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
-  height: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
-  min-height: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
+  min-width: calc(
+    var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85)
+  );
+  height: calc(
+    var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85)
+  );
+  min-height: calc(
+    var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85)
+  );
   padding: 0;
 
   border: var(--qti-blank-border-width, 1px) solid
@@ -4278,10 +4285,13 @@
   min-height: var(--qti-math-blank-size, 2em);
 }
 
-.qti-ext-math-input-blank--display .qti-ext-input-blank.qti-ext-input-blank--latex-content,
+.qti-ext-math-input-blank--display
+  .qti-ext-input-blank.qti-ext-input-blank--latex-content,
 .qti-ext-input-blank--display.qti-ext-input-blank--latex-content {
   height: auto;
-  min-height: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
+  min-height: calc(
+    var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85)
+  );
 }
 
 /* 식 통째 조판 슬롯. 지수·분수 자리는 수식 엔진, input만 포털 */
@@ -4315,9 +4325,15 @@
 
 /* display 슬롯은 입력용 2em 하한을 쓰지 않음. 값이 있으면 내용 높이 */
 .qti-ext-math-input-blank--display .qti-ext-mjx-blank-slot {
-  min-width: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
-  height: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
-  min-height: calc(var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85));
+  min-width: calc(
+    var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85)
+  );
+  height: calc(
+    var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85)
+  );
+  min-height: calc(
+    var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85)
+  );
 }
 
 .qti-ext-math-input-blank--display
@@ -4340,7 +4356,9 @@
 }
 
 /* 입력 중 높이는 슬롯을 채움. 너비는 슬롯이 커지면 같이 늘어남 */
-.qti-ext-math-input-blank .qti-ext-mjx-blank-slot .qti-ext-input-blank.qti-ext-text-entry-input {
+.qti-ext-math-input-blank
+  .qti-ext-mjx-blank-slot
+  .qti-ext-input-blank.qti-ext-text-entry-input {
   right: 0;
   bottom: 0;
 
@@ -4353,7 +4371,9 @@
 }
 
 /* display 상자는 줄어든 슬롯을 채움 */
-.qti-ext-math-input-blank .qti-ext-mjx-blank-slot .qti-ext-input-blank--display {
+.qti-ext-math-input-blank
+  .qti-ext-mjx-blank-slot
+  .qti-ext-input-blank--display {
   right: 0;
 
   width: auto;
@@ -4464,7 +4484,10 @@
   display: grid;
 
   align-items: stretch;
-  grid-template-columns: repeat(var(--vcq-cols), minmax(var(--vcq-cell), max-content));
+  grid-template-columns: repeat(
+    var(--vcq-cols),
+    minmax(var(--vcq-cell), max-content)
+  );
 }
 
 .qti-ext-vcq-row {
@@ -4531,7 +4554,10 @@
 }
 
 .qti-ext-vcq-grid
-  .qti-ext-vcq-cell.qti-align-left:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow) {
+  .qti-ext-vcq-cell.qti-align-left:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  ) {
   justify-content: flex-start;
 
   padding: var(--vcq-pad);
@@ -4540,7 +4566,10 @@
 }
 
 .qti-ext-vcq-grid
-  .qti-ext-vcq-cell.qti-align-right:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow) {
+  .qti-ext-vcq-cell.qti-align-right:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  ) {
   justify-content: flex-end;
 
   padding: var(--vcq-pad);
@@ -4549,7 +4578,10 @@
 }
 
 .qti-ext-vcq-grid
-  .qti-ext-vcq-cell.qti-align-center:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow) {
+  .qti-ext-vcq-cell.qti-align-center:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  ) {
   justify-content: center;
 
   text-align: center;
@@ -4584,55 +4616,94 @@
   justify-content: start;
   align-items: stretch;
   row-gap: 0.15em;
-  grid-template-columns: var(--vcq-col-template, repeat(4, minmax(var(--vcq-cell), max-content)));
+  grid-template-columns: var(
+    --vcq-col-template,
+    repeat(4, minmax(var(--vcq-cell), max-content))
+  );
 }
 
 /* 셀을 명시 배치해야 ㄴ 오버레이가 auto-placement 칸을 뺏지 않는다 */
-.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row:nth-child(1) > .qti-ext-vcq-cell,
-.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row:nth-child(1) > .qti-ext-vcq-cell {
+.qti-ext-vcq-grid--template-synthetic
+  > .qti-ext-vcq-row:nth-child(1)
+  > .qti-ext-vcq-cell,
+.qti-ext-vcq-grid--template-synthetic-2
+  > .qti-ext-vcq-row:nth-child(1)
+  > .qti-ext-vcq-cell {
   grid-row: 1;
 }
 
-.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row:nth-child(2) > .qti-ext-vcq-cell,
-.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row:nth-child(2) > .qti-ext-vcq-cell {
+.qti-ext-vcq-grid--template-synthetic
+  > .qti-ext-vcq-row:nth-child(2)
+  > .qti-ext-vcq-cell,
+.qti-ext-vcq-grid--template-synthetic-2
+  > .qti-ext-vcq-row:nth-child(2)
+  > .qti-ext-vcq-cell {
   grid-row: 2;
 }
 
-.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row:nth-child(3) > .qti-ext-vcq-cell,
-.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row:nth-child(3) > .qti-ext-vcq-cell {
+.qti-ext-vcq-grid--template-synthetic
+  > .qti-ext-vcq-row:nth-child(3)
+  > .qti-ext-vcq-cell,
+.qti-ext-vcq-grid--template-synthetic-2
+  > .qti-ext-vcq-row:nth-child(3)
+  > .qti-ext-vcq-cell {
   grid-row: 3;
 }
 
-.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row:nth-child(4) > .qti-ext-vcq-cell {
+.qti-ext-vcq-grid--template-synthetic-2
+  > .qti-ext-vcq-row:nth-child(4)
+  > .qti-ext-vcq-cell {
   grid-row: 4;
 }
 
-.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row:nth-child(5) > .qti-ext-vcq-cell {
+.qti-ext-vcq-grid--template-synthetic-2
+  > .qti-ext-vcq-row:nth-child(5)
+  > .qti-ext-vcq-cell {
   grid-row: 5;
 }
 
-.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(1),
-.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(1) {
+.qti-ext-vcq-grid--template-synthetic
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell:nth-child(1),
+.qti-ext-vcq-grid--template-synthetic-2
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell:nth-child(1) {
   grid-column: 1;
 }
 
-.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(2),
-.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(2) {
+.qti-ext-vcq-grid--template-synthetic
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell:nth-child(2),
+.qti-ext-vcq-grid--template-synthetic-2
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell:nth-child(2) {
   grid-column: 2;
 }
 
-.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(3),
-.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(3) {
+.qti-ext-vcq-grid--template-synthetic
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell:nth-child(3),
+.qti-ext-vcq-grid--template-synthetic-2
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell:nth-child(3) {
   grid-column: 3;
 }
 
-.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(4),
-.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(4) {
+.qti-ext-vcq-grid--template-synthetic
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell:nth-child(4),
+.qti-ext-vcq-grid--template-synthetic-2
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell:nth-child(4) {
   grid-column: 4;
 }
 
-.qti-ext-vcq-grid--template-synthetic > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(5),
-.qti-ext-vcq-grid--template-synthetic-2 > .qti-ext-vcq-row > .qti-ext-vcq-cell:nth-child(5) {
+.qti-ext-vcq-grid--template-synthetic
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell:nth-child(5),
+.qti-ext-vcq-grid--template-synthetic-2
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell:nth-child(5) {
   grid-column: 5;
 }
 
@@ -4645,7 +4716,10 @@
   min-height: var(--vcq-row-height, var(--vcq-spacer));
 }
 
-.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow),
+.qti-ext-vcq-cell--blank:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  ),
 .qti-ext-vcq-cell--blank[data-vcq-width-unit] {
   overflow: hidden;
 }
@@ -4684,7 +4758,8 @@
   font-size: inherit;
 }
 
-.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged) .qti-ext-input-blank__field {
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
+  .qti-ext-input-blank__field {
   position: absolute;
   inset: var(--vcq-pad);
   z-index: 2;
@@ -4715,7 +4790,9 @@
 }
 
 .qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell .qti-ext-input-blank__field,
-.qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell .qti-ext-input-blank__label {
+.qti-ext-vcq-grid.qti-align-right
+  .qti-ext-vcq-cell
+  .qti-ext-input-blank__label {
   text-align: right;
 }
 
@@ -4725,12 +4802,18 @@
 }
 
 .qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-right .qti-ext-input-blank__field,
-.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-right .qti-ext-input-blank__label {
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-right
+  .qti-ext-input-blank__label {
   text-align: right;
 }
 
-.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-center .qti-ext-input-blank__field,
-.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-center .qti-ext-input-blank__label {
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-center
+  .qti-ext-input-blank__field,
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-center
+  .qti-ext-input-blank__label {
   text-align: center;
 }
 
@@ -4744,7 +4827,9 @@
   padding: var(--vcq-pad);
 }
 
-.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged):has(.qti-ext-math-blank-formula) {
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged):has(
+    .qti-ext-math-blank-formula
+  ) {
   overflow: visible;
 
   min-width: max-content;
@@ -4774,7 +4859,8 @@
 }
 
 /* 세로셈 칸 안 수식 빈칸은 overlay가 아니라 식 조판. 분모가 옆으로 빠지지 않게 */
-.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged) .qti-ext-math-input-blank--display {
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
+  .qti-ext-math-input-blank--display {
   display: inline;
 }
 
@@ -4822,7 +4908,9 @@
 }
 
 /* narrow 상자: 정사각, 점 잉크 중심에 맞춤 (점은 셀 자리 유지) */
-.qti-ext-vcq-cell--blank:where(.qti-ext-vcq-col--narrow):not(.qti-ext-vcq-cell--merged)
+.qti-ext-vcq-cell--blank:where(.qti-ext-vcq-col--narrow):not(
+    .qti-ext-vcq-cell--merged
+  )
   :is(
     .qti-ext-input-blank,
     .qti-ext-math-input-blank .qti-ext-input-blank.qti-ext-text-entry-input,
@@ -4866,61 +4954,87 @@
 }
 
 .qti-ext-vcq-grid
-  .qti-ext-vcq-cell.qti-align-left:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-vcq-cell.qti-align-left:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  )
   .qti-ext-mathfield {
   padding-right: 0;
   padding-left: var(--vcq-align-inset);
 }
 
 .qti-ext-vcq-grid
-  .qti-ext-vcq-cell.qti-align-right:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-vcq-cell.qti-align-right:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  )
   .qti-ext-mathfield {
   padding-right: var(--vcq-align-inset);
   padding-left: 0;
 }
 
 .qti-ext-vcq-grid
-  .qti-ext-vcq-cell.qti-align-center:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-vcq-cell.qti-align-center:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  )
   .qti-ext-mathfield {
   padding-right: 0;
   padding-left: 0;
 }
 
 .qti-ext-vcq-grid.qti-align-left
-  .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-vcq-cell--blank:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  )
   .qti-ext-input-blank__field {
   padding-left: var(--vcq-align-inset);
 }
 
 .qti-ext-vcq-grid.qti-align-right
-  .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-vcq-cell--blank:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  )
   .qti-ext-input-blank__field {
   padding-right: var(--vcq-align-inset);
 }
 
 .qti-ext-vcq-grid
-  .qti-ext-vcq-cell--blank.qti-align-left:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-vcq-cell--blank.qti-align-left:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  )
   .qti-ext-input-blank__field {
   padding-right: 0;
   padding-left: var(--vcq-align-inset);
 }
 
 .qti-ext-vcq-grid
-  .qti-ext-vcq-cell--blank.qti-align-right:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-vcq-cell--blank.qti-align-right:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  )
   .qti-ext-input-blank__field {
   padding-right: var(--vcq-align-inset);
   padding-left: 0;
 }
 
 .qti-ext-vcq-grid
-  .qti-ext-vcq-cell--blank.qti-align-center:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
+  .qti-ext-vcq-cell--blank.qti-align-center:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  )
   .qti-ext-input-blank__field {
   padding-right: 0;
   padding-left: 0;
 }
 
 .qti-ext-math-input-blank
-  .qti-ext-input-blank.qti-ext-text-entry-input:has(> .qti-ext-input-blank__field) {
+  .qti-ext-input-blank.qti-ext-text-entry-input:has(
+    > .qti-ext-input-blank__field
+  ) {
   height: var(--qti-math-blank-size, 2em);
 }
 
@@ -4947,8 +5061,12 @@
   overflow: hidden;
 
   width: calc(var(--vcq-cell) * var(--vcq-width-unit, 1) + 2 * var(--vcq-pad));
-  min-width: calc(var(--vcq-cell) * var(--vcq-width-unit, 1) + 2 * var(--vcq-pad));
-  max-width: calc(var(--vcq-cell) * var(--vcq-width-unit, 1) + 2 * var(--vcq-pad));
+  min-width: calc(
+    var(--vcq-cell) * var(--vcq-width-unit, 1) + 2 * var(--vcq-pad)
+  );
+  max-width: calc(
+    var(--vcq-cell) * var(--vcq-width-unit, 1) + 2 * var(--vcq-pad)
+  );
 }
 
 .qti-ext-vcq-cell--merged .qti-ext-math-input-blank,
@@ -4974,7 +5092,10 @@
 .qti-ext-vcq-cell--merged:has(.qti-ext-vcq-merged-input--fallback),
 .qti-ext-vcq-cell--merged:has(.qti-ext-vcq-merged-display--fallback) {
   min-width: max(
-    var(--vcq-merged-min-width, calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2))),
+    var(
+      --vcq-merged-min-width,
+      calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2))
+    ),
     max-content
   );
 }
@@ -4993,7 +5114,10 @@
   );
   grid-column: span var(--vcq-blank-col-span, 2);
 
-  min-width: var(--vcq-merged-min-width, calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2)));
+  min-width: var(
+    --vcq-merged-min-width,
+    calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2))
+  );
   min-height: calc(var(--vcq-cell) + 2 * var(--vcq-pad));
   padding: var(--vcq-pad) 0;
 
@@ -5038,7 +5162,10 @@
   > .qti-ext-vcq-cell--merged:has(.qti-ext-vcq-merged-display--fallback) {
   width: auto;
   min-width: max(
-    var(--vcq-merged-min-width, calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2))),
+    var(
+      --vcq-merged-min-width,
+      calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2))
+    ),
     max-content
   );
   max-width: none;
@@ -5070,7 +5197,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.qti-ext-vcq-grid.qti-align-left .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
+.qti-ext-vcq-grid.qti-align-left
+  .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
   justify-content: flex-start;
 
   padding-left: var(--vcq-align-inset);
@@ -5078,7 +5206,8 @@
   text-align: left;
 }
 
-.qti-ext-vcq-grid.qti-align-right .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
+.qti-ext-vcq-grid.qti-align-right
+  .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
   justify-content: flex-end;
 
   padding-right: var(--vcq-align-inset);
@@ -5086,7 +5215,8 @@
   text-align: right;
 }
 
-.qti-ext-vcq-cell--merged.qti-align-left > .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
+.qti-ext-vcq-cell--merged.qti-align-left
+  > .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
   justify-content: flex-start;
 
   padding-right: 0;
@@ -5095,7 +5225,8 @@
   text-align: left;
 }
 
-.qti-ext-vcq-cell--merged.qti-align-right > .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
+.qti-ext-vcq-cell--merged.qti-align-right
+  > .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
   justify-content: flex-end;
 
   padding-right: var(--vcq-align-inset);
@@ -5104,7 +5235,8 @@
   text-align: right;
 }
 
-.qti-ext-vcq-cell--merged.qti-align-center > .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
+.qti-ext-vcq-cell--merged.qti-align-center
+  > .qti-ext-mathfield.qti-ext-vcq-merged-answer-slot {
   justify-content: center;
 
   padding-right: 0;
@@ -5170,7 +5302,8 @@
   pointer-events: none;
 }
 
-.qti-ext-vcq-cell--merged .qti-ext-vcq-merged-input.qti-ext-vcq-merged-input--fallback {
+.qti-ext-vcq-cell--merged
+  .qti-ext-vcq-merged-input.qti-ext-vcq-merged-input--fallback {
   position: relative;
   inset: auto;
   z-index: 2;
@@ -5229,7 +5362,8 @@
   white-space: normal;
 }
 
-.qti-ext-vcq-cell--merged .qti-ext-vcq-merged-display.qti-ext-vcq-merged-display--fallback {
+.qti-ext-vcq-cell--merged
+  .qti-ext-vcq-merged-display.qti-ext-vcq-merged-display--fallback {
   position: relative;
   inset: auto;
   z-index: 2;
@@ -5246,31 +5380,41 @@
   transform: none;
 }
 
-.qti-ext-vcq-grid.qti-align-left .qti-ext-vcq-cell--merged .qti-ext-vcq-merged-display--fallback {
+.qti-ext-vcq-grid.qti-align-left
+  .qti-ext-vcq-cell--merged
+  .qti-ext-vcq-merged-display--fallback {
   justify-content: flex-start;
 
   text-align: left;
 }
 
-.qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell--merged .qti-ext-vcq-merged-display--fallback {
+.qti-ext-vcq-grid.qti-align-right
+  .qti-ext-vcq-cell--merged
+  .qti-ext-vcq-merged-display--fallback {
   justify-content: flex-end;
 
   text-align: right;
 }
 
-.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-left .qti-ext-vcq-merged-display--fallback {
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell--merged.qti-align-left
+  .qti-ext-vcq-merged-display--fallback {
   justify-content: flex-start;
 
   text-align: left;
 }
 
-.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-right .qti-ext-vcq-merged-display--fallback {
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell--merged.qti-align-right
+  .qti-ext-vcq-merged-display--fallback {
   justify-content: flex-end;
 
   text-align: right;
 }
 
-.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-center .qti-ext-vcq-merged-display--fallback {
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell--merged.qti-align-center
+  .qti-ext-vcq-merged-display--fallback {
   justify-content: center;
 
   text-align: center;
@@ -5278,7 +5422,10 @@
 
 .qti-ext-vcq-grid--response
   .qti-ext-vcq-cell--blank.qti-ext-vcq-cell--merged
-  :is(.qti-ext-vcq-merged-display--fallback, .qti-ext-vcq-merged-input--fallback) {
+  :is(
+    .qti-ext-vcq-merged-display--fallback,
+    .qti-ext-vcq-merged-input--fallback
+  ) {
   justify-content: center;
 
   text-align: center;
@@ -5288,31 +5435,41 @@
   grid-column: 1 / -1;
 }
 
-.qti-ext-vcq-grid.qti-align-left .qti-ext-vcq-cell--merged .qti-ext-math-blank-latex {
+.qti-ext-vcq-grid.qti-align-left
+  .qti-ext-vcq-cell--merged
+  .qti-ext-math-blank-latex {
   justify-self: start;
 
   text-align: left;
 }
 
-.qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell--merged .qti-ext-math-blank-latex {
+.qti-ext-vcq-grid.qti-align-right
+  .qti-ext-vcq-cell--merged
+  .qti-ext-math-blank-latex {
   justify-self: end;
 
   text-align: right;
 }
 
-.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-left .qti-ext-math-blank-latex {
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell--merged.qti-align-left
+  .qti-ext-math-blank-latex {
   justify-self: start;
 
   text-align: left;
 }
 
-.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-right .qti-ext-math-blank-latex {
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell--merged.qti-align-right
+  .qti-ext-math-blank-latex {
   justify-self: end;
 
   text-align: right;
 }
 
-.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-center .qti-ext-math-blank-latex {
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell--merged.qti-align-center
+  .qti-ext-math-blank-latex {
   justify-self: center;
 
   text-align: center;
