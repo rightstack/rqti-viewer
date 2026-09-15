@@ -172,8 +172,6 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
         className={cn(
           "qti-ext-text-entry",
           "qti-ext-text-entry-math",
-          isCLOZE && "qti-ext-text-entry-cloze",
-          isSRQ && "qti-ext-text-entry-srq",
           isPreview && "rqti:pointer-events-none"
         )}
       >
@@ -183,6 +181,8 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
           onChange={(latex) => handleAnswerChange(responseIdentifier, latex)}
           readOnly={isPreview}
           historyScope={options.itemKey}
+          isCorrect={isCorrect}
+          isSubmit={options.isSubmit}
         />
       </span>
     );

@@ -37,27 +37,41 @@
   padding: 2px 0.25rem 2px 0.5rem;
   vertical-align: baseline;
 
-  border-width: var(--qti-option-border-width, 1px);
+  border-width: var(--qti-option-border-width);
   border-style: solid;
-  border-color: var(--qti-option-border, #e5e5e5);
-  border-radius: var(--qti-option-border-radius, 0.375rem);
-  background-color: var(--qti-option-bg, #fff);
+  border-color: var(--qti-option-border);
+  border-radius: var(--qti-option-border-radius);
 
-  color: inherit;
+  background-color: var(--qti-option-bg);
+
+  color: var(--qti-base-text-color, inherit);
   font-size: var(--qti-font-size-base, inherit) !important;
   font-weight: var(--qti-option-font-weight, inherit);
   line-height: 1.5;
 }
 
 .rqti-math-input-shell:hover {
-  border-color: var(--qti-option-border-hover, #d4d4d4);
-  background-color: var(--qti-option-bg-hover, #fafafa);
+  border-color: var(--qti-option-border-hover);
+  background-color: var(--qti-option-bg-hover);
 }
 
-/* 입력 편집 중(포커스)에만 선택 테두리. 키패드 열림과 별개다. */
-.rqti-math-input-shell--open {
-  border-color: var(--qti-option-border-selected, #0c75d8);
-  background-color: var(--qti-option-bg-selected, #f0f9ff);
+/* 편집 중·값 있음: 일반 입력칸 selected와 같은 토큰 */
+.rqti-math-input-shell--open,
+.rqti-math-input-shell--filled {
+  border-color: var(--qti-option-border-selected);
+  background-color: var(--qti-option-bg-selected);
+}
+
+.rqti-math-input-shell--correct,
+.rqti-math-input-shell--correct:hover {
+  border-color: var(--qti-option-border-correct);
+  background-color: var(--qti-option-bg-correct);
+}
+
+.rqti-math-input-shell--incorrect,
+.rqti-math-input-shell--incorrect:hover {
+  border-color: var(--qti-option-border-incorrect);
+  background-color: var(--qti-option-bg-incorrect);
 }
 
 .rqti-math-input-shell--empty .rqti-math-input-field {
@@ -120,13 +134,14 @@
   overflow: visible;
   padding: 2px 0.5rem;
 
-  border-width: var(--qti-option-border-width, 1px);
+  border-width: var(--qti-option-border-width);
   border-style: solid;
-  border-color: var(--qti-option-border, #e5e5e5);
-  border-radius: var(--qti-option-border-radius, 0.375rem);
-  background-color: var(--qti-option-bg, #fff);
+  border-color: var(--qti-option-border);
+  border-radius: var(--qti-option-border-radius);
 
-  color: inherit;
+  background-color: var(--qti-option-bg);
+
+  color: var(--qti-base-text-color, inherit);
   font-size: var(--qti-font-size-base, inherit) !important;
   font-weight: var(--qti-option-font-weight, inherit);
   line-height: 1.5;
@@ -134,6 +149,21 @@
   display: inline-flex;
   align-items: center;
   vertical-align: baseline;
+}
+
+.rqti-math-input-display--filled {
+  border-color: var(--qti-option-border-selected);
+  background-color: var(--qti-option-bg-selected);
+}
+
+.rqti-math-input-display--correct {
+  border-color: var(--qti-option-border-correct);
+  background-color: var(--qti-option-bg-correct);
+}
+
+.rqti-math-input-display--incorrect {
+  border-color: var(--qti-option-border-incorrect);
+  background-color: var(--qti-option-bg-incorrect);
 }
 
 
@@ -332,6 +362,11 @@
 
 /* MathLive math-field (키패드 열림). 셸 안에서 테두리 없이 값만 그린다. */
 .rqti-math-input-field {
+  --caret-color: var(--qti-base-text-color, currentColor);
+  --selection-color: var(--qti-option-text-selected, var(--qti-base-text-color, currentColor));
+  --selection-background-color: var(--qti-option-bg-selected);
+  --contains-highlight-background-color: var(--qti-option-bg-selected);
+
   display: block;
   box-sizing: border-box;
   flex: 1 1 auto;
@@ -344,7 +379,7 @@
   border: none;
   outline: none;
   background: transparent;
-  color: inherit;
+  color: var(--qti-base-text-color, inherit);
   font-size: inherit !important;
   font-weight: inherit;
   line-height: 1.5;
@@ -355,6 +390,7 @@
   padding: 0;
   outline: none;
   background: transparent;
+  color: inherit;
   width: max-content;
   height: max-content;
   overflow: visible;
@@ -362,6 +398,8 @@
 
 .rqti-math-input-field::part(content) {
   padding: 2px 0;
+  color: inherit;
+  background: transparent;
   width: max-content;
   height: max-content;
 }

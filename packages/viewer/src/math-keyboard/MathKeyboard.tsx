@@ -216,6 +216,9 @@ export interface MathKeyboardProps {
   level?: MathLevel;
   /** localStorage 키를 퀴즈/응시 회차별로 나눈다. */
   historyScope?: string;
+  /** true: 정답, false: 오답, undefined: 피드백 없음 */
+  isCorrect?: boolean;
+  isSubmit?: boolean;
 }
 
 export function MathKeyboard({
@@ -227,6 +230,8 @@ export function MathKeyboard({
   alwaysOpen = false,
   level = "middle",
   historyScope,
+  isCorrect,
+  isSubmit = false,
 }: MathKeyboardProps) {
   const config = MATH_LEVEL_CONFIG[level];
 
@@ -671,12 +676,29 @@ export function MathKeyboard({
     />
   );
 
+  const isAnswerCorrect = isSubmit && isCorrect === true;
+  const isAnswerIncorrect = isSubmit && isCorrect === false;
+  const hasValue = !isEmptyMathLatex(localLatex);
+  const boxStateClass = isAnswerCorrect
+    ? "correct"
+    : isAnswerIncorrect
+      ? "incorrect"
+      : hasValue
+        ? "filled"
+        : null;
+
   // readOnly: MathJax만 표시, 버튼·키패드 없음
   if (readOnly) {
     return (
       <MathJaxProviderWrapper>
         <span ref={rootRef} className={cn("rqti-math-input", className)}>
-          <span ref={shellRef} className="rqti-math-input-display">
+          <span
+            ref={shellRef}
+            className={cn(
+              "rqti-math-input-display",
+              boxStateClass && `rqti-math-input-display--${boxStateClass}`,
+            )}
+          >
             {localLatex ? (
               <MathJaxRenderer
                 latex={latexForInputMathJax(localLatex)}
@@ -852,7 +874,8 @@ export function MathKeyboard({
           className={cn(
             "rqti-math-input-shell",
             editing && "rqti-math-input-shell--open",
-            isEmptyMathLatex(localLatex) && "rqti-math-input-shell--empty",
+            boxStateClass && `rqti-math-input-shell--${boxStateClass}`,
+            !hasValue && "rqti-math-input-shell--empty",
           )}
         >
           {valueArea}
