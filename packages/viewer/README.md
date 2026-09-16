@@ -6,7 +6,7 @@ QTI 문항(Viewer) 렌더링 라이브러리. React 앱에서 문항 단위로 Q
 
 > 사용자 연동 가이드(유형별 샘플 ID·practice/preview): **[USER_GUIDE.md](./USER_GUIDE.md)**  
 > 호스트가 힌트를 직접 그릴 때: **[HINT_GUIDE.md](./HINT_GUIDE.md)**  
-> 힌트만 그리는 화면은 `HINT_GUIDE`를 보고 `styles.css`와 `MathJaxProviderWrapper`를 그 화면에 넣습니다.
+> 힌트만 그리는 화면은 `HINT_GUIDE`를 보고 `styles.css`와 `MathJaxProviderWrapper`를 넣고, 힌트 영역을 `.rqti-viewer`로 감쌉니다.
 
 ## 요구사항
 
@@ -338,9 +338,12 @@ QTI 문항의 LaTeX 수식은 [MathJax](https://www.mathjax.org/)로 렌더링�
 
 ## 스타일 격리
 
-모든 스타일은 `.rqti-viewer` root 아래에서만 적용됩니다.
-Tailwind preflight는 비활성화되어 host app CSS와 충돌하지 않습니다.
-클래스 util은 `rqti:` prefix로 스코프됩니다.
+QTI / QTI-ext 컴포넌트 규칙은 `.rqti-viewer` 하위로만 적용됩니다.
+호스트 앱의 `.qti-ext-*` / `.qti-*` 와 클래스명은 같지만, 라이브러리 CSS는 `.rqti-viewer` 밖에서 매칭되지 않습니다.
+
+테마는 `--qti-*` CSS 변수로 `theme` prop을 통해 `.rqti-viewer`에 주입됩니다. 변수명과 DOM 클래스명(`qti-ext-*`, `qti-*`)은 QTI XML 호환을 위해 유지됩니다.
+
+Tailwind 유틸은 `rqti:` prefix입니다. preflight는 `.rqti-viewer`에만 스코프됩니다.
 
 ## 추가 export
 
@@ -361,5 +364,5 @@ import {
 ```
 
 `MathJaxProviderWrapper`를 직접 쓸 필요가 없는 경우는 `Question`에만 해당합니다. `Question`이 내부에서 이미 감쌉니다.
-힌트만 그리는 화면은 `Question`의 Provider가 없으므로 **[HINT_GUIDE.md](./HINT_GUIDE.md)** 를 보고 `styles.css`와 `MathJaxProviderWrapper`를 그 화면에 넣습니다.
-`parseFeedbackContentToReact`는 호스트가 힌트 HTML을 직접 그릴 때 수식만 노드로 바꿉니다. 박스·본문 톤은 호스트가 줍니다.
+힌트만 그리는 화면은 `Question`의 Provider가 없으므로 **[HINT_GUIDE.md](./HINT_GUIDE.md)** 를 보고 `styles.css`와 `MathJaxProviderWrapper`를 넣고, 힌트 영역을 `.rqti-viewer`로 감쌉니다.
+`parseFeedbackContentToReact`는 에디터 HTML을 노드로 바꿉니다. 힌트 영역 톤은 호스트, 본문 `qti-*`는 `.rqti-viewer` 안의 `styles.css`입니다.

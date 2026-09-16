@@ -4,6 +4,7 @@ import {
   MathJaxProviderWrapper,
   Question,
   SAMPLE_ITEMS,
+  getThemeCSSVariables,
   parseFeedbackContentToReact,
   toQuestionProps,
   type SampleItem,
@@ -271,6 +272,10 @@ export default function App() {
     [item, useSampleHint],
   );
   const showHostHints = useSampleHint || status === "ready";
+  const hintThemeVariables = useMemo(
+    () => getThemeCSSVariables(FULL_WIDTH_THEME),
+    [],
+  );
 
   return (
     <div style={styles.page}>
@@ -367,7 +372,7 @@ export default function App() {
           </label>
           <p style={styles.hint}>지문은 문항 왼쪽에 가로로 고정됩니다.</p>
 
-          <h2 style={styles.stateTitle}>호스트 힌트 박스</h2>
+          <h2 style={styles.stateTitle}>호스트 힌트 영역</h2>
           <label style={styles.checkboxRow}>
             <input
               type="checkbox"
@@ -478,8 +483,8 @@ export default function App() {
             />
           </label>
           <p style={styles.hint}>
-            박스 톤은 호스트 스타일입니다. 수식·목록은 styles.css의 클래스
-            표현만 유지됩니다.
+            힌트 영역 톤은 호스트 스타일입니다. 수식·목록은 .rqti-viewer 안
+            styles.css의 클래스 표현만 유지됩니다.
           </p>
 
           <h2 style={styles.stateTitle}>마지막 onSubmit</h2>
@@ -593,6 +598,7 @@ export default function App() {
           {showHostHints && (
             <MathJaxProviderWrapper>
               <div
+                className="rqti-viewer"
                 style={{
                   marginTop: hideQuestion ? 0 : 24,
                   background: hintBoxBg,
@@ -603,6 +609,7 @@ export default function App() {
                   fontSize: hintFontSize,
                   color: hintColor,
                   lineHeight: hintLineHeight,
+                  ...hintThemeVariables,
                 }}
               >
                 {hostHints.map((hint, index) => (

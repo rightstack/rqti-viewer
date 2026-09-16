@@ -5,9 +5,9 @@ QTI 문항을 **상세 API**로 조회해 **문항 1개**를 렌더링하는 가
 > `mode`는 `Question`이 기본값 `"preview"`(읽기 전용)입니다. `toQuestionProps`는 `mode`를 지정하지 않으므로, 풀이가 필요하면 호출측에서 `mode="practice"`를 전달하세요.
 
 > 호스트가 힌트를 직접 그릴 때: **[HINT_GUIDE.md](./HINT_GUIDE.md)**  
-> 힌트만 그리는 화면은 `HINT_GUIDE`를 보고 `styles.css`와 `MathJaxProviderWrapper`를 그 화면에 넣습니다.
+> 힌트만 그리는 화면은 `HINT_GUIDE`를 보고 `styles.css`와 `MathJaxProviderWrapper`를 그 화면에 넣고, 힌트 영역을 `.rqti-viewer`로 감쌉니다.
 
-현재 패키지 버전: **0.4.3**
+현재 패키지 버전: **0.4.6**
 
 ---
 
@@ -345,7 +345,7 @@ const exampleTheme: Theme = {
 
 - React >= 18, React DOM >= 18
 - **클라이언트 전용** (`DOMParser` 사용 — SSR에서 동작하지 않음)
-- 스타일은 `.rqti-viewer` 아래로 격리됨 (`rqti:` Tailwind prefix)
+- QTI / QTI-ext 스타일은 `.rqti-viewer` 아래로 격리됨. Tailwind 유틸은 `rqti:` prefix. 테마는 `--qti-*` 변수(`.rqti-viewer`에 주입)
 
 ---
 

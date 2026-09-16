@@ -3,6 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react-swc";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import { scopeQtiCssPlugin } from "./scopeQtiCss";
 
 const external = [
   "react",
@@ -22,6 +23,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    scopeQtiCssPlugin(),
     dts({ rollupTypes: true, tsconfigPath: "./tsconfig.json" }),
   ],
   build: {
