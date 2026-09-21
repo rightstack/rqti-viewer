@@ -3382,13 +3382,52 @@
   @apply rqti:pr-4;
 }
 
-/* thumbnail: 세로셈·수식 빈칸은 정오답 테마색만 빼고, 값은 다른 유형처럼 선택 테마 */
+/* thumbnail: hover/focus 인터랙션 없음. 정오답 색만 빼고, 값은 선택 테마 */
+.qti-ext-wrapper--thumbnail .qti-ext-math-input-blank .qti-ext-input-blank,
+.qti-ext-wrapper--thumbnail .qti-ext-vcq-grid .qti-ext-input-blank {
+  pointer-events: none;
+}
+
+.qti-ext-wrapper--thumbnail
+  .qti-ext-math-input-blank
+  .qti-ext-input-blank.qti-ext-text-entry-input:hover,
+.qti-ext-wrapper--thumbnail
+  .qti-ext-math-input-blank
+  .qti-ext-input-blank.qti-ext-text-entry-input:focus-within,
+.qti-ext-wrapper--thumbnail
+  .qti-ext-vcq-grid
+  .qti-ext-input-blank.qti-ext-text-entry-input:hover,
+.qti-ext-wrapper--thumbnail
+  .qti-ext-vcq-grid
+  .qti-ext-input-blank.qti-ext-text-entry-input:focus-within {
+  border-color: var(--qti-option-border);
+  background-color: transparent;
+}
+
+.qti-ext-wrapper--thumbnail
+  .qti-ext-math-input-blank
+  .qti-ext-input-blank.qti-ext-text-entry-input-focus,
+.qti-ext-wrapper--thumbnail
+  .qti-ext-math-input-blank
+  .qti-ext-input-blank.qti-ext-text-entry-input-focus:hover,
+.qti-ext-wrapper--thumbnail
+  .qti-ext-math-input-blank
+  .qti-ext-input-blank.qti-ext-text-entry-input-focus:focus-within,
 .qti-ext-wrapper--thumbnail
   .qti-ext-math-input-blank
   .qti-ext-input-blank.qti-ext-text-entry-input-correct,
 .qti-ext-wrapper--thumbnail
   .qti-ext-math-input-blank
   .qti-ext-input-blank.qti-ext-text-entry-input-incorrect,
+.qti-ext-wrapper--thumbnail
+  .qti-ext-vcq-grid
+  .qti-ext-input-blank.qti-ext-text-entry-input-focus,
+.qti-ext-wrapper--thumbnail
+  .qti-ext-vcq-grid
+  .qti-ext-input-blank.qti-ext-text-entry-input-focus:hover,
+.qti-ext-wrapper--thumbnail
+  .qti-ext-vcq-grid
+  .qti-ext-input-blank.qti-ext-text-entry-input-focus:focus-within,
 .qti-ext-wrapper--thumbnail
   .qti-ext-vcq-grid
   .qti-ext-input-blank.qti-ext-text-entry-input-correct,
