@@ -245,7 +245,7 @@ function MathInputBlankView({
 
   const isPreview = options.mode === "preview";
   const isThumbnail = options.mode === "thumbnail";
-  const isReadOnly = displayOnly || options.mode !== "practice";
+  const isReadOnly = displayOnly || isPreview || isThumbnail;
   const isMathContext = isMathResponseId(responseId ?? "") || inVcqBlankCell || mergedColSpan >= 2;
 
   const answerSource = useMemo(
@@ -297,30 +297,29 @@ function MathInputBlankView({
     blankIds.some((id) => slotContentEm[id]?.value !== getResponseString(answerSource, id));
 
   const handleChange = (id: string, value: string) => {
-    if (!isReadOnly) options.onResponseChange?.(id, value);
+    if (isThumbnail || isReadOnly) return;
+    options.onResponseChange?.(id, value);
   };
 
   const answerRevealVariant: BlankVariant =
-    isPreview || isThumbnail || Boolean(options.isSubmit) || options.correct === true
+    isPreview ||
+    isThumbnail ||
+    Boolean(options.isSubmit) ||
+    options.correct === true
       ? "text-entry"
       : "blank-box";
   const slotVariant: BlankVariant = displayOnly ? "blank-box" : answerRevealVariant;
 
   const blankStateClass = (id: string) => {
     if (displayOnly) return "";
-    const value = getResponseString(answerSource, id);
-    if (options.answerKeyPreview === true) {
-      return "qti-ext-text-entry-input-correct";
-    }
-    if (isPreview || isThumbnail) {
-      return value !== "" ? "qti-ext-text-entry-input-focus" : "";
-    }
     const correctMap = options.correctAnswers as Record<string, unknown> | undefined;
     const hasCorrect = !!correctMap && Object.prototype.hasOwnProperty.call(correctMap, id);
     return getInputBlankStateClass({
-      value,
-      isSubmit: options.isSubmit,
+      value: getResponseString(answerSource, id),
+      isSubmit: isThumbnail ? false : options.isSubmit,
       correctAnswer: hasCorrect ? getResponseString(correctMap, id) : undefined,
+      answerKey: options.answerKeyPreview === true,
+      allowEmptySelected: isPreview && !options.answerKeyPreview && inVcqBlankCell,
     });
   };
 
