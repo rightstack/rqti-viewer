@@ -553,7 +553,7 @@ export default function App() {
               mode={mode}
               {...props}
               showFeedback={false}
-              showInlineFeedback={false}
+              showInlineFeedback={mode === "preview"}
               responses={
                 mode === "preview" || mode === "thumbnail"
                   ? lastSubmit ?? undefined

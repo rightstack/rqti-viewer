@@ -150,22 +150,21 @@ function useVcqIntrinsicColumn(
   }, [contentVersion, enabled, ref]);
 }
 
-/** 제출 후는 responses. preview 본문만 correctAnswers. 칸 ID 키만 본다. PCI 부모 배열·record는 RESPONSE_N으로 편평. */
+/** 본문은 다른 유형과 같이 responses. 정답영역(`answerKeyPreview`)만 correctAnswers. PCI 부모 배열·record는 RESPONSE_N으로 편평. */
 function isAnswerRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
 function buildAnswerSource(
-  isPreview: boolean,
-  isSubmit: boolean | undefined,
+  answerKeyPreview: boolean,
   correctAnswers: Record<string, unknown> | undefined,
   responses: Record<string, unknown> | undefined,
   responseId: string | undefined,
   latex: string
 ): Record<string, unknown> | undefined {
-  const usePreviewAnswers =
-    !isSubmit && isPreview && !!correctAnswers && Object.keys(correctAnswers).length > 0;
-  const raw = usePreviewAnswers ? correctAnswers : responses;
+  const useAnswerKey =
+    answerKeyPreview && !!correctAnswers && Object.keys(correctAnswers).length > 0;
+  const raw = useAnswerKey ? correctAnswers : responses;
   if (!raw) return undefined;
 
   const flat: Record<string, unknown> = { ...raw };
@@ -264,14 +263,13 @@ function MathInputBlankView({
   const answerSource = useMemo(
     () =>
       buildAnswerSource(
-        isPreview,
-        options.isSubmit,
+        options.answerKeyPreview === true,
         options.correctAnswers as Record<string, unknown>,
         options.responses as Record<string, unknown>,
         responseId,
         latex
       ),
-    [isPreview, latex, options.correctAnswers, options.isSubmit, options.responses, responseId]
+    [latex, options.answerKeyPreview, options.correctAnswers, options.responses, responseId]
   );
 
   const blankIds = useMemo(() => extractResponseIds(latex), [latex]);
@@ -314,19 +312,26 @@ function MathInputBlankView({
   };
 
   const answerRevealVariant: BlankVariant =
-    isPreview || Boolean(options.isSubmit) || options.correct === true ? "text-entry" : "blank-box";
+    isPreview || isThumbnail || Boolean(options.isSubmit) || options.correct === true
+      ? "text-entry"
+      : "blank-box";
   const slotVariant: BlankVariant = displayOnly ? "blank-box" : answerRevealVariant;
 
   const blankStateClass = (id: string) => {
-    if (displayOnly || isThumbnail) return "";
+    if (displayOnly) return "";
+    const value = getResponseString(answerSource, id);
+    if (options.answerKeyPreview === true) {
+      return "qti-ext-text-entry-input-correct";
+    }
+    if (isPreview || isThumbnail) {
+      return value !== "" ? "qti-ext-text-entry-input-focus" : "";
+    }
     const correctMap = options.correctAnswers as Record<string, unknown> | undefined;
     const hasCorrect = !!correctMap && Object.prototype.hasOwnProperty.call(correctMap, id);
     return getInputBlankStateClass({
-      value: getResponseString(answerSource, id),
+      value,
       isSubmit: options.isSubmit,
       correctAnswer: hasCorrect ? getResponseString(correctMap, id) : undefined,
-      answerKey: options.answerKeyPreview === true,
-      allowEmptySelected: isPreview && !options.answerKeyPreview && inVcqBlankCell,
     });
   };
 

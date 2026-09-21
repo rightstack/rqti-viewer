@@ -1324,6 +1324,7 @@
   min-height: 1.2em;
   padding: 0.1em 0.2em;
 
+  border-style: solid;
   background-color: transparent;
 
   color: inherit;
@@ -2574,6 +2575,11 @@
 
 /* Feedback Inline - 문항 하단에 붙어 전체와 함께 스크롤, 테마 스타일 */
 .qti-ext-feedback-inline {
+  /* 정답영역 VCQ는 wrapper 밖에 있으므로 문항과 같은 빈칸 토큰을 둔다 */
+  --qti-math-blank-size: 2em;
+  --qti-math-blank-pad: 0.2em;
+  --qti-math-blank-display-scale: 0.85;
+
   display: flex;
 
   flex-shrink: 0;
@@ -3376,16 +3382,7 @@
   @apply rqti:pr-4;
 }
 
-/* thumbnail: 세로셈·수식 빈칸은 정오/선택 테마색 없이 기본 테두리 */
-.qti-ext-wrapper--thumbnail
-  .qti-ext-math-input-blank
-  .qti-ext-input-blank.qti-ext-text-entry-input:hover,
-.qti-ext-wrapper--thumbnail
-  .qti-ext-math-input-blank
-  .qti-ext-input-blank.qti-ext-text-entry-input:focus-within,
-.qti-ext-wrapper--thumbnail
-  .qti-ext-math-input-blank
-  .qti-ext-input-blank.qti-ext-text-entry-input-focus,
+/* thumbnail: 세로셈·수식 빈칸은 정오답 테마색만 빼고, 값은 다른 유형처럼 선택 테마 */
 .qti-ext-wrapper--thumbnail
   .qti-ext-math-input-blank
   .qti-ext-input-blank.qti-ext-text-entry-input-correct,
@@ -3394,21 +3391,12 @@
   .qti-ext-input-blank.qti-ext-text-entry-input-incorrect,
 .qti-ext-wrapper--thumbnail
   .qti-ext-vcq-grid
-  .qti-ext-input-blank.qti-ext-text-entry-input:hover,
-.qti-ext-wrapper--thumbnail
-  .qti-ext-vcq-grid
-  .qti-ext-input-blank.qti-ext-text-entry-input:focus-within,
-.qti-ext-wrapper--thumbnail
-  .qti-ext-vcq-grid
-  .qti-ext-input-blank.qti-ext-text-entry-input-focus,
-.qti-ext-wrapper--thumbnail
-  .qti-ext-vcq-grid
   .qti-ext-input-blank.qti-ext-text-entry-input-correct,
 .qti-ext-wrapper--thumbnail
   .qti-ext-vcq-grid
   .qti-ext-input-blank.qti-ext-text-entry-input-incorrect {
-  border-color: var(--qti-blank-border-color, var(--qti-option-border, #1a1a1a));
-  background-color: transparent;
+  border-color: var(--qti-option-border-selected, var(--qti-option-border, #1a1a1a));
+  background-color: var(--qti-option-bg-selected, transparent);
 }
 
 .qti-ext-grid-header-cell,
@@ -4188,6 +4176,8 @@
   min-width: var(--qti-math-blank-size, 2em);
   min-height: var(--qti-math-blank-size, 2em);
   padding: var(--qti-math-blank-pad, 0.2em);
+
+  border-style: solid;
 
   transition: none;
 }
@@ -5224,6 +5214,31 @@
   border-color: var(--qti-option-border-selected);
 
   background-color: var(--qti-option-bg-selected);
+}
+
+/* preview·thumbnail·정답영역: :focus-within 없이 다른 유형과 같은 테두리 테마 */
+.qti-ext-vcq-grid .qti-ext-input-blank.qti-ext-text-entry-input,
+.qti-ext-feedback-inline .qti-ext-input-blank.qti-ext-text-entry-input {
+  border-style: solid;
+  border-color: var(--qti-option-border);
+}
+
+.qti-ext-vcq-grid .qti-ext-input-blank.qti-ext-text-entry-input-focus,
+.qti-ext-feedback-inline .qti-ext-input-blank.qti-ext-text-entry-input-focus {
+  border-color: var(--qti-option-border-selected);
+  background-color: var(--qti-option-bg-selected);
+}
+
+.qti-ext-vcq-grid .qti-ext-input-blank.qti-ext-text-entry-input-correct,
+.qti-ext-feedback-inline .qti-ext-input-blank.qti-ext-text-entry-input-correct {
+  border-color: var(--qti-option-border-correct);
+  background-color: var(--qti-option-bg-correct);
+}
+
+.qti-ext-vcq-grid .qti-ext-input-blank.qti-ext-text-entry-input-incorrect,
+.qti-ext-feedback-inline .qti-ext-input-blank.qti-ext-text-entry-input-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+  background-color: var(--qti-option-bg-incorrect);
 }
 
 .qti-ext-feedback-section-answer-item math-field {
