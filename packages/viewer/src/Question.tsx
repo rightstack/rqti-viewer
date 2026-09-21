@@ -257,8 +257,6 @@ function Question({
       const textEntryCount = (data.match(/<qti-text-entry-interaction\b/g) ?? []).length;
       const mathBlankCount = extractMathBlankIdsFromItemXml(data).length;
       expectedResponseCount = textEntryCount + mathBlankCount || undefined;
-    } else if (type === ITEM_TYPE.VCQ) {
-      expectedResponseCount = extractMathBlankIdsFromItemXml(data).length || undefined;
     } else if (type === ITEM_TYPE.DDQ) {
       expectedResponseCount =
         (data.match(/<qti-inline-choice-interaction\b/g) ?? []).length ||

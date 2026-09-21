@@ -677,7 +677,7 @@
 }
 
 /* Choice Button 내부 이미지 */
-.qti-ext-choice-button img {
+.qti-ext-choice-button img:where(:not(.qti-ext-inline-image)) {
   width: 100% !important;
 
   @apply rqti:h-auto rqti:max-w-full rqti:rounded-md rqti:object-contain;
@@ -688,7 +688,7 @@
 }
 
 /* 태블릿 디바이스: 단일 문항 TFQ OX SVG 이미지 크기 축소 */
-[data-device="tablet"] .tfq-single .qti-ext-choice-button img {
+[data-device="tablet"] .tfq-single .qti-ext-choice-button img:where(:not(.qti-ext-inline-image)) {
   width: 50% !important;
   max-width: 36px;
 
@@ -3678,7 +3678,7 @@
   padding: 10px !important;
 }
 
-[data-device="mobile"] .tfq-buttons .qti-ext-choice-button img {
+[data-device="mobile"] .tfq-buttons .qti-ext-choice-button img:where(:not(.qti-ext-inline-image)) {
   width: 30% !important;
   max-width: 36px;
 
@@ -5839,5 +5839,18 @@
 
 .qti-ext-math-input-blank .qti-ext-mathfield math-field::part(content) {
   padding: 0;
+}
+
+/* 선택지·반응형 이미지 규칙보다 뒤에서 인라인 이미지의 크기 정책을 적용한다. */
+img.qti-ext-inline-image,
+.qti-ext-choice-button img.qti-ext-inline-image {
+  display: inline-block;
+
+  width: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+
+  vertical-align: middle;
 }
 

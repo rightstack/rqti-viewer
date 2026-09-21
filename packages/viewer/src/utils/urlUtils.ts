@@ -11,7 +11,13 @@ export function resolveMediaUrl(
 ): string | undefined {
   if (!src) return undefined;
 
-  if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("//")) {
+  if (
+    src.startsWith("http://") ||
+    src.startsWith("https://") ||
+    src.startsWith("//") ||
+    src.startsWith("data:") ||
+    src.startsWith("blob:")
+  ) {
     return src;
   }
 
@@ -29,6 +35,7 @@ export function appendMediaToken(
   token?: string
 ): string | undefined {
   if (!src) return undefined;
+  if (src.startsWith("data:") || src.startsWith("blob:")) return src;
   if (!token) return src;
   if (/[?&]t=/.test(src)) return src;
   return `${src}${src.includes("?") ? "&" : "?"}t=${token}`;

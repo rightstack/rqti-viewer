@@ -16,3 +16,17 @@ export function buildImageStyle(width?: string, height?: string): React.CSSPrope
 
   return style;
 }
+
+/** QTI 높이는 px 호환 변환 없이 em 배수로 읽는다. */
+export function getQtiInlineImageHeight(
+  className: string,
+  value: string | null
+): number | undefined {
+  if (!className.split(/\s+/).includes("qti-ext-inline-image")) return undefined;
+  const height = Number(value);
+  return [1, 1.25, 1.5, 1.75, 2.25, 3].includes(height) ? height : 1.5;
+}
+
+export function buildInlineImageStyle(heightEm: number): React.CSSProperties {
+  return { height: `${heightEm}em` };
+}

@@ -18,7 +18,7 @@ import { parseTextIndent } from "../themes/utils";
 import type { QTIParserOptions } from "../types";
 import { appendMediaToken, resolveMediaUrl } from "../utils/urlUtils";
 import { isInteraction } from "./constants";
-import { buildImageStyle } from "./imageUtils";
+import { buildImageStyle, buildInlineImageStyle, getQtiInlineImageHeight } from "./imageUtils";
 import { groupListItems } from "./listGrouping";
 import { parseNode } from "./parseInteraction";
 import { parseTextWithLaTeX, renderLaTeX } from "./parseLatexToReact";
@@ -419,11 +419,20 @@ export const parseHTMLElement = (
     // 이미지 class에 py-4 제거
     case "img": {
       const mediaAttrs = getMediaAttributes();
-      const imgClassName = className.includes("qti-ext-image")
-        ? className
-        : `${className} qti-ext-image`.trim();
+      const inlineHeight = getQtiInlineImageHeight(
+        className,
+        element.getAttribute("data-inline-image-height")
+      );
+      const imageClasses = className.split(/\s+/).filter(Boolean);
+      const imgClassName =
+        inlineHeight !== undefined
+          ? imageClasses.filter((name) => name !== "qti-ext-image").join(" ")
+          : [...new Set([...imageClasses, "qti-ext-image"])].join(" ");
 
-      const imgStyle = buildImageStyle(mediaAttrs.width, mediaAttrs.height);
+      const imgStyle =
+        inlineHeight === undefined
+          ? buildImageStyle(mediaAttrs.width, mediaAttrs.height)
+          : buildInlineImageStyle(inlineHeight);
       const srcWithToken = appendMediaToken(mediaAttrs.src, options.token);
 
       return (

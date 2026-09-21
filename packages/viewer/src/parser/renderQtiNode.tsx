@@ -3,7 +3,7 @@ import { getNodeKey } from "../utils/getNodeKey";
 import { AudioPlayer } from "../components/AudioPlayer";
 import type { QTIParserOptions } from "../types";
 import { resolveMediaUrl } from "../utils/urlUtils";
-import { buildImageStyle } from "./imageUtils";
+import { buildImageStyle, buildInlineImageStyle, getQtiInlineImageHeight } from "./imageUtils";
 import { parseTextWithLaTeX, renderLaTeX } from "./parseLatexToReact";
 
 function parseCssString(css: string): React.CSSProperties {
@@ -90,11 +90,20 @@ export function renderQtiNode(node: ChildNode, options?: QTIParserOptions): Reac
         : resolvedSrc
           ? `${resolvedSrc}?t=${options?.token ?? ""}`
           : undefined;
-      const imgClassName = className.includes("qti-ext-image")
-        ? className
-        : `${className} qti-ext-image`.trim();
+      const inlineHeight = getQtiInlineImageHeight(
+        className,
+        el.getAttribute("data-inline-image-height")
+      );
+      const imageClasses = className.split(/\s+/).filter(Boolean);
+      const imgClassName =
+        inlineHeight !== undefined
+          ? imageClasses.filter((name) => name !== "qti-ext-image").join(" ")
+          : [...new Set([...imageClasses, "qti-ext-image"])].join(" ");
 
-      const imgStyle = buildImageStyle(width ?? undefined, height ?? undefined);
+      const imgStyle =
+        inlineHeight === undefined
+          ? buildImageStyle(width ?? undefined, height ?? undefined)
+          : buildInlineImageStyle(inlineHeight);
 
       return (
         <img
