@@ -284,7 +284,8 @@ function MathInputBlankView({
    * 값마다 한 번만 받는다. Rule을 바꾸면 재조판·재측정이 도는데 지수·분수 안에서는
    * em 기준 글자 크기가 미세하게 달라져 값이 계속 흔들린다.
    */
-  const measureSlots = isReadOnly && formulaContext;
+  /** thumbnail은 캡처 시점에 조판을 숨기면 응시 응답이 빈칸으로 남는다. */
+  const measureSlots = isReadOnly && formulaContext && !isThumbnail;
   const [slotContentEm, setSlotContentEm] = useState<
     Record<string, { value: string; em: SlotContentEm }>
   >({});
@@ -358,7 +359,7 @@ function MathInputBlankView({
 
     const raw = getResponseRawString(answerSource, id);
     const value = getResponseString(answerSource, id);
-    if (isReadOnly && needsMathRender(id, raw, treatAsMath)) {
+    if (isReadOnly && needsMathRender(id, raw, isThumbnail ? false : treatAsMath)) {
       return (
         <span key={key} className="qti-ext-math-blank-inline">
           <FormulaSlotLatexDisplay
@@ -414,7 +415,9 @@ function MathInputBlankView({
     }
 
     if (!displayOnly && !formulaContext && (inVcqNarrowCell || inVcqBlankCell)) {
+      const raw = getResponseRawString(answerSource, id);
       const value = getResponseString(answerSource, id);
+      const typesetValue = isReadOnly && value !== "" && needsMathRender(id, raw, false);
       const overlayClass = clsx(
         "qti-ext-input-blank",
         isReadOnly ? displayVariantClass : "qti-ext-text-entry-input",
@@ -430,13 +433,14 @@ function MathInputBlankView({
           )}
         >
           <span className={overlayClass} aria-hidden="true" />
-          {value ? renderCellText(value, `vcq-text-${id}`, id, true) : null}
-          {!isReadOnly && (
+          {typesetValue ? renderCellText(value, `vcq-text-${id}`, id, true) : null}
+          {(!isReadOnly || !typesetValue) && (
             <input
               className={clsx("qti-ext-input-blank__field", alignClass)}
               type="text"
               size={1}
               value={value}
+              readOnly={isReadOnly}
               data-response-identifier={id}
               aria-label={`${id} 입력`}
               onChange={(e) => handleChange(id, e.target.value)}

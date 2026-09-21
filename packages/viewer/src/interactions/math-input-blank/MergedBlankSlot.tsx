@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import clsx from "clsx";
 import { renderLaTeX } from "../../parser/parseLatexToReact";
 import { measureDisplayContent, readBoxExtras } from "./slotMeasure";
+import { isMathLatexAnswer } from "../../utils";
 import { type BlankVariant, getBlankVariantClass } from "./utils";
 import { alignMergedColumnContent } from "./vcqMergedAlign";
 
@@ -143,6 +144,21 @@ export function MergedBlankSlot({
             </span>
           ) : null}
         </span>
+      ) : isReadOnly && isFallback && text && !isMathLatexAnswer(text) ? (
+        <input
+          className={clsx(
+            "qti-ext-input-blank qti-ext-text-entry-input qti-ext-vcq-merged-input",
+            "qti-ext-vcq-merged-input--fallback",
+            stateClassName,
+            alignClass
+          )}
+          type="text"
+          size={1}
+          value={text}
+          readOnly
+          data-response-identifier={id}
+          aria-label={`${id} 입력`}
+        />
       ) : isReadOnly ? (
         <span
           ref={displayRef}
