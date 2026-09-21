@@ -74,8 +74,8 @@ export interface ResponseValueMap {
   [responseIdentifier: string]: string[];
 }
 
-/** Question/파서 동작 모드. preview: 정적 미리보기(인터랙션 비활성) */
-export type QuestionMode = "practice" | "preview";
+/** Question/파서 동작 모드. practice: 풀이, preview: 읽기 전용+피드백, thumbnail: 읽기 전용+인쇄형 크롬 제거 */
+export type QuestionMode = "practice" | "preview" | "thumbnail";
 
 export interface QTIParserOptions {
   token?: string;
@@ -88,7 +88,7 @@ export interface QTIParserOptions {
   /** SIMULTANEOUS일 때는 정오답/피드백 표시 안 함 */
   correctAnswers?: Record<string, ResponseValue>;
   submissionMode?: "INDIVIDUAL" | "SIMULTANEOUS";
-  /** practice | preview. preview일 때 인터랙션 비활성/정적 렌더 */
+  /** practice | preview | thumbnail. practice가 아니면 인터랙션 비활성 */
   mode?: QuestionMode;
   /** 미디어 상대 경로 해석용 베이스 URL */
   baseUrl?: string;

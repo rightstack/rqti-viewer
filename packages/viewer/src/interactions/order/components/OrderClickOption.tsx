@@ -38,7 +38,7 @@ const OrderClickOption = ({
   onOrderChange,
 }: OrderClickOptionProps) => {
   const isSubmit = options.isSubmit ?? false;
-  const isPreview = options.mode === "preview";
+  const isPreview = options.mode !== "practice";
   const disabled = isSubmit || isPreview;
 
   const correctOrder =

@@ -2,7 +2,7 @@
 
 QTI 문항을 **상세 API**로 조회해 **문항 1개**를 렌더링하는 가이드입니다.
 
-> `mode`는 `Question`이 기본값 `"preview"`(읽기 전용)입니다. `toQuestionProps`는 `mode`를 지정하지 않으므로, 풀이가 필요하면 호출측에서 `mode="practice"`를 전달하세요.
+> `mode`는 `Question`이 기본값 `"preview"`(읽기 전용)입니다. `toQuestionProps`는 `mode`를 지정하지 않으므로, 풀이가 필요하면 호출측에서 `mode="practice"`를 전달하세요. 인쇄형 썸네일은 `mode="thumbnail"`입니다.
 
 > 호스트가 힌트를 직접 그릴 때: **[HINT_GUIDE.md](./HINT_GUIDE.md)**  
 > 힌트만 그리는 화면은 `HINT_GUIDE`를 보고 `styles.css`와 `MathJaxProviderWrapper`를 그 화면에 넣고, 힌트 영역을 `.rqti-viewer`로 감쌉니다.
@@ -288,9 +288,9 @@ const exampleTheme: Theme = {
 | `type`               | 문항 유형                                                          |
 | `itemKey`            | 문항 식별 키                                                       |
 | `passage`            | 연결지문 HTML. 있으면 문항 왼쪽에 가로로 같이 렌더                 |
-| `mode`               | `"preview"`(기본, 읽기 전용) 또는 `"practice"`(풀이)               |
+| `mode`               | `"preview"`(기본, 읽기 전용) · `"practice"`(풀이) · `"thumbnail"`(인쇄형) |
 | `onSubmit`           | practice 전용. 제출 시 응답 수신                                   |
-| `responses`          | preview 전용. 저장해 둔 응답을 선택·입력으로 표시                  |
+| `responses`          | preview·thumbnail. 저장해 둔 응답을 선택·입력으로 표시             |
 | `theme`              | `"default"` 또는 커스텀 `Theme`(JSON/객체) — `THEME_GUIDE.md` 참고 |
 | `designWidth`        | 고정형 스케일의 원본 기준 폭(px). 기본 `720`                       |
 
@@ -298,15 +298,24 @@ const exampleTheme: Theme = {
 
 ---
 
-## 9. practice / preview
+## 9. practice / preview / thumbnail
 
 `mode`에 따라 넘기는 props만 다릅니다.
 
-| | practice | preview |
-| --- | --- | --- |
-| `mode` | `"practice"` | `"preview"` (기본값) |
-| 동작 | 풀이 가능, 제출 버튼 표시 | 읽기 전용 |
-| 추가 prop | `onSubmit` — 제출 시 응답 수신 | `responses` — 저장 응답을 선택·입력으로 표시 |
+| | practice | preview | thumbnail |
+| --- | --- | --- | --- |
+| `mode` | `"practice"` | `"preview"` (기본값) | `"thumbnail"` |
+| 동작 | 풀이 가능, 제출 버튼 표시 | 읽기 전용. 인라인 피드백·정오 배지 가능 | 읽기 전용. 인쇄형 크롬 제거. 제출/피드백/정오 배지 없음 |
+| 추가 prop | `onSubmit` — 제출 시 응답 수신 | `responses` — 저장 응답을 선택·입력으로 표시 | `responses` — 있으면 답안만 표시 (정오 색 없음) |
+
+thumbnail은 지정된 7유형만 크롬을 숨깁니다.
+
+- **SCQ / MCQ / GCQ**: 라디오·체크박스 미렌더. 선택 카드 스타일은 유지. GCQ 그리드 header 여백 조정
+- **SRQ / CLOZE**: placeholder 빈값 (XML `placeholder-text` 포함)
+- **ESSAY**: placeholder 빈값, 글자수 숨김. 입력 제한은 유지
+- **DDQ**: placeholder 빈값, 드롭다운 화살표 미렌더. 박스 형태는 유지
+
+TFQ, GMQ, MATCH, ORDER, UPLOAD, VCQ 등은 크롬 변경 없이 읽기 전용만 적용됩니다.
 
 ```tsx
 <Question
@@ -322,9 +331,15 @@ const exampleTheme: Theme = {
   mode="preview"
   responses={savedResponses}
 />
+
+<Question
+  {...props}
+  mode="thumbnail"
+  responses={savedResponses}
+/>
 ```
 
-`onSubmit`으로 받은 값을 preview의 `responses`에 그대로 넣으면 됩니다.  
+`onSubmit`으로 받은 값을 preview·thumbnail의 `responses`에 그대로 넣으면 됩니다.  
 실제 형태는 `onSubmit`에서 확인하면 됩니다. SCQ 예시:
 
 ```ts

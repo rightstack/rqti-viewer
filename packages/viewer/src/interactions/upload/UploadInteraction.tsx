@@ -46,7 +46,7 @@ export const UploadInteraction: React.FC<UploadInteractionProps> = ({
         uploadedFile={uploadedFile}
         onFileChange={handleFileChange}
         disabled={!!options.isSubmit}
-        isPreview={options.mode === "preview"}
+        isPreview={options.mode !== "practice"}
       />
     </div>
   );

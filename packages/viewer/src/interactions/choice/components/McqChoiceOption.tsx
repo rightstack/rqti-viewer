@@ -9,6 +9,7 @@ interface McqChoiceOptionProps {
   submitAnswers: Set<string>;
   isSubmit: boolean;
   isPreview?: boolean;
+  isThumbnail?: boolean;
   submitResponse?: FeedbackSubmitResponse;
   responseIdentifier: string;
   correctIdList: string[];
@@ -21,6 +22,7 @@ export const McqChoiceOption = ({
   isSelected,
   isSubmit,
   isPreview = false,
+  isThumbnail = false,
   submitResponse,
   responseIdentifier,
   correctIdList,
@@ -93,39 +95,40 @@ export const McqChoiceOption = ({
           {/* 선택지 콘텐츠 (라벨은 XML class + CSS counter로 표시) */}
           {children}
         </div>
-        {/* 체크박스 */}
-        <div
-          className={cn(
-            "qti-ext-choice-option-checkbox",
-            isSelected && "qti-ext-choice-option-checkbox-selected",
-            isCorrect && "qti-ext-choice-option-checkbox-correct",
-            isIncorrect && "qti-ext-choice-option-checkbox-incorrect",
-            isAnswerReveal && "qti-ext-choice-option-checkbox-answer-reveal"
-          )}
-          role="checkbox"
-          aria-checked={isSelected}
-          aria-label={`선택지 ${choice.identifier}`}
-        >
-          {isSelected && (
-            <div
-              className="rqti:animate-bounce-in rqti:absolute rqti:inset-0 rqti:flex rqti:items-center rqti:justify-center"
-              key={choice.identifier}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="calc(var(--qti-option-border-width) * 2)"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="qti-ext-choice-option-checkbox-icon"
+        {!isThumbnail && (
+          <div
+            className={cn(
+              "qti-ext-choice-option-checkbox",
+              isSelected && "qti-ext-choice-option-checkbox-selected",
+              isCorrect && "qti-ext-choice-option-checkbox-correct",
+              isIncorrect && "qti-ext-choice-option-checkbox-incorrect",
+              isAnswerReveal && "qti-ext-choice-option-checkbox-answer-reveal"
+            )}
+            role="checkbox"
+            aria-checked={isSelected}
+            aria-label={`선택지 ${choice.identifier}`}
+          >
+            {isSelected && (
+              <div
+                className="rqti:animate-bounce-in rqti:absolute rqti:inset-0 rqti:flex rqti:items-center rqti:justify-center"
+                key={choice.identifier}
               >
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
-            </div>
-          )}
-        </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="calc(var(--qti-option-border-width) * 2)"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="qti-ext-choice-option-checkbox-icon"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 정답/오답 뱃지 */}

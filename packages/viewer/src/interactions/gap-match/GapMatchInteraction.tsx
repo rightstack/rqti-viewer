@@ -135,7 +135,7 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
     return {};
   });
 
-  const isPreview = options.mode === "preview";
+  const isPreview = options.mode !== "practice";
   const [isSubmit, setIsSubmit] = useState(!!options.isSubmit);
 
   useEffect(() => {

@@ -34,6 +34,7 @@ interface DropdownProps {
   showAnswerFeedback?: boolean;
   isCorrect?: boolean;
   isPreview?: boolean;
+  hideArrow?: boolean;
   onChange: (value: string) => void;
   inputWidth?: string;
   isAlone?: boolean;
@@ -49,6 +50,7 @@ export const Dropdown = ({
   showAnswerFeedback = false,
   isCorrect = false,
   isPreview = false,
+  hideArrow = false,
   onChange,
   inputWidth,
   isAlone = false,
@@ -197,15 +199,22 @@ export const Dropdown = ({
 
   return (
     <div
-      className={cn("qti-ext-dropdown", "qti-ext-dropdown-auto-width", isAlone && "is-alone")}
+      className={cn(
+        "qti-ext-dropdown",
+        "qti-ext-dropdown-auto-width",
+        isAlone && "is-alone",
+        hideArrow && "qti-ext-dropdown--no-arrow"
+      )}
       style={containerStyle}
       ref={dropdownRef}
     >
       <div className="qti-ext-dropdown-sizer" aria-hidden>
         <div className="qti-ext-dropdown-content">{longestOptionText}</div>
-        <span className="qti-ext-dropdown-arrow">
-          <ChevronDownIcon className="qti-ext-dropdown-arrow-icon" />
-        </span>
+        {!hideArrow && (
+          <span className="qti-ext-dropdown-arrow">
+            <ChevronDownIcon className="qti-ext-dropdown-arrow-icon" />
+          </span>
+        )}
       </div>
       <div
         role="button"
@@ -220,14 +229,16 @@ export const Dropdown = ({
         <div className="qti-ext-dropdown-content">
           {selectedOption ? dropdownOptionLabel(selectedOption, token) : <span>{placeholder}</span>}
         </div>
-        <span className="qti-ext-dropdown-arrow">
-          <ChevronDownIcon
-            className={cn(
-              "qti-ext-dropdown-arrow-icon",
-              isOpen && "qti-ext-dropdown-arrow-icon-open"
-            )}
-          />
-        </span>
+        {!hideArrow && (
+          <span className="qti-ext-dropdown-arrow">
+            <ChevronDownIcon
+              className={cn(
+                "qti-ext-dropdown-arrow-icon",
+                isOpen && "qti-ext-dropdown-arrow-icon-open"
+              )}
+            />
+          </span>
+        )}
       </div>
 
       {/* Dropdown Menu */}

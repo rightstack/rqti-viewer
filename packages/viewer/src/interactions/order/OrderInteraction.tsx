@@ -76,7 +76,7 @@ export const OrderInteraction = ({ element, options, index }: OrderInteractionPr
     return displayIds.map((id) => byId.get(id)).filter((c): c is OrderChoiceType => Boolean(c));
   }, [choices, displayIds]);
 
-  const isPreview = options.mode === "preview";
+  const isPreview = options.mode !== "practice";
 
   // 제어형(responses 주입) 응답 동기화 + 문항(choices) 교체 시 초기화.
   // effect 안에서 setState하면 cascading render 경고가 발생하므로,

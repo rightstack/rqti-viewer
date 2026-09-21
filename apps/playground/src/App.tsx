@@ -12,6 +12,7 @@ import {
   type QuestionItemProps,
   type ResponseValueMap,
   type Theme,
+  type QuestionMode,
 } from "@rightstack/rqti-viewer";
 import { LOCAL_ITEMS, LOCAL_SAMPLE_ITEMS } from "./localItems";
 
@@ -178,7 +179,7 @@ export default function App() {
   const [item, setItem] = useState<QuestionItem | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<"practice" | "preview">("practice");
+  const [mode, setMode] = useState<QuestionMode>("practice");
   const [hintBoxBg, setHintBoxBg] = useState("#fff8e7");
   const [hintBoxPadding, setHintBoxPadding] = useState(16);
   const [hintBoxRadius, setHintBoxRadius] = useState(12);
@@ -304,7 +305,7 @@ export default function App() {
         <section style={styles.state}>
           <h2 style={styles.stateTitle}>모드</h2>
           <div style={styles.toggleRow}>
-            {(["practice", "preview"] as const).map((m) => (
+            {(["practice", "preview", "thumbnail"] as const).map((m) => (
               <button
                 key={m}
                 type="button"
@@ -314,13 +315,17 @@ export default function App() {
                   ...(mode === m ? styles.toggleBtnActive : null),
                 }}
               >
-                {m === "practice" ? "practice (제출)" : "preview (복원)"}
+                {m === "practice"
+                  ? "practice (제출)"
+                  : m === "preview"
+                    ? "preview (복원)"
+                    : "thumbnail (크롬 숨김)"}
               </button>
             ))}
           </div>
           <p style={styles.hint}>
-            preview는 마지막 onSubmit 응답을 선택·입력으로 표시합니다. 정오 색은
-            그리지 않습니다.
+            preview·thumbnail은 마지막 onSubmit 응답을 선택·입력으로 표시합니다.
+            thumbnail은 라디오·체크박스·placeholder·글자수·화살표를 숨깁니다.
           </p>
 
           <label style={styles.sliderRow}>
@@ -550,7 +555,9 @@ export default function App() {
               showFeedback={false}
               showInlineFeedback={false}
               responses={
-                mode === "preview" ? lastSubmit ?? undefined : undefined
+                mode === "preview" || mode === "thumbnail"
+                  ? lastSubmit ?? undefined
+                  : undefined
               }
               passage={demoPassage ? DEMO_PASSAGE_HTML : props.passage}
               onSubmit={setLastSubmit}

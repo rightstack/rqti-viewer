@@ -1015,6 +1015,11 @@
   vertical-align: middle;
 }
 
+.qti-ext-dropdown--no-arrow .qti-ext-dropdown-sizer,
+.qti-ext-dropdown--no-arrow .qti-ext-dropdown-trigger {
+  padding-inline: 0.75em;
+}
+
 .qti-ext-dropdown-sizer {
   visibility: hidden;
 
@@ -3360,6 +3365,10 @@
 
 .qti-ext-grid-header {
   @apply rqti:grid rqti:grid-cols-[40px_1fr_1fr] rqti:p-4 rqti:pr-13 rqti:font-bold;
+}
+
+.qti-ext-wrapper--thumbnail .qti-ext-grid-header {
+  @apply rqti:pr-4;
 }
 
 .qti-ext-grid-header-cell,

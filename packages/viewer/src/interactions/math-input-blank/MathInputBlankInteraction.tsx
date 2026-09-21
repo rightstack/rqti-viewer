@@ -163,7 +163,7 @@ function MathInputBlankView({
   }, [segments, fallbackWidthCh]);
 
   const isPreview = options.mode === "preview";
-  const isReadOnly = displayOnly || isPreview;
+  const isReadOnly = displayOnly || options.mode !== "practice";
   const isMathContext =
     isMathResponseId(responseId ?? "") || isVcqBlankCell(contextElement) || mergedColSpan >= 2;
 

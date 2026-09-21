@@ -8,6 +8,7 @@ interface EssayTextAreaProps {
   maxLength?: number;
   disabled?: boolean;
   readOnly?: boolean;
+  hideCount?: boolean;
 }
 
 const EssayTextArea = ({
@@ -17,6 +18,7 @@ const EssayTextArea = ({
   maxLength = 500,
   disabled = false,
   readOnly = false,
+  hideCount = false,
 }: EssayTextAreaProps) => {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (disabled || readOnly) return;
@@ -37,9 +39,11 @@ const EssayTextArea = ({
         // disabled={disabled}
         readOnly={readOnly}
       />
-      <span className="qti-ext-textarea-count">
-        {value.length} / {maxLength}
-      </span>
+      {!hideCount && (
+        <span className="qti-ext-textarea-count">
+          {value.length} / {maxLength}
+        </span>
+      )}
     </div>
   );
 };

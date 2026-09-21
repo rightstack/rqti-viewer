@@ -106,6 +106,7 @@ export const MatchInteraction: React.FC<MatchInteractionProps> = ({ element, opt
   const [selectedByPairIndex, setSelectedByPairIndex] =
     useState<Array<{ left: string | null; right: string | null }>>(createEmptySelections());
   const isPreview = options.mode === "preview";
+  const isReadOnly = options.mode !== "practice";
   const [isSubmit, setIsSubmit] = useState(!!options.isSubmit);
   const [submitMatchedPairs, setSubmitMatchedPairs] = useState<MatchingPairType[]>([]);
 
@@ -604,7 +605,7 @@ export const MatchInteraction: React.FC<MatchInteractionProps> = ({ element, opt
         handleMatchSelect={handleMatchSelect}
         options={options}
         isSubmit={isSubmit}
-        isPreview={isPreview}
+        isPreview={isReadOnly}
       />
     </div>
   );

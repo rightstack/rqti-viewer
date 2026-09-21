@@ -64,6 +64,8 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
   const maxLength = maxLengthAttr ? Number.parseInt(maxLengthAttr, 10) : undefined;
 
   const isPreview = options.mode === "preview";
+  const isReadOnly = options.mode !== "practice";
+  const isThumbnail = options.mode === "thumbnail";
 
   const initialValue = useMemo(
     () => getTextEntryResponseString(options.responses, responseIdentifier, ""),
@@ -106,7 +108,9 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
     return sr.correct;
   }, [effectiveSubmitResponse, options.responses, responseIdentifier, value]);
 
-  const defaultPlaceholder = placeholderText || (isSRQ ? "답을 입력하세요" : "답 입력");
+  const defaultPlaceholder = isThumbnail
+    ? ""
+    : placeholderText || (isSRQ ? "답을 입력하세요" : "답 입력");
 
   // SRQ 타입은 최대 50자로 제한
 
@@ -131,7 +135,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
       value={value}
       showCorrectAnswer={false}
       isSubmit={options.isSubmit}
-      isPreview={options.mode === "preview"}
+      isPreview={isReadOnly}
       isCorrect={isCorrect}
       onAnswerChange={handleAnswerChange}
       pattern={pattern}

@@ -203,13 +203,13 @@ const item = (await res.json()) as QuestionItem;
 <Question theme="default" {...toQuestionProps(item)} />;
 ```
 
-## practice / preview
+## practice / preview / thumbnail
 
-| | practice | preview |
-| --- | --- | --- |
-| `mode` | `"practice"` | `"preview"` (기본값) |
-| 동작 | 풀이 가능, 제출 버튼 표시 | 읽기 전용 |
-| 추가 prop | `onSubmit` — 제출 시 응답 수신 | `responses` — 저장 응답을 선택·입력으로 표시 |
+| | practice | preview | thumbnail |
+| --- | --- | --- | --- |
+| `mode` | `"practice"` | `"preview"` (기본값) | `"thumbnail"` |
+| 동작 | 풀이 가능, 제출 버튼 표시 | 읽기 전용 | 읽기 전용. 인쇄형 크롬 제거 |
+| 추가 prop | `onSubmit` — 제출 시 응답 수신 | `responses` — 저장 응답을 선택·입력으로 표시 | `responses` — 있으면 답안만 표시 |
 
 ```tsx
 <Question
@@ -229,7 +229,7 @@ const item = (await res.json()) as QuestionItem;
 />
 ```
 
-`onSubmit`으로 받은 값을 preview의 `responses`에 그대로 넣으면 됩니다. 실제 형태는 `onSubmit`에서 확인하면 됩니다.
+`onSubmit`으로 받은 값을 preview·thumbnail의 `responses`에 그대로 넣으면 됩니다. 실제 형태는 `onSubmit`에서 확인하면 됩니다. 유형별 크롬 차이는 `USER_GUIDE.md`를 참고하세요.
 
 ```ts
 { RESPONSE: "C" }

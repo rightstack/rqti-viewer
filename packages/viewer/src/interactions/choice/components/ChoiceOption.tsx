@@ -9,6 +9,7 @@ interface ChoiceOptionProps {
   submitAnswer: string;
   isSubmit: boolean;
   isPreview?: boolean;
+  isThumbnail?: boolean;
   submitResponse?: FeedbackSubmitResponse;
   responseIdentifier: string;
   /** 제출 피드백·미리보기용 정답 ID (correctAnswer ?? correctAnswers) */
@@ -22,6 +23,7 @@ export const ChoiceOption = ({
   isSelected,
   isSubmit,
   isPreview = false,
+  isThumbnail = false,
   submitResponse,
   responseIdentifier,
   correctIdList,
@@ -82,31 +84,31 @@ export const ChoiceOption = ({
           {/* 선택지 콘텐츠 (라벨은 XML class + CSS counter로 표시) */}
           {children}
         </div>
-        {/* 라디오 버튼 */}
-
-        <div
-          className={cn(
-            "qti-ext-choice-option-radio",
-            isSelected && "qti-ext-choice-option-radio-selected",
-            isCorrect && "qti-ext-choice-option-radio-correct",
-            isIncorrect && "qti-ext-choice-option-radio-incorrect",
-            isAnswerReveal && "qti-ext-choice-option-radio-answer-reveal"
-          )}
-          role="radio"
-          aria-checked={isSelected}
-          aria-label={`선택지 ${choice.identifier}`}
-        >
-          {isSelected && (
-            <div
-              className={cn(
-                "qti-ext-choice-option-radio-dot",
-                isCorrect && "qti-ext-choice-option-radio-dot-correct",
-                isIncorrect && "qti-ext-choice-option-radio-dot-incorrect"
-              )}
-              key={choice.identifier}
-            />
-          )}
-        </div>
+        {!isThumbnail && (
+          <div
+            className={cn(
+              "qti-ext-choice-option-radio",
+              isSelected && "qti-ext-choice-option-radio-selected",
+              isCorrect && "qti-ext-choice-option-radio-correct",
+              isIncorrect && "qti-ext-choice-option-radio-incorrect",
+              isAnswerReveal && "qti-ext-choice-option-radio-answer-reveal"
+            )}
+            role="radio"
+            aria-checked={isSelected}
+            aria-label={`선택지 ${choice.identifier}`}
+          >
+            {isSelected && (
+              <div
+                className={cn(
+                  "qti-ext-choice-option-radio-dot",
+                  isCorrect && "qti-ext-choice-option-radio-dot-correct",
+                  isIncorrect && "qti-ext-choice-option-radio-dot-incorrect"
+                )}
+                key={choice.identifier}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* {isSubmit && <FeedbackIcon isCorrect={isCorrect} isIncorrect={isIncorrect} />} */}

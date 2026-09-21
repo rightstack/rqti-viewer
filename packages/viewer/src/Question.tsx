@@ -68,11 +68,11 @@ export interface QuestionProps {
   isSubmit?: boolean;
   showSubmitButton?: boolean;
   submitButtonLabel?: string;
-  /** practice: 인터랙티브, preview: 정적 렌더 */
+  /** practice: 풀이, preview: 읽기 전용+피드백, thumbnail: 읽기 전용+인쇄형 크롬 제거 */
   mode?: QuestionMode;
   correctAnswers?: Record<string, ResponseValue>;
   /**
-   * 제어형 응답. preview에서 값이 있으면 선택·입력을 복원해 표시한다.
+   * 제어형 응답. preview·thumbnail에서 값이 있으면 선택·입력을 복원해 표시한다.
    * practice의 `onSubmit` 페이로드를 그대로 넣으면 된다.
    */
   responses?: ResponseValueMap;
@@ -298,7 +298,7 @@ function Question({
     correctAnswers: correctAnswers ?? effectiveSubmitResponse?.correctAnswer,
     isSubmit: internalIsSubmit,
     itemKey: itemKeyProp,
-    onResponseChange: mode === "preview" ? undefined : handleResponseChange,
+    onResponseChange: mode === "practice" ? handleResponseChange : undefined,
   };
 
   // 문항 번호: questionNumberConfig가 있을 때만 표시
@@ -324,7 +324,7 @@ function Question({
     !isCompletionOnly &&
     (mode === "preview"
       ? internalIsSubmit && correct !== undefined
-      : !!effectiveSubmitResponse);
+      : mode === "practice" && !!effectiveSubmitResponse);
 
   const isCorrectBadge =
     mode === "preview" ? !!correct : !!effectiveSubmitResponse?.correct;
@@ -388,6 +388,7 @@ function Question({
     <div
       className={cn(
         "qti-ext-wrapper",
+        mode === "thumbnail" && "qti-ext-wrapper--thumbnail",
         stackInlineFeedback && "rqti:flex-col",
       )}
     >
@@ -410,7 +411,7 @@ function Question({
 
         {contentBlock}
 
-        {mode !== "preview" && showSubmitButton && (
+        {mode === "practice" && showSubmitButton && (
           <div className="rqti:mt-auto rqti:pb-8">
             <SubmitButton
               canSubmit={canSubmit}

@@ -28,7 +28,7 @@ const OrderOption = ({
   onOrderChange,
 }: OrderOptionProps) => {
   const isSubmit = options.isSubmit ?? false;
-  const isPreview = options.mode === "preview";
+  const isPreview = options.mode !== "practice";
 
   // 드래그 상태 관리
   const [draggedChoiceId, setDraggedChoiceId] = useState<string | null>(null);

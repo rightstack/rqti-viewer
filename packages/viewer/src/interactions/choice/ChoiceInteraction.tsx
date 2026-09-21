@@ -99,6 +99,8 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
   // SIMULTANEOUS: 답안(responses)은 복원하되, 정오답/피드백은 절대 표시하지 않음
   // INDIVIDUAL: isSubmit(제출 여부) + submitResponse 기반 정오답. preview에서 채점 테마는 options.isSubmit일 때만
   const isPreview = options.mode === "preview";
+  const isReadOnly = options.mode !== "practice";
+  const isThumbnail = options.mode === "thumbnail";
   const showFeedback = isPreview || options.submissionMode !== "SIMULTANEOUS";
   const isSubmit = showFeedback ? !!options.isSubmit : false;
   const effectiveSubmitResponse = showFeedback
@@ -161,7 +163,7 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
         selectedIdentifier={selectedIdentifier}
         onSelect={handleSelect}
         isSubmit={isSubmit}
-        isPreview={isPreview}
+        isPreview={isReadOnly}
         submitResponse={effectiveSubmitResponse}
         responseIdentifier={responseIdentifier}
       />
@@ -195,7 +197,8 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
               isSelected={isSelected}
               submitAnswers={submitAnswersSet}
               isSubmit={isSubmit}
-              isPreview={isPreview}
+              isPreview={isReadOnly}
+              isThumbnail={isThumbnail}
               onSelect={handleSelect}
               submitResponse={effectiveSubmitResponse}
               responseIdentifier={responseIdentifier}
@@ -215,7 +218,8 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
             isSelected={isSelected}
             submitAnswer={submitAnswerStr}
             isSubmit={isSubmit}
-            isPreview={isPreview}
+            isPreview={isReadOnly}
+            isThumbnail={isThumbnail}
             onSelect={handleSelect}
             submitResponse={effectiveSubmitResponse}
             responseIdentifier={responseIdentifier}

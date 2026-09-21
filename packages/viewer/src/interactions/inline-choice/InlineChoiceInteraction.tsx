@@ -51,7 +51,8 @@ export const InlineChoiceInteraction: React.FC<InlineChoiceInteractionProps> = (
     setValue(initialValue);
   }, [initialValue]);
 
-  const isPreview = options.mode === "preview";
+  const isPreview = options.mode !== "practice";
+  const isThumbnail = options.mode === "thumbnail";
   const [isSubmit, setIsSubmit] = useState(!!options.isSubmit);
 
   useEffect(() => {
@@ -96,11 +97,12 @@ export const InlineChoiceInteraction: React.FC<InlineChoiceInteractionProps> = (
 
   const labelEl = element.querySelector("qti-label");
   const labelAttr = element.getAttribute("label");
-  const placeholder =
-    labelAttr ||
-    (labelEl && extractTextFromElement(labelEl)) ||
-    options.placeholder ||
-    "선택하세요";
+  const placeholder = isThumbnail
+    ? ""
+    : labelAttr ||
+      (labelEl && extractTextFromElement(labelEl)) ||
+      options.placeholder ||
+      "선택하세요";
 
   return (
     <Dropdown
@@ -113,6 +115,7 @@ export const InlineChoiceInteraction: React.FC<InlineChoiceInteractionProps> = (
       showAnswerFeedback={isSubmit}
       isCorrect={isCorrect}
       isPreview={isPreview}
+      hideArrow={isThumbnail}
       onChange={handleChange}
       inputWidth={width || dropdownEntry?.inputWidth || options.inputWidths?.[responseIdentifier]}
       isAlone={isAlone}

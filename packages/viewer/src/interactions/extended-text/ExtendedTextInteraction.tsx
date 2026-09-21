@@ -46,10 +46,11 @@ export const ExtendedTextInteraction: React.FC<ExtendedTextInteractionProps> = (
       <EssayTextArea
         value={value}
         onChange={handleChange}
-        placeholder={placeholderText || "내용을 입력하세요."}
+        placeholder={options.mode === "thumbnail" ? "" : placeholderText || "내용을 입력하세요."}
         maxLength={maxLength}
         disabled={!!options.isSubmit}
-        readOnly={options.mode === "preview"}
+        readOnly={options.mode !== "practice"}
+        hideCount={options.mode === "thumbnail"}
       />
     </div>
   );
