@@ -272,8 +272,7 @@ function MathInputBlankView({
    * 값마다 한 번만 받는다. Rule을 바꾸면 재조판·재측정이 도는데 지수·분수 안에서는
    * em 기준 글자 크기가 미세하게 달라져 값이 계속 흔들린다.
    */
-  /** thumbnail은 캡처 시점에 조판을 숨기면 응시 응답이 빈칸으로 남는다. */
-  const measureSlots = isReadOnly && formulaContext && !isThumbnail;
+  const measureSlots = isReadOnly && formulaContext;
   const [slotContentEm, setSlotContentEm] = useState<
     Record<string, { value: string; em: SlotContentEm }>
   >({});
@@ -297,8 +296,7 @@ function MathInputBlankView({
     blankIds.some((id) => slotContentEm[id]?.value !== getResponseString(answerSource, id));
 
   const handleChange = (id: string, value: string) => {
-    if (isThumbnail || isReadOnly) return;
-    options.onResponseChange?.(id, value);
+    if (!isReadOnly) options.onResponseChange?.(id, value);
   };
 
   const answerRevealVariant: BlankVariant =
@@ -346,7 +344,7 @@ function MathInputBlankView({
 
     const raw = getResponseRawString(answerSource, id);
     const value = getResponseString(answerSource, id);
-    if (isReadOnly && needsMathRender(id, raw, isThumbnail ? false : treatAsMath)) {
+    if (isReadOnly && needsMathRender(id, raw, treatAsMath)) {
       return (
         <span key={key} className="qti-ext-math-blank-inline">
           <FormulaSlotLatexDisplay

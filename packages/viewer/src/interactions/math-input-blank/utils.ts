@@ -170,27 +170,15 @@ function isAnswerRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-/**
- * QMS/응시 응답: 문자열, `string[]`, `{ values }`, `{ value }`, `{ answers: [{ value }] }`.
- * 객체는 예전에 빈 칸으로 버려졌다.
- */
-export function coerceResponseText(raw: unknown): string {
-  if (raw === undefined || raw === null) return "";
-  if (typeof raw === "string" || typeof raw === "number") return String(raw);
-  if (Array.isArray(raw)) return coerceResponseText(raw[0]);
-  if (!isAnswerRecord(raw)) return "";
-  if ("values" in raw) return coerceResponseText(raw.values);
-  if ("value" in raw) return coerceResponseText(raw.value);
-  if (Array.isArray(raw.answers)) return coerceResponseText(raw.answers[0]);
-  return "";
-}
-
 export function getResponseRawString(map: Record<string, unknown> | undefined, id: string): string {
   if (!map) return "";
-  return coerceResponseText(map[id]);
+  const raw = map[id];
+  if (raw === undefined || raw === null) return "";
+  if (typeof raw === "object" && !Array.isArray(raw)) return "";
+  return Array.isArray(raw) ? String(raw[0] ?? "") : String(raw);
 }
 
-/** 본문은 responses. 정답영역만 correctAnswers. PCI 부모 배열·record·answers 객체를 RESPONSE_N으로 편평. */
+/** 본문은 responses. 정답영역만 correctAnswers. PCI 부모 배열·record는 RESPONSE_N으로 편평. */
 export function buildMathBlankAnswerSource(
   answerKeyPreview: boolean,
   correctAnswers: Record<string, unknown> | undefined,
@@ -205,26 +193,16 @@ export function buildMathBlankAnswerSource(
 
   const flat: Record<string, unknown> = { ...raw };
   const blankIds = extractResponseIds(latex);
-  const needsParent = blankIds.some((id) => coerceResponseText(flat[id]) === "");
-  if (!needsParent) return flat;
+  if (!blankIds.some((id) => !(id in flat))) return flat;
 
   const parentValue = responseId ? raw[responseId] : undefined;
   if (Array.isArray(parentValue)) {
     for (let i = 0; i < Math.min(parentValue.length, blankIds.length); i++) {
-      if (coerceResponseText(flat[blankIds[i]]) === "") flat[blankIds[i]] = parentValue[i];
+      if (!(blankIds[i] in flat)) flat[blankIds[i]] = parentValue[i];
     }
   } else if (isAnswerRecord(parentValue)) {
     for (const id of blankIds) {
-      if (coerceResponseText(flat[id]) === "" && id in parentValue) {
-        flat[id] = parentValue[id];
-      }
-    }
-    if (Array.isArray(parentValue.values)) {
-      for (let i = 0; i < Math.min(parentValue.values.length, blankIds.length); i++) {
-        if (coerceResponseText(flat[blankIds[i]]) === "") {
-          flat[blankIds[i]] = parentValue.values[i];
-        }
-      }
+      if (!(id in flat) && id in parentValue) flat[id] = parentValue[id];
     }
   }
   return flat;
