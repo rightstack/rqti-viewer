@@ -71,8 +71,8 @@ containerConfig: {
 }
 ```
 
-`maxWidth`는 내부 콘텐츠 너비만 제어합니다. 문항 전체의 비례 축소는
-`sizing="fixed"`와 `designWidth={1000}`으로 설정합니다.
+`maxWidth`는 내부 콘텐츠 너비만 제어합니다. 문항 전체의 비례 축소 기준 폭은
+`designWidth={1000}`으로 설정합니다.
 
 ### 3.2 `typography` — 타이포그래피
 

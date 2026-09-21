@@ -234,13 +234,19 @@ export function ItemViewer() {
 
 ## 7. 너비 및 스케일 설정
 
+뷰어는 **고정형 스케일 단일 모드**입니다. 반응형(폭 구간별 재배치)은 지원하지 않습니다.
+문항은 항상 `designWidth` 고정 폭으로 렌더된 뒤, 부모 폭에 맞춰 `transform: scale()`로만
+비례 축소됩니다(원본보다 크게 확대하지는 않습니다). 덕분에 폭이 달라져도 내부 좌표계가
+유지되어 화이트보드 필기 같은 오버레이 정합이 깨지지 않습니다.
+
 | 설정 | 설명 |
 | --- | --- |
-| `sizing="responsive"` | **반응형**: 부모 너비에 따라 줄바꿈과 배치가 변경됨 |
-| `sizing="fixed"` | **고정형 스케일**: 기준 레이아웃을 유지하며 가로·세로가 같은 비율로 축소됨 |
-| `designWidth={1000}` | 고정형 스케일의 기준 너비를 1000px로 설정 |
+| `designWidth={1000}` | 고정형 스케일의 기준 너비를 1000px로 설정. 기본 `720` |
 | `maxWidth: "100%"` | 문항 콘텐츠가 기준 너비 전체를 사용 |
 | `padding: "0px"` | 문항 콘텐츠의 기본 내부 여백 제거 |
+
+모바일·태블릿 UI가 필요하면 폭이 아니라 조상 요소의 `data-device="mobile"` /
+`data-device="tablet"` 속성으로 전환합니다.
 
 ```tsx
 import { DEFAULT_THEME, Question, type Theme } from "@rightstack/rqti-viewer";
@@ -263,7 +269,6 @@ const exampleTheme: Theme = {
 <Question
   {...props}
   theme={exampleTheme}
-  sizing="fixed"
   designWidth={1000}
 />
 ```
@@ -287,8 +292,7 @@ const exampleTheme: Theme = {
 | `onSubmit`           | practice 전용. 제출 시 응답 수신                                   |
 | `responses`          | preview 전용. 저장해 둔 응답을 선택·입력으로 표시                  |
 | `theme`              | `"default"` 또는 커스텀 `Theme`(JSON/객체) — `THEME_GUIDE.md` 참고 |
-| `sizing`             | `"responsive"`(기본) 또는 `"fixed"`                                |
-| `designWidth`        | `fixed` 모드의 원본 기준 폭(px). 기본 `720`                        |
+| `designWidth`        | 고정형 스케일의 원본 기준 폭(px). 기본 `720`                       |
 
 문항 전환 시 `key={props.itemKey}`를 권장합니다.
 

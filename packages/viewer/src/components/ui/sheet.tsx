@@ -68,9 +68,9 @@ function SheetContent({
           "rqti-viewer",
           "rqti:bg-background rqti:data-[state=open]:animate-in rqti:data-[state=closed]:animate-out rqti:fixed rqti:z-50 rqti:flex rqti:flex-col rqti:gap-4 rqti:shadow-lg rqti:transition rqti:ease-in-out rqti:data-[state=closed]:duration-300 rqti:data-[state=open]:duration-500",
           side === "right" &&
-            "rqti:data-[state=closed]:slide-out-to-right rqti:data-[state=open]:slide-in-from-right rqti:inset-y-0 rqti:right-0 rqti:h-full rqti:w-3/4 rqti:border-l rqti:sm:max-w-sm",
+            "rqti:data-[state=closed]:slide-out-to-right rqti:data-[state=open]:slide-in-from-right rqti:inset-y-0 rqti:right-0 rqti:h-full rqti:w-3/4 rqti:max-w-sm rqti:border-l",
           side === "left" &&
-            "rqti:data-[state=closed]:slide-out-to-left rqti:data-[state=open]:slide-in-from-left rqti:inset-y-0 rqti:left-0 rqti:h-full rqti:w-3/4 rqti:border-r rqti:sm:max-w-sm",
+            "rqti:data-[state=closed]:slide-out-to-left rqti:data-[state=open]:slide-in-from-left rqti:inset-y-0 rqti:left-0 rqti:h-full rqti:w-3/4 rqti:max-w-sm rqti:border-r",
           side === "top" &&
             "rqti:data-[state=closed]:slide-out-to-top rqti:data-[state=open]:slide-in-from-top rqti:inset-x-0 rqti:top-0 rqti:h-auto rqti:border-b",
           side === "bottom" &&

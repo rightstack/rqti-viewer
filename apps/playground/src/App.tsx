@@ -97,7 +97,6 @@ function detailUrl(qtiIdentifier: string) {
 }
 
 type Status = "idle" | "loading" | "error" | "ready";
-type Sizing = "responsive" | "fixed";
 type Stroke = Array<{ x: number; y: number }>;
 
 /**
@@ -179,7 +178,6 @@ export default function App() {
   const [item, setItem] = useState<QuestionItem | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [sizing, setSizing] = useState<Sizing>("fixed");
   const [mode, setMode] = useState<"practice" | "preview">("practice");
   const [hintBoxBg, setHintBoxBg] = useState("#fff8e7");
   const [hintBoxPadding, setHintBoxPadding] = useState(16);
@@ -196,7 +194,7 @@ export default function App() {
   const [lastSubmit, setLastSubmit] = useState<ResponseValueMap | null>(null);
   const [drawing, setDrawing] = useState(true);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
-  // 문항 컨테이너 가용 폭(px). 슬라이더로 좁혀 고정폭 scale 축소 / 반응형 재배치를 시연한다.
+  // 문항 컨테이너 가용 폭(px). 슬라이더로 좁혀 고정폭 scale 축소를 시연한다.
   const [previewWidth, setPreviewWidth] = useState(1000);
   const [demoPassage, setDemoPassage] = useState(false);
 
@@ -325,23 +323,6 @@ export default function App() {
             그리지 않습니다.
           </p>
 
-          <h2 style={styles.stateTitle}>사이징 모드</h2>
-          <div style={styles.toggleRow}>
-            {(["responsive", "fixed"] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setSizing(s)}
-                style={{
-                  ...styles.toggleBtn,
-                  ...(sizing === s ? styles.toggleBtnActive : null),
-                }}
-              >
-                {s === "fixed" ? `고정폭 (${DESIGN_WIDTH}px)` : "반응형"}
-              </button>
-            ))}
-          </div>
-
           <label style={styles.sliderRow}>
             <span style={styles.sliderLabel}>
               컨테이너 폭<b style={styles.sliderValue}>{previewWidth}px</b>
@@ -356,9 +337,7 @@ export default function App() {
             />
           </label>
           <p style={styles.hint}>
-            {sizing === "fixed"
-              ? `폭을 ${DESIGN_WIDTH}px 아래로 줄이면 문항이 scale로 축소됩니다.`
-              : "폭을 줄이면 UI가 반응형으로 재배치됩니다."}
+            {`폭을 ${DESIGN_WIDTH}px 아래로 줄이면 문항이 scale로 축소됩니다.`}
           </p>
 
           <h2 style={styles.stateTitle}>연결지문</h2>
@@ -497,45 +476,41 @@ export default function App() {
             응답값만 전달됩니다. 정오 채점은 호스트 백엔드 → QMS 범위입니다.
           </p>
 
-          {sizing === "fixed" && (
-            <>
-              <h2 style={styles.stateTitle}>화이트보드 필기</h2>
-              <label style={styles.checkboxRow}>
-                <input
-                  type="checkbox"
-                  checked={drawing}
-                  onChange={(e) => setDrawing(e.target.checked)}
-                />
-                필기 모드 (드래그해서 그리기)
-              </label>
-              <div style={styles.toggleRow}>
-                <button
-                  type="button"
-                  style={styles.toggleBtn}
-                  onClick={saveAnnotations}
-                >
-                  저장
-                </button>
-                <button
-                  type="button"
-                  style={styles.toggleBtn}
-                  onClick={loadAnnotations}
-                >
-                  불러오기
-                </button>
-                <button
-                  type="button"
-                  style={styles.toggleBtn}
-                  onClick={() => setStrokes([])}
-                >
-                  지우기
-                </button>
-              </div>
-              <p style={styles.hint}>
-                브라우저 창 폭을 바꿔도 필기 위치가 문항과 계속 정합됩니다.
-              </p>
-            </>
-          )}
+          <h2 style={styles.stateTitle}>화이트보드 필기</h2>
+          <label style={styles.checkboxRow}>
+            <input
+              type="checkbox"
+              checked={drawing}
+              onChange={(e) => setDrawing(e.target.checked)}
+            />
+            필기 모드 (드래그해서 그리기)
+          </label>
+          <div style={styles.toggleRow}>
+            <button
+              type="button"
+              style={styles.toggleBtn}
+              onClick={saveAnnotations}
+            >
+              저장
+            </button>
+            <button
+              type="button"
+              style={styles.toggleBtn}
+              onClick={loadAnnotations}
+            >
+              불러오기
+            </button>
+            <button
+              type="button"
+              style={styles.toggleBtn}
+              onClick={() => setStrokes([])}
+            >
+              지우기
+            </button>
+          </div>
+          <p style={styles.hint}>
+            브라우저 창 폭을 바꿔도 필기 위치가 문항과 계속 정합됩니다.
+          </p>
         </section>
 
         {/* <section style={styles.state}>
@@ -563,12 +538,9 @@ export default function App() {
 
       <main style={styles.main}>
         <div style={{ ...styles.card, maxWidth: previewWidth }}>
-          {/* {status === "loading" && (
-            <p style={styles.statusText}>API 불러오는 중…</p>
-          )}
           {status === "error" && (
             <p style={styles.statusText}>API 오류: {error}</p>
-          )} */}
+          )}
           {!hideQuestion && status === "ready" && props && (
             <Question
               key={props.itemKey}
@@ -582,17 +554,14 @@ export default function App() {
               }
               passage={demoPassage ? DEMO_PASSAGE_HTML : props.passage}
               onSubmit={setLastSubmit}
-              sizing={sizing}
               designWidth={DESIGN_WIDTH}
-              // annotationOverlay={
-              //   sizing === "fixed" ? (
-              //     <Whiteboard
-              //       strokes={strokes}
-              //       onChange={setStrokes}
-              //       enabled={drawing}
-              //     />
-              //   ) : undefined
-              // }
+              annotationOverlay={
+                <Whiteboard
+                  strokes={strokes}
+                  onChange={setStrokes}
+                  enabled={drawing}
+                />
+              }
             />
           )}
           {showHostHints && (

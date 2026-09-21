@@ -25,7 +25,6 @@ import type {
   FeedbackType,
   QTIParserOptions,
   QuestionMode,
-  QuestionSizing,
   ResponseValue,
   ResponseValueMap,
   Theme,
@@ -43,7 +42,7 @@ import {
 } from "./utils/questionUtils";
 import { getThemeCSSVariables } from "./utils/themeToCSS";
 
-export type { QuestionMode, QuestionSizing } from "./types";
+export type { QuestionMode } from "./types";
 
 export interface QuestionProps {
   /** QTI XML 문자열 */
@@ -115,16 +114,14 @@ export interface QuestionProps {
   showInlineFeedback?: boolean;
   className?: string;
   /**
-   * 레이아웃 사이징 모드. 기본 `"responsive"`.
-   * - `"responsive"`: 컨테이너 폭에 맞춰 콘텐츠가 재배치되는 기존 반응형
-   * - `"fixed"`: `designWidth` 고정 폭으로 렌더 후 scale 처리. 폭이 변해도
-   *   내부 상대 좌표가 고정되어 화이트보드 필기 등 오버레이 정합이 유지된다.
+   * 저작 기준 고정 폭(px). 기본 720.
+   * 콘텐츠는 항상 이 폭으로 렌더된 뒤 가용 폭에 맞춰 transform: scale()로만 축소된다
+   * (원본 이상으로 확대하지 않음). 폭이 변해도 내부 상대 좌표가 고정되어
+   * 화이트보드 필기 등 오버레이 정합이 유지된다.
    */
-  sizing?: QuestionSizing;
-  /** `sizing="fixed"`일 때 저작 기준 고정 폭(px). 기본 720. */
   designWidth?: number;
   /**
-   * `sizing="fixed"`일 때 designWidth 좌표계 위에 겹칠 오버레이(예: 화이트보드).
+   * designWidth 좌표계 위에 겹칠 오버레이(예: 화이트보드).
    * 콘텐츠와 동일한 스케일 안에 놓여 좌표가 함께 변환된다.
    */
   annotationOverlay?: React.ReactNode;
@@ -159,7 +156,6 @@ function Question({
   passageFeedbacks,
   showInlineFeedback = false,
   className,
-  sizing = "responsive",
   designWidth = 720,
   annotationOverlay,
 }: QuestionProps) {
@@ -383,10 +379,10 @@ function Question({
   // preview(리뷰) 모드에서 인라인 피드백은 문항 하단에 쌓이도록 세로 배치
   const stackInlineFeedback = mode === "preview" && showInlineFeedback;
 
-  const isFixed = sizing === "fixed";
-  const rootStyle: React.CSSProperties = isFixed
-    ? { ...(themeVariables as React.CSSProperties), ["--qti-design-width" as string]: `${designWidth}px` }
-    : (themeVariables as React.CSSProperties);
+  const rootStyle: React.CSSProperties = {
+    ...(themeVariables as React.CSSProperties),
+    ["--qti-design-width" as string]: `${designWidth}px`,
+  };
 
   const questionBody = (
     <div
@@ -442,7 +438,6 @@ function Question({
   const viewer = (
     <div
       className={cn("rqti-viewer", className)}
-      data-sizing={sizing}
       style={rootStyle}
     >
       {passageNode ? (
@@ -520,19 +515,17 @@ function Question({
     </div>
   );
 
-  const wrapped = isFixed ? (
-    <FixedScaleContainer
-      designWidth={designWidth}
-      overlay={annotationOverlay}
-      className="rqti-viewer-scale"
-    >
-      {viewer}
-    </FixedScaleContainer>
-  ) : (
-    viewer
+  return (
+    <MathJaxProviderWrapper>
+      <FixedScaleContainer
+        designWidth={designWidth}
+        overlay={annotationOverlay}
+        className="rqti-viewer-scale"
+      >
+        {viewer}
+      </FixedScaleContainer>
+    </MathJaxProviderWrapper>
   );
-
-  return <MathJaxProviderWrapper>{wrapped}</MathJaxProviderWrapper>;
 }
 
 export default Question;

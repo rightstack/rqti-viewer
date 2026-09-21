@@ -41,9 +41,9 @@ export const countTfqPairs = (nodes: NodeListOf<ChildNode>): number => {
 };
 
 /**
- * TFQ row 레이아웃 클래스. 뷰포트 너비 기반 CSS 반응형.
+ * TFQ row 레이아웃 클래스.
  * - 1문항: 항상 세로(below)
- * - 2문항 이상: 좁은 화면 세로 → 480px 이상에서 가로 배치
+ * - 2문항 이상: 지문 60% / 버튼 40% 가로 배치
  */
 export function getTfqLayoutClasses(tfqCount: number): {
   row: string;
@@ -58,10 +58,10 @@ export function getTfqLayoutClasses(tfqCount: number): {
     };
   }
   return {
-    row: "tfq-row rqti:flex rqti:flex-col rqti:gap-3 rqti:min-[480px]:flex-row rqti:min-[480px]:items-center rqti:min-[480px]:justify-between rqti:min-[480px]:gap-6",
-    prompt: "tfq-prompt rqti:w-full rqti:min-w-0 rqti:min-[480px]:w-[60%]",
+    row: "tfq-row rqti:flex rqti:flex-row rqti:items-center rqti:justify-between rqti:gap-6",
+    prompt: "tfq-prompt rqti:w-[60%] rqti:min-w-0",
     buttons:
-      "tfq-buttons rqti:w-full rqti:flex rqti:justify-start rqti:gap-2 rqti:min-[480px]:w-[40%] rqti:min-[480px]:justify-end rqti:min-w-[120px] rqti:shrink-0",
+      "tfq-buttons rqti:flex rqti:w-[40%] rqti:min-w-[120px] rqti:shrink-0 rqti:justify-end rqti:gap-2",
   };
 }
 

@@ -4,11 +4,13 @@
    ======================================== */
 
 /* ---------------------------------------------------------------------------
-   모바일 UI — 두 조건을 같은 수치로 유지합니다 (순수 CSS라 선언은 이중 배치).
-   • 조상 [data-device="mobile"]      : 넓은 뷰포트에서 모바일 디바이스 미리보기
-   • @container rqti (width < 640px)  : 뷰어 컨테이너 폭이 좁을 때 (Tailwind sm 미만)
-     — 뷰포트가 아닌 .rqti-viewer 자기 폭 기준이라 sizing="fixed"에선 발동하지 않음.
-   하단「모바일 미러 [data-device="mobile"]」블록 = 말단 @container 와 동기화.
+   반응형을 쓰지 않습니다. 폭에 따라 값이 달라지는 분기(@media / @container /
+   Tailwind sm:·md: / vh·vw)를 추가하지 마세요. 레이아웃은 designWidth 고정 폭으로
+   렌더한 뒤 transform: scale()로만 크기를 조절합니다
+   (sizing="fixed" + FixedScaleContainer).
+
+   모바일·태블릿 UI가 필요하면 폭이 아니라 호스트가 지정하는 조상 속성
+   [data-device="mobile"] / [data-device="tablet"] 블록에만 선언합니다.
    --------------------------------------------------------------------------- */
 
 /* ========================================
@@ -257,14 +259,14 @@
   @apply rqti:flex rqti:h-auto rqti:min-h-0 rqti:items-center rqti:justify-between rqti:gap-1 rqti:text-left rqti:whitespace-normal;
 }
 
-/* 선택지 내부 이미지: 반응형 + 높이 제한 (Tailwind breakpoint: sm 640px, md 768px, lg 1024px) */
+/* 선택지 내부 이미지: 높이 제한 */
 .qti-ext-choice-option img,
 .qti-ext-choice-option .qti-ext-image img {
   @apply rqti:block rqti:h-auto rqti:max-w-full rqti:object-contain;
 }
 
 .qti-ext-choice-option img {
-  max-height: min(10rem, 35vh);
+  max-height: 10rem;
 }
 
 .qti-ext-choice-option .qti-ext-figure {
@@ -273,39 +275,9 @@
 }
 
 .qti-ext-choice-option .qti-ext-image {
-  max-height: min(10rem, 35vh);
+  max-height: 10rem;
 
   @apply rqti:overflow-hidden;
-}
-
-@container rqti (width >= 640px) {
-  .qti-ext-choice-option img {
-    max-height: min(12rem, 40vh);
-  }
-
-  .qti-ext-choice-option .qti-ext-image {
-    max-height: min(12rem, 40vh);
-  }
-}
-
-@container rqti (width >= 768px) {
-  .qti-ext-choice-option img {
-    max-height: min(14rem, 45vh);
-  }
-
-  .qti-ext-choice-option .qti-ext-image {
-    max-height: min(14rem, 45vh);
-  }
-}
-
-@container rqti (width >= 1024px) {
-  .qti-ext-choice-option img {
-    max-height: min(16rem, 50vh);
-  }
-
-  .qti-ext-choice-option .qti-ext-image {
-    max-height: min(16rem, 50vh);
-  }
 }
 
 /* Option Hover State - 선택되지 않은 상태에서만 적용, disabled 상태 제외 */
@@ -517,8 +489,6 @@
   @apply rqti:h-full rqti:min-h-0;
 }
 
-/* 반응형(뷰포트 < 640px): 실제 규칙은 파일 맨 아래「뷰포트 반응형 (width < 640px)」블록 — 테마 !important보다 뒤에 두어 적용 */
-
 /* list-style-type: 컨테이너 counter-reset, 옵션 counter-increment + ::before 라벨 */
 .qti-choice-interaction-wrapper.qti-list-style-type-decimal,
 .qti-choice-interaction-wrapper.qti-list-style-type-lower-alpha,
@@ -723,28 +693,6 @@
   max-width: 36px;
 
   @apply rqti:mx-auto;
-}
-
-/* 반응형: 단일 문항 TFQ OX — 브레이크포인트는 말단 @container (width < 640px) 와 동일 */
-@container rqti (width < 640px) {
-  .tfq-single .qti-ext-choice-button img {
-    width: 50% !important;
-    max-width: 36px;
-
-    @apply rqti:mx-auto;
-  }
-
-  .qti-ext-question {
-    padding: 20px 0 !important;
-  }
-}
-
-@container rqti (width >= 640px) and (width < 768px) {
-  .qti-ext-passage,
-  .qti-ext-container,
-  .qti-ext-feedback-inline {
-    padding: 36px !important;
-  }
 }
 
 /* Button Hover State - 선택되지 않은 상태에서만 적용 */
@@ -2133,7 +2081,7 @@
              ======================================== */
 
 .qti-ext-order-choice {
-  @apply rqti:relative rqti:mb-2 rqti:select-none rqti:sm:mb-3;
+  @apply rqti:relative rqti:mb-2 rqti:select-none;
 }
 
 /* Order Choice Dragging State */
@@ -2176,7 +2124,7 @@
 
 /* Order Choice Content */
 .qti-ext-order-choice-content {
-  @apply rqti:flex rqti:items-center rqti:gap-2 rqti:sm:gap-3 rqti:md:gap-4;
+  @apply rqti:flex rqti:items-center rqti:gap-2;
 }
 
 /* Order Number - 드래그형은 테두리/원 없이 라벨만 바로 표시 */
@@ -2184,7 +2132,7 @@
   border: none;
   background-color: transparent;
 
-  @apply rqti:flex rqti:h-5 rqti:w-5 rqti:shrink-0 rqti:items-center rqti:justify-center rqti:sm:h-6 rqti:sm:w-6 rqti:md:h-7 rqti:md:w-7;
+  @apply rqti:flex rqti:h-5 rqti:w-5 rqti:shrink-0 rqti:items-center rqti:justify-center;
 }
 
 /* Order Number Text */
@@ -2209,7 +2157,7 @@
 
 /* Order Choice Text Content */
 .qti-ext-order-choice-text {
-  @apply rqti:flex rqti:flex-1 rqti:flex-col rqti:gap-1.5 rqti:sm:gap-2;
+  @apply rqti:flex rqti:flex-1 rqti:flex-col rqti:gap-1.5;
 }
 
 /* Order Drag Indicator Line */
@@ -2237,20 +2185,20 @@
 
 /* 클릭형 선택지 목록 (텍스트: 세로 스택) */
 .qti-ext-order-click-list {
-  @apply rqti:flex rqti:flex-col rqti:gap-2 rqti:sm:gap-3;
+  @apply rqti:flex rqti:flex-col rqti:gap-2;
 }
 
-/* 이미지형: 반응형 그리드 */
+/* 이미지형: 자동 채움 그리드 */
 .qti-ext-order-click-list-image {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 
-  @apply rqti:gap-3 rqti:sm:gap-4;
+  @apply rqti:gap-3;
 }
 
 /* 클릭형 선택지 버튼 */
 .qti-ext-order-click-choice {
-  @apply rqti:relative rqti:flex rqti:select-none rqti:items-center rqti:gap-2 rqti:text-left rqti:sm:gap-3;
+  @apply rqti:relative rqti:flex rqti:select-none rqti:items-center rqti:gap-2 rqti:text-left;
 }
 
 .qti-ext-order-click-list-image .qti-ext-order-click-choice {
@@ -2276,12 +2224,12 @@
 
   color: var(--qti-option-border);
 
-  @apply rqti:flex rqti:h-6 rqti:w-6 rqti:shrink-0 rqti:items-center rqti:justify-center rqti:rounded-full rqti:leading-none rqti:font-extrabold rqti:sm:h-7 rqti:sm:w-7;
+  @apply rqti:flex rqti:h-6 rqti:w-6 rqti:shrink-0 rqti:items-center rqti:justify-center rqti:rounded-full rqti:leading-none rqti:font-extrabold;
 }
 
 /* 이미지형에서는 배지를 좌상단 모서리에 걸치도록 오버레이 */
 .qti-ext-order-click-list-image .qti-ext-order-click-badge {
-  @apply rqti:absolute rqti:-top-2.5 rqti:-left-2.5 rqti:z-10 rqti:sm:-top-3 rqti:sm:-left-3;
+  @apply rqti:absolute rqti:-top-2.5 rqti:-left-2.5 rqti:z-10;
 }
 
 /* 선택 시: 빈 원(테두리/배경) 제거하고 라벨만 바로 표시 */
@@ -2295,7 +2243,7 @@
 
 /* 콘텐츠 영역 */
 .qti-ext-order-click-content {
-  @apply rqti:flex rqti:min-w-0 rqti:flex-1 rqti:flex-col rqti:gap-1.5 rqti:sm:gap-2;
+  @apply rqti:flex rqti:min-w-0 rqti:flex-1 rqti:flex-col rqti:gap-1.5;
 }
 
 .qti-ext-order-click-text {
@@ -2725,28 +2673,6 @@
   transform: translate(-35%, -18%);
 }
 
-/* @media (width < 640px) {
-  .qti-ext-feedback-badge {
-    width: 6em;
-    height: 6em;
-  }
-
-  .qti-ext-container > .qti-ext-feedback-badge {
-    top: 0;
-    left: 0;
-  }
-} */
-
-/* @media (width >= 1024px) {
-  .qti-ext-feedback-badge {
-    top: calc(54px - 3.5rem);
-    left: calc(var(--qti-container-padding, 24px) - 3.5rem);
-
-    width: 8rem;
-    height: 8rem;
-  }
-} */
-
 .qti-ext-feedback-badge .qti-ext-feedback-icon-correct,
 .qti-ext-feedback-badge .qti-ext-feedback-icon-incorrect {
   width: 100%;
@@ -2914,11 +2840,8 @@
   /* 공통 속성 */
   @apply rqti:absolute rqti:flex rqti:flex-col rqti:bg-white rqti:shadow-xl;
 
-  /* 모바일: 전체 화면 + 하단에서 슬라이드업 */
-  @apply rqti:animate-in rqti:slide-in-from-bottom rqti:inset-0 rqti:h-full rqti:w-full rqti:overflow-y-auto rqti:rounded-none rqti:duration-300;
-
-  /* 데스크톱 (sm: 640px 이상): 중앙 팝업 + 페이드/줌 */
-  @apply rqti:sm:slide-in-from-bottom-0 rqti:sm:fade-in rqti:sm:zoom-in-95 rqti:sm:inset-auto rqti:sm:top-1/2 rqti:sm:left-1/2 rqti:sm:h-auto rqti:sm:max-h-[80%] rqti:sm:w-[calc(100%-2rem)] rqti:sm:max-w-lg rqti:sm:-translate-x-1/2 rqti:sm:-translate-y-1/2 rqti:sm:rounded-2xl rqti:sm:duration-200;
+  /* 중앙 팝업 + 페이드/줌. 전체 화면 형태는 .qti-ext-feedback-wrapper-mobile 로 전환 */
+  @apply rqti:animate-in rqti:fade-in rqti:zoom-in-95 rqti:top-1/2 rqti:left-1/2 rqti:h-auto rqti:max-h-[80%] rqti:w-[calc(100%-2rem)] rqti:max-w-lg rqti:-translate-x-1/2 rqti:-translate-y-1/2 rqti:overflow-y-auto rqti:rounded-2xl rqti:duration-200;
 }
 
 .qti-ext-feedback-modal-content {
@@ -3669,132 +3592,10 @@
   margin-left: 0;
 }
 
-/* ========================================
-   컨테이너 반응형 (width < 640px) — 파일 말단 고정
-   뷰어 컨테이너(.rqti-viewer, container-name: rqti) 폭 기준으로 동작한다.
-   뷰포트가 아닌 컨테이너 폭에 반응하므로 sizing="fixed"(designWidth 고정)에서는
-   폭이 항상 designWidth라 이 규칙이 흔들리지 않는다.
-   테마·컴포넌트 기본 스타일에 !important가 많아, 동일 특이도에서는
-   출현 순서가 우선합니다. 반응형 전용 값은 반드시 이 블록 이전의
-   모든 해당 선택자 규칙보다 뒤에 둡니다.
-   바로 아래 블록과 동일 선언은「모바일 미러 [data-device="mobile"]」에 복제합니다.
-   ======================================== */
-@container rqti (width < 640px) {
-  /* 래퍼·지문 동일 토큰 (지문은 세로 분할 시 래퍼 밖에 있을 수 있음) */
-  .qti-ext-wrapper,
-  .qti-ext-passage {
-    --qti-font-size-base: 16px !important;
-    --qti-line-height-base: 1.5 !important;
-    --qti-option-font-size: 16px !important;
-    --qti-prompt-font-size: 16px !important;
-    --qti-example-stimulus-font-size: 16px !important;
-    --qti-question-number-font-size: 15px !important;
-    --qti-feedback-font-size: 15px !important;
-    --qti-feedback-title-font-size: 16px !important;
-    --qti-container-padding: 16px !important;
-    --qti-container-max-width: 100% !important;
-  }
-
-  .qti-ext-passage {
-    padding: 24px 16px 0 !important;
-  }
-
-  .qti-ext-container {
-    padding: 24px 16px !important;
-  }
-
-  .qti-ext-option-base {
-    padding: 10px !important;
-  }
-
-  .qti-ext-choice-option {
-    padding: 10px !important;
-  }
-
-  .tfq-buttons .qti-ext-choice-button img {
-    width: 30% !important;
-    max-width: 36px;
-
-    @apply rqti:mx-auto;
-  }
-
-  .qti-orientation-horizontal.qti-choices-stacking-4,
-  .qti-orientation-horizontal.qti-choices-stacking-5 {
-    grid-template-columns: 1fr;
-  }
-
-  /* 반응형 드롭다운: 겹침 방지용 여백 */
-  .qti-ext-dropdown {
-    margin: 0.5rem !important;
-  }
-
-  /* 반응형 이전/다음·네비: 사이즈만 고정, 색/테두리는 테마 유지 */
-  .qti-ext-prev-next-button {
-    padding: 0.5rem 1rem !important;
-
-    font-size: 14px !important;
-  }
-
-  .qti-ext-nav-button {
-    padding: 0.5rem 1rem !important;
-
-    font-size: 14px !important;
-  }
-
-  .qti-ext-assessment-nav {
-    padding-top: 1rem !important;
-    padding-bottom: 1.5rem !important;
-  }
-
-  /* 제출 버튼: 고정 width/height 테마값 무시 */
-  .qti-ext-submit-button {
-    width: min(100%, 20rem) !important;
-    height: auto !important;
-    min-height: 44px !important;
-    padding: 0.625rem 1rem !important;
-
-    font-size: 14px !important;
-  }
-
-  /* 피드백 하단 버튼: 테마 width/height !important 이후에도 터치·너비 제한 */
-  .qti-ext-feedback-button {
-    width: min(100%, 20rem) !important;
-    max-width: 100% !important;
-    height: auto !important;
-    min-height: 44px !important;
-    padding: 0.5rem 1rem !important;
-
-    font-size: 14px !important;
-  }
-
-  /* Plate 컬럼: 좁은 뷰포트에서는 세로 스택 */
-  .qti-ext-column-group {
-    flex-direction: column !important;
-  }
-
-  .qti-ext-column {
-    flex: none !important;
-
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  .qti-ext-feedback-inline {
-    font-size: 16px !important;
-  }
-
-  .qti-ext-feedback-title {
-    font-size: 16px !important;
-  }
-
-  .qti-ext-feedback-description {
-    font-size: 16px !important;
-  }
-}
-
 /* ========================================================================
-   모바일 미러 — 조상 [data-device="mobile"] 일 때 위 @media (width < 640px) 와 동일
-   (선언 변경 시 반드시 양쪽 수정)
+   모바일 UI — 조상 [data-device="mobile"] 일 때만 적용한다. 폭 기준 분기는 없다.
+   테마·컴포넌트 기본 스타일에 !important가 많아 동일 특이도에서는 출현 순서가
+   우선하므로, 이 블록은 해당 선택자의 다른 규칙보다 뒤(파일 말단)에 둔다.
    ======================================================================== */
 [data-device="mobile"] .qti-ext-wrapper,
 [data-device="mobile"] .qti-ext-passage {
@@ -3917,24 +3718,31 @@
 } */
 
 /* ========================================================================
-   고정폭(Scale) 모드 — sizing="fixed" 의 qti.css 레이아웃 그리드 정합
-   콘텐츠를 designWidth 고정 폭으로 렌더한 뒤 transform: scale()로만 크기를
-   조절한다.
+   qti.css 레이아웃 그리드 무력화 — 라이브러리에 남은 마지막 뷰포트 @media 제거
 
-   qti-ext.css 자체 반응형은 이제 @container rqti(뷰어 컨테이너 폭) 기반이라,
-   고정폭 모드에선 컨테이너 폭이 항상 designWidth로 고정되어 뷰포트가 바뀌어도
-   흔들리지 않는다. 따라서 예전의 데스크톱 되돌림 블록은 더 이상 필요 없다.
-
-   다만 qti.css(QTI 규격 파일, 수정 금지)의 부트스트랩식 레이아웃 그리드
-   (.qti-layout-row / .qti-layout-col* / .qti-layout-offset*)는 여전히 뷰포트
-   기준 @media 로 동작한다. 고정폭 모드에서 뷰포트에 따라 컬럼이 세로로 스택되거나
-   (≤767px) 고정 px 폭으로 커져 오버플로(≥1200px)되면 오버레이(화이트보드 필기)
-   정합이 깨진다. 그래서 여기서 그리드를 뷰포트와 무관한 fluid(%) 모델로 고정한다.
+   qti-ext.css 자체에는 폭 기준 분기가 없지만, qti.css(QTI 규격 파일, 수정 금지)의
+   부트스트랩식 레이아웃 그리드(.qti-layout-row / .qti-layout-col* /
+   .qti-layout-offset*)는 뷰포트 기준 @media 로 동작한다. 뷰포트에 따라 컬럼이
+   세로로 스택되거나(≤767px) 고정 px 폭으로 커져 오버플로(≥1200px)되면
+   designWidth 좌표계가 흔들려 오버레이(화이트보드 필기) 정합이 깨진다.
+   그래서 그리드를 뷰포트와 무관한 fluid(%) 모델로 고정한다.
 
    qti.css 그리드 규칙에는 !important 가 없으므로, 여기 !important 선언이 특이도와
    무관하게 항상 이긴다. 값은 qti.css의 `.container-fluid` fluid 기본값과 동일하다.
    ======================================================================== */
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row [class*="qti-layout-col"] {
+
+/* row·container 자체도 뷰포트별로 값이 바뀌므로(.qti-layout-row margin-left
+   -20px/0/-30px, .container width 940px/auto/724px/1170px) fluid 값으로 고정한다. */
+.rqti-viewer .qti-layout-row {
+  width: 100% !important;
+  margin-left: 0 !important;
+}
+
+.rqti-viewer .container {
+  width: auto !important;
+}
+
+.rqti-viewer .qti-layout-row [class*="qti-layout-col"] {
   display: block !important;
   float: left !important;
 
@@ -3944,135 +3752,111 @@
   margin-left: 2.0745% !important;
 }
 
-.rqti-viewer[data-sizing="fixed"]
-  .qti-layout-row
-  [class*="qti-layout-col"]:first-child {
+.rqti-viewer .qti-layout-row [class*="qti-layout-col"]:first-child {
   margin-left: 0 !important;
 }
 
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col12 {
+.rqti-viewer .qti-layout-row .qti-layout-col12 {
   width: 99.9468% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col11 {
+.rqti-viewer .qti-layout-row .qti-layout-col11 {
   width: 91.4362% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col10 {
+.rqti-viewer .qti-layout-row .qti-layout-col10 {
   width: 82.9255% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col9 {
+.rqti-viewer .qti-layout-row .qti-layout-col9 {
   width: 74.4149% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col8 {
+.rqti-viewer .qti-layout-row .qti-layout-col8 {
   width: 65.9043% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col7 {
+.rqti-viewer .qti-layout-row .qti-layout-col7 {
   width: 57.3936% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col6 {
+.rqti-viewer .qti-layout-row .qti-layout-col6 {
   width: 48.883% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col5 {
+.rqti-viewer .qti-layout-row .qti-layout-col5 {
   width: 40.3723% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col4 {
+.rqti-viewer .qti-layout-row .qti-layout-col4 {
   width: 31.8617% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col3 {
+.rqti-viewer .qti-layout-row .qti-layout-col3 {
   width: 23.3511% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col2 {
+.rqti-viewer .qti-layout-row .qti-layout-col2 {
   width: 14.8404% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-col1 {
+.rqti-viewer .qti-layout-row .qti-layout-col1 {
   width: 6.3298% !important;
 }
 
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset11 {
+.rqti-viewer .qti-layout-row .qti-layout-offset11 {
   margin-left: 95.6383% !important;
 }
-.rqti-viewer[data-sizing="fixed"]
-  .qti-layout-row
-  .qti-layout-offset11:first-child {
+.rqti-viewer .qti-layout-row .qti-layout-offset11:first-child {
   margin-left: 93.5106% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset10 {
+.rqti-viewer .qti-layout-row .qti-layout-offset10 {
   margin-left: 87.1277% !important;
 }
-.rqti-viewer[data-sizing="fixed"]
-  .qti-layout-row
-  .qti-layout-offset10:first-child {
+.rqti-viewer .qti-layout-row .qti-layout-offset10:first-child {
   margin-left: 85% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset9 {
+.rqti-viewer .qti-layout-row .qti-layout-offset9 {
   margin-left: 78.617% !important;
 }
-.rqti-viewer[data-sizing="fixed"]
-  .qti-layout-row
-  .qti-layout-offset9:first-child {
+.rqti-viewer .qti-layout-row .qti-layout-offset9:first-child {
   margin-left: 76.4894% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset8 {
+.rqti-viewer .qti-layout-row .qti-layout-offset8 {
   margin-left: 70.1064% !important;
 }
-.rqti-viewer[data-sizing="fixed"]
-  .qti-layout-row
-  .qti-layout-offset8:first-child {
+.rqti-viewer .qti-layout-row .qti-layout-offset8:first-child {
   margin-left: 67.9787% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset7 {
+.rqti-viewer .qti-layout-row .qti-layout-offset7 {
   margin-left: 61.5957% !important;
 }
-.rqti-viewer[data-sizing="fixed"]
-  .qti-layout-row
-  .qti-layout-offset7:first-child {
+.rqti-viewer .qti-layout-row .qti-layout-offset7:first-child {
   margin-left: 59.4681% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset6 {
+.rqti-viewer .qti-layout-row .qti-layout-offset6 {
   margin-left: 53.0851% !important;
 }
-.rqti-viewer[data-sizing="fixed"]
-  .qti-layout-row
-  .qti-layout-offset6:first-child {
+.rqti-viewer .qti-layout-row .qti-layout-offset6:first-child {
   margin-left: 50.9574% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset5 {
+.rqti-viewer .qti-layout-row .qti-layout-offset5 {
   margin-left: 44.5745% !important;
 }
-.rqti-viewer[data-sizing="fixed"]
-  .qti-layout-row
-  .qti-layout-offset5:first-child {
+.rqti-viewer .qti-layout-row .qti-layout-offset5:first-child {
   margin-left: 42.4468% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset4 {
+.rqti-viewer .qti-layout-row .qti-layout-offset4 {
   margin-left: 36.0638% !important;
 }
-.rqti-viewer[data-sizing="fixed"]
-  .qti-layout-row
-  .qti-layout-offset4:first-child {
+.rqti-viewer .qti-layout-row .qti-layout-offset4:first-child {
   margin-left: 33.9362% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset3 {
+.rqti-viewer .qti-layout-row .qti-layout-offset3 {
   margin-left: 27.5532% !important;
 }
-.rqti-viewer[data-sizing="fixed"]
-  .qti-layout-row
-  .qti-layout-offset3:first-child {
+.rqti-viewer .qti-layout-row .qti-layout-offset3:first-child {
   margin-left: 25.4255% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset2 {
+.rqti-viewer .qti-layout-row .qti-layout-offset2 {
   margin-left: 19.0426% !important;
 }
-.rqti-viewer[data-sizing="fixed"]
-  .qti-layout-row
-  .qti-layout-offset2:first-child {
+.rqti-viewer .qti-layout-row .qti-layout-offset2:first-child {
   margin-left: 16.9149% !important;
 }
-.rqti-viewer[data-sizing="fixed"] .qti-layout-row .qti-layout-offset1 {
+.rqti-viewer .qti-layout-row .qti-layout-offset1 {
   margin-left: 10.5319% !important;
 }
-.rqti-viewer[data-sizing="fixed"]
-  .qti-layout-row
-  .qti-layout-offset1:first-child {
+.rqti-viewer .qti-layout-row .qti-layout-offset1:first-child {
   margin-left: 8.4043% !important;
 }
 .qti-ext-math-input-blank {

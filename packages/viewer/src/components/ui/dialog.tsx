@@ -67,7 +67,7 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           "rqti-viewer",
-          "rqti:bg-background rqti:data-[state=open]:animate-in rqti:data-[state=closed]:animate-out rqti:data-[state=closed]:fade-out-0 rqti:data-[state=open]:fade-in-0 rqti:data-[state=closed]:zoom-out-95 rqti:data-[state=open]:zoom-in-95 rqti:fixed rqti:top-[50%] rqti:left-[50%] rqti:z-50 rqti:grid rqti:w-full rqti:max-w-[calc(100%-2rem)] rqti:translate-x-[-50%] rqti:translate-y-[-50%] rqti:gap-4 rqti:rounded-lg rqti:border rqti:p-6 rqti:shadow-lg rqti:duration-200 rqti:sm:max-w-lg",
+          "rqti:bg-background rqti:data-[state=open]:animate-in rqti:data-[state=closed]:animate-out rqti:data-[state=closed]:fade-out-0 rqti:data-[state=open]:fade-in-0 rqti:data-[state=closed]:zoom-out-95 rqti:data-[state=open]:zoom-in-95 rqti:fixed rqti:top-[50%] rqti:left-[50%] rqti:z-50 rqti:grid rqti:w-full rqti:max-w-[min(32rem,calc(100%-2rem))] rqti:translate-x-[-50%] rqti:translate-y-[-50%] rqti:gap-4 rqti:rounded-lg rqti:border rqti:p-6 rqti:shadow-lg rqti:duration-200",
           className
         )}
         {...props}
@@ -91,7 +91,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("rqti:flex rqti:flex-col rqti:gap-2 rqti:text-center rqti:sm:text-left", className)}
+      className={cn("rqti:flex rqti:flex-col rqti:gap-2 rqti:text-left", className)}
       {...props}
     />
   );
@@ -101,7 +101,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-footer"
-      className={cn("rqti:flex rqti:flex-col-reverse rqti:gap-2 rqti:sm:flex-row rqti:sm:justify-end", className)}
+      className={cn("rqti:flex rqti:flex-row rqti:justify-end rqti:gap-2", className)}
       {...props}
     />
   );
