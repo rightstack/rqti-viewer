@@ -1307,7 +1307,7 @@
   background-color: var(--qti-option-bg);
 
   color: inherit;
-  font-size: var(--qti-font-size-base, inherit) !important;
+  font-size: var(--qti-option-font-size, var(--qti-font-size-base, inherit)) !important;
   font-weight: var(--qti-option-font-weight, inherit);
   line-height: 1.5;
   white-space: nowrap;
