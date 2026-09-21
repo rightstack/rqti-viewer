@@ -7,7 +7,7 @@ QTI 문항을 **상세 API**로 조회해 **문항 1개**를 렌더링하는 가
 > 호스트가 힌트를 직접 그릴 때: **[HINT_GUIDE.md](./HINT_GUIDE.md)**  
 > 힌트만 그리는 화면은 `HINT_GUIDE`를 보고 `styles.css`와 `MathJaxProviderWrapper`를 그 화면에 넣고, 힌트 영역을 `.rqti-viewer`로 감쌉니다.
 
-현재 패키지 버전: **0.4.8**
+현재 패키지 버전: **0.4.9**
 
 ---
 
