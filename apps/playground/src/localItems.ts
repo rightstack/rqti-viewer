@@ -248,6 +248,14 @@ const MATH_BLANK_CLOZE_HINT = {
   content: "<p>같은 계수 \\(\\frac{3}{4}\\)를 괄호 밖으로 묶어 보세요.</p>",
 };
 
+/** 운영 QMS i_5myahne55j0o1wbm — PCI `MATH_RESPONSE_1` 배열로만 응답이 옴 */
+const MATH_BLANK_EXPONENT_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-item xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="i_5myahne55j0o1wbm" title="수식 내 인풋박스 테스트" time-dependent="false"><qti-response-declaration identifier="MATH_RESPONSE_1" cardinality="record"><qti-correct-response><qti-value field-identifier="RESPONSE_1" base-type="string">$2$</qti-value><qti-value field-identifier="RESPONSE_2" base-type="string">$10$</qti-value><qti-value field-identifier="RESPONSE_3" base-type="string">$10$</qti-value><qti-value field-identifier="RESPONSE_4" base-type="string">$14$</qti-value></qti-correct-response></qti-response-declaration><qti-item-body><div class="qti-ext-question"><p>~~ 안에 알맞은 수를 써넣으시오.</p><div class="qti-ext-stimulus"><div class="qti-align-center"><qti-portable-custom-interaction response-identifier="MATH_RESPONSE_1" custom-interaction-type-identifier="math-input-blank"><qti-interaction-markup><div class="qti-ext-math-input-blank" data-latex="\\begin{aligned} \\left({x^5}\\right)^2 \\times x^4 &amp;= x^{5 \\times \\inputblank{RESPONSE_1}{1}} \\times x^4 = x^{\\inputblank{RESPONSE_2}{1}} \\times x^4 \\\\ &amp;= x^{\\inputblank{RESPONSE_3}{1}+4} = x^{\\inputblank{RESPONSE_4}{1}} \\end{aligned}"/></qti-interaction-markup></qti-portable-custom-interaction></div></div></div></qti-item-body></qti-assessment-item>`;
+
+const MATH_BLANK_EXPONENT_ANSWER = {
+  MATH_RESPONSE_1: ["$2$", "$10$", "$10$", "$14$"],
+};
+
 /** 운영 QMS 문항 i_8dsb050czsu2egb6 — 받아올림·소수 좁은 칸·병합 */
 const VCQ_DECIMAL_MERGED_XML = String.raw`<?xml version="1.0" encoding="UTF-8"?>
 <qti-assessment-item xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="i_8dsb050czsu2egb6" title="세로셈 테스트" time-dependent="false">
@@ -369,6 +377,38 @@ const VCQ_SYNTHETIC_HINT = {
   content: "<p>첫 조립에서 내려온 값을 다음 칸에 곱해 더해 보세요.</p>",
 };
 
+function vcqCancelPci(id: string, width = 1): string {
+  return `<qti-portable-custom-interaction custom-interaction-type-identifier="math-input-blank" response-identifier="${id}"><qti-interaction-markup><div class="qti-ext-input-blank" data-latex="\\cancel{\\inputblank{${id}}{${width}}}"></div></qti-interaction-markup></qti-portable-custom-interaction>`;
+}
+
+const VCQ_CANCEL_BLANK_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-item xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="quiz_vcq_cancel_blank" title="세로셈 취소선 빈칸" xml:lang="ko-KR">
+  <qti-response-declaration identifier="RESPONSE_1" cardinality="single" base-type="string"><qti-correct-response><qti-value>3</qti-value></qti-correct-response></qti-response-declaration>
+  <qti-response-declaration identifier="RESPONSE_2" cardinality="single" base-type="string"><qti-correct-response><qti-value>2</qti-value></qti-correct-response></qti-response-declaration>
+  <qti-item-body>
+    <p>취소선이 있는 빈칸에 알맞은 수를 쓰시오.</p>
+    <div class="qti-ext-vcq-grid qti-ext-vcq-grid--response qti-ext-vcq-grid--template-arithmetic qti-align-center">
+      <div class="qti-ext-vcq-row">
+        ${vcqMathCell("1")}${vcqMathCell("5")}
+      </div>
+      <div class="qti-ext-vcq-row">
+        <div class="qti-ext-vcq-cell qti-ext-vcq-cell--blank">${vcqCancelPci("RESPONSE_1")}</div>
+        <div class="qti-ext-vcq-cell qti-ext-vcq-cell--blank">${vcqPci("RESPONSE_2")}</div>
+      </div>
+    </div>
+  </qti-item-body>
+</qti-assessment-item>`;
+
+const VCQ_CANCEL_BLANK_ANSWER = {
+  RESPONSE_1: ["3"],
+  RESPONSE_2: ["2"],
+};
+
+const VCQ_CANCEL_BLANK_FEEDBACK = {
+  ...CORRECT_FEEDBACK,
+  content: "<p>취소선이 그어진 칸에 3, 옆 칸에 2를 적습니다.</p>",
+};
+
 export const LOCAL_ITEMS: Record<string, QuestionItem> = {
   ORDER_CLICK_HANSEL: {
     id: -1,
@@ -444,6 +484,16 @@ export const LOCAL_ITEMS: Record<string, QuestionItem> = {
     settings: null,
     feedbacks: [MATH_BLANK_CLOZE_FEEDBACK, MATH_BLANK_CLOZE_HINT],
   },
+  MATH_BLANK_EXPONENT: {
+    id: -11,
+    qtiIdentifier: "MATH_BLANK_EXPONENT",
+    title: "수식 내 빈칸 · QMS 배열",
+    type: ITEM_TYPE.CLOZE,
+    qtiXml: MATH_BLANK_EXPONENT_XML,
+    correctAnswer: MATH_BLANK_EXPONENT_ANSWER,
+    settings: null,
+    feedbacks: [MATH_BLANK_CLOZE_FEEDBACK, MATH_BLANK_CLOZE_HINT],
+  },
   VCQ_DECIMAL_MERGED: {
     id: -8,
     qtiIdentifier: "VCQ_DECIMAL_MERGED",
@@ -463,6 +513,16 @@ export const LOCAL_ITEMS: Record<string, QuestionItem> = {
     correctAnswer: VCQ_SYNTHETIC_ANSWER,
     settings: null,
     feedbacks: [VCQ_SYNTHETIC_FEEDBACK, VCQ_SYNTHETIC_HINT],
+  },
+  VCQ_CANCEL_BLANK: {
+    id: -10,
+    qtiIdentifier: "VCQ_CANCEL_BLANK",
+    title: "세로셈 취소선 빈칸",
+    type: ITEM_TYPE.VCQ,
+    qtiXml: VCQ_CANCEL_BLANK_XML,
+    correctAnswer: VCQ_CANCEL_BLANK_ANSWER,
+    settings: null,
+    feedbacks: [VCQ_CANCEL_BLANK_FEEDBACK, HINT_FEEDBACK],
   },
 };
 
@@ -503,6 +563,11 @@ export const LOCAL_SAMPLE_ITEMS: SampleItem[] = [
     qtiIdentifier: "MATH_BLANK_CLOZE",
   },
   {
+    type: ITEM_TYPE.CLOZE,
+    label: "수식 내 빈칸 · QMS 배열 (CLOZE)",
+    qtiIdentifier: "MATH_BLANK_EXPONENT",
+  },
+  {
     type: ITEM_TYPE.VCQ,
     label: "세로셈형 · 소수 병합 (VCQ)",
     qtiIdentifier: "VCQ_DECIMAL_MERGED",
@@ -511,5 +576,10 @@ export const LOCAL_SAMPLE_ITEMS: SampleItem[] = [
     type: ITEM_TYPE.VCQ,
     label: "세로셈형 · 조립제법 (VCQ)",
     qtiIdentifier: "VCQ_SYNTHETIC",
+  },
+  {
+    type: ITEM_TYPE.VCQ,
+    label: "세로셈형 · 취소선 빈칸 (VCQ)",
+    qtiIdentifier: "VCQ_CANCEL_BLANK",
   },
 ];

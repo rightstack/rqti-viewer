@@ -1,4 +1,12 @@
-import { type ReactNode, type RefObject, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  type ReactNode,
+  type RefObject,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import clsx from "clsx";
 import { renderLaTeX } from "../../parser/parseLatexToReact";
 import type { QTIParserOptions, ResponseValue, ResponseValueMap } from "../../types";
@@ -6,7 +14,12 @@ import { isMathLatexAnswer } from "../../utils";
 import { FormulaSlotInput, FormulaSlotLatexDisplay } from "./FormulaSlotInput";
 import { MathBlankFormula } from "./MathBlankFormula";
 import { MergedBlankSlot } from "./MergedBlankSlot";
-import { MATH_BLANK_DISPLAY_SCALE, type SlotContentEm, hasFormulaContext } from "./mathBlankLatex";
+import {
+  MATH_BLANK_DISPLAY_SCALE,
+  type SlotContentEm,
+  buildMathBlankInstanceId,
+  hasFormulaContext,
+} from "./mathBlankLatex";
 import {
   type BlankVariant,
   type DisplayBlankLabel,
@@ -18,6 +31,7 @@ import {
   getInputBlankStateClass,
   getResponseRawString,
   getResponseString,
+  buildMathBlankAnswerSource,
   isMathInputBlankDisplay,
   isMathResponseId,
   parseMathBlankSegments,
@@ -150,40 +164,6 @@ function useVcqIntrinsicColumn(
   }, [contentVersion, enabled, ref]);
 }
 
-/** 본문은 다른 유형과 같이 responses. 정답영역(`answerKeyPreview`)만 correctAnswers. PCI 부모 배열·record는 RESPONSE_N으로 편평. */
-function isAnswerRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === "object" && !Array.isArray(value);
-}
-
-function buildAnswerSource(
-  answerKeyPreview: boolean,
-  correctAnswers: Record<string, unknown> | undefined,
-  responses: Record<string, unknown> | undefined,
-  responseId: string | undefined,
-  latex: string
-): Record<string, unknown> | undefined {
-  const useAnswerKey =
-    answerKeyPreview && !!correctAnswers && Object.keys(correctAnswers).length > 0;
-  const raw = useAnswerKey ? correctAnswers : responses;
-  if (!raw) return undefined;
-
-  const flat: Record<string, unknown> = { ...raw };
-  const blankIds = extractResponseIds(latex);
-
-  if (blankIds.some((id) => !(id in flat))) {
-    const parentValue = responseId ? raw[responseId] : undefined;
-    if (Array.isArray(parentValue)) {
-      for (let i = 0; i < Math.min(parentValue.length, blankIds.length); i++) {
-        if (!(blankIds[i] in flat)) flat[blankIds[i]] = parentValue[i];
-      }
-    } else if (isAnswerRecord(parentValue)) {
-      for (const id of blankIds) {
-        if (!(id in flat) && id in parentValue) flat[id] = parentValue[id];
-      }
-    }
-  }
-  return flat;
-}
 
 function buildLabelMap(ids: string[], displayLabels: DisplayBlankLabel[]): Map<string, string> {
   const byId = new Map<string, string>();
@@ -221,6 +201,14 @@ function MathInputBlankView({
   responseId,
 }: MathInputBlankViewProps) {
   const rootRef = useRef<HTMLSpanElement>(null);
+  const reactId = useId();
+  const instanceId = buildMathBlankInstanceId({
+    index,
+    itemKey: options.itemKey,
+    answerKeyPreview: options.answerKeyPreview === true,
+    uid: reactId,
+    responseId,
+  });
   const segments = useMemo(() => parseMathBlankSegments(latex), [latex]);
   const fallbackWidthCh = extractInputWidthCh(
     markup?.getAttribute("class") ?? "",
@@ -262,7 +250,7 @@ function MathInputBlankView({
 
   const answerSource = useMemo(
     () =>
-      buildAnswerSource(
+      buildMathBlankAnswerSource(
         options.answerKeyPreview === true,
         options.correctAnswers as Record<string, unknown>,
         options.responses as Record<string, unknown>,
@@ -415,9 +403,7 @@ function MathInputBlankView({
     }
 
     if (!displayOnly && !formulaContext && (inVcqNarrowCell || inVcqBlankCell)) {
-      const raw = getResponseRawString(answerSource, id);
       const value = getResponseString(answerSource, id);
-      const typesetValue = isReadOnly && value !== "" && needsMathRender(id, raw, false);
       const overlayClass = clsx(
         "qti-ext-input-blank",
         isReadOnly ? displayVariantClass : "qti-ext-text-entry-input",
@@ -433,14 +419,13 @@ function MathInputBlankView({
           )}
         >
           <span className={overlayClass} aria-hidden="true" />
-          {typesetValue ? renderCellText(value, `vcq-text-${id}`, id, true) : null}
-          {(!isReadOnly || !typesetValue) && (
+          {value ? renderCellText(value, `vcq-text-${id}`, id, true) : null}
+          {!isReadOnly && (
             <input
               className={clsx("qti-ext-input-blank__field", alignClass)}
               type="text"
               size={1}
               value={value}
-              readOnly={isReadOnly}
               data-response-identifier={id}
               aria-label={`${id} 입력`}
               onChange={(e) => handleChange(id, e.target.value)}
@@ -483,9 +468,9 @@ function MathInputBlankView({
       {formulaContext ? (
         <MathBlankFormula
           latex={latex}
-          instanceId={String(index)}
+          instanceId={instanceId}
           renderSlot={(id) => renderBlankSlot(id, id, isReadOnly)}
-          fallback={renderSegments(segments, `math-blank-${index}`)}
+          fallback={renderSegments(segments, `math-blank-${instanceId}`)}
           slotScale={displayOnly && !fillDisplaySlot ? MATH_BLANK_DISPLAY_SCALE : 1}
           contentDrivenSlots={useVcqFormulaFlow}
           slotContentEm={measureSlots ? slotRuleEm : undefined}

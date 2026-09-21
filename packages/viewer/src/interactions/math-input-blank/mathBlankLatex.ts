@@ -10,6 +10,34 @@ export function mathBlankSlotId(instanceId: string, responseId: string): string 
   return `qti-math-blank-${instanceId}-${responseId}`;
 }
 
+/** `\cssId` / HTML id에 넣을 수 있는 토큰만 남긴다. */
+export function sanitizeMathBlankInstanceToken(value: string): string {
+  return value.replace(/[^A-Za-z0-9_-]/g, "");
+}
+
+/**
+ * 조판 슬롯 instanceId.
+ * 본문과 정답 미리보기(`answerKeyPreview`)가 같이 있으면 parse `index`만으로는
+ * `#qti-math-blank-{index}-{RESPONSE}` 가 겹친다. `\cancel{\inputblank{…}}` 처럼
+ * 식 경로를 탈 때 MathJax `\cssId` 충돌을 막는다.
+ */
+export function buildMathBlankInstanceId(options: {
+  index: number;
+  itemKey?: string;
+  answerKeyPreview?: boolean;
+  uid?: string;
+  responseId?: string;
+}): string {
+  const parts = [
+    options.answerKeyPreview ? "ak" : "q",
+    sanitizeMathBlankInstanceToken(options.itemKey ?? "") || "item",
+    sanitizeMathBlankInstanceToken(options.uid ?? ""),
+    String(options.index),
+    sanitizeMathBlankInstanceToken(options.responseId ?? ""),
+  ].filter((part) => part !== "");
+  return parts.join("-");
+}
+
 export function parseWidthToken(raw: string | undefined): number | undefined {
   if (!raw) return undefined;
   const ch = Number.parseInt(raw, 10);

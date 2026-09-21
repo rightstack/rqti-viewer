@@ -166,12 +166,68 @@ export function extractInputWidthCh(markupClass: string, pciClass: string): numb
   );
 }
 
+function isAnswerRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * QMS/응시 응답: 문자열, `string[]`, `{ values }`, `{ value }`, `{ answers: [{ value }] }`.
+ * 객체는 예전에 빈 칸으로 버려졌다.
+ */
+export function coerceResponseText(raw: unknown): string {
+  if (raw === undefined || raw === null) return "";
+  if (typeof raw === "string" || typeof raw === "number") return String(raw);
+  if (Array.isArray(raw)) return coerceResponseText(raw[0]);
+  if (!isAnswerRecord(raw)) return "";
+  if ("values" in raw) return coerceResponseText(raw.values);
+  if ("value" in raw) return coerceResponseText(raw.value);
+  if (Array.isArray(raw.answers)) return coerceResponseText(raw.answers[0]);
+  return "";
+}
+
 export function getResponseRawString(map: Record<string, unknown> | undefined, id: string): string {
   if (!map) return "";
-  const raw = map[id];
-  if (raw === undefined || raw === null) return "";
-  if (typeof raw === "object" && !Array.isArray(raw)) return "";
-  return Array.isArray(raw) ? String(raw[0] ?? "") : String(raw);
+  return coerceResponseText(map[id]);
+}
+
+/** 본문은 responses. 정답영역만 correctAnswers. PCI 부모 배열·record·answers 객체를 RESPONSE_N으로 편평. */
+export function buildMathBlankAnswerSource(
+  answerKeyPreview: boolean,
+  correctAnswers: Record<string, unknown> | undefined,
+  responses: Record<string, unknown> | undefined,
+  responseId: string | undefined,
+  latex: string
+): Record<string, unknown> | undefined {
+  const useAnswerKey =
+    answerKeyPreview && !!correctAnswers && Object.keys(correctAnswers).length > 0;
+  const raw = useAnswerKey ? correctAnswers : responses;
+  if (!raw) return undefined;
+
+  const flat: Record<string, unknown> = { ...raw };
+  const blankIds = extractResponseIds(latex);
+  const needsParent = blankIds.some((id) => coerceResponseText(flat[id]) === "");
+  if (!needsParent) return flat;
+
+  const parentValue = responseId ? raw[responseId] : undefined;
+  if (Array.isArray(parentValue)) {
+    for (let i = 0; i < Math.min(parentValue.length, blankIds.length); i++) {
+      if (coerceResponseText(flat[blankIds[i]]) === "") flat[blankIds[i]] = parentValue[i];
+    }
+  } else if (isAnswerRecord(parentValue)) {
+    for (const id of blankIds) {
+      if (coerceResponseText(flat[id]) === "" && id in parentValue) {
+        flat[id] = parentValue[id];
+      }
+    }
+    if (Array.isArray(parentValue.values)) {
+      for (let i = 0; i < Math.min(parentValue.values.length, blankIds.length); i++) {
+        if (coerceResponseText(flat[blankIds[i]]) === "") {
+          flat[blankIds[i]] = parentValue.values[i];
+        }
+      }
+    }
+  }
+  return flat;
 }
 
 export function getResponseString(map: Record<string, unknown> | undefined, id: string): string {

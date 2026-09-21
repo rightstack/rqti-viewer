@@ -115,6 +115,7 @@ export function FormulaSlotInput({
         size={1}
         value={value}
         readOnly={readOnly}
+        tabIndex={readOnly ? -1 : undefined}
         data-response-identifier={id}
         aria-label={`${id} 입력`}
         onChange={(e) => onChange(id, e.target.value)}

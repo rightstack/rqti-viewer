@@ -3384,8 +3384,25 @@
 
 /* thumbnail: hover/focus 인터랙션 없음. 정오답 색만 빼고, 값은 선택 테마 */
 .qti-ext-wrapper--thumbnail .qti-ext-math-input-blank .qti-ext-input-blank,
-.qti-ext-wrapper--thumbnail .qti-ext-vcq-grid .qti-ext-input-blank {
+.qti-ext-wrapper--thumbnail .qti-ext-math-input-blank .qti-ext-input-blank__field,
+.qti-ext-wrapper--thumbnail .qti-ext-math-input-blank .qti-ext-math-blank-slot-content,
+.qti-ext-wrapper--thumbnail .qti-ext-vcq-grid .qti-ext-input-blank,
+.qti-ext-wrapper--thumbnail .qti-ext-vcq-grid .qti-ext-input-blank__field,
+.qti-ext-wrapper--thumbnail .qti-ext-vcq-grid .qti-ext-vcq-merged-input {
   pointer-events: none;
+}
+
+/*
+ * VCQ overlay input은 practice에서 MathJax가 값을 그리고 글자를 투명하게 둔다.
+ * thumbnail은 조판 없이 이 input이 응시 응답을 보여야 한다.
+ */
+.qti-ext-wrapper--thumbnail
+  .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
+  .qti-ext-input-blank__field,
+.qti-ext-wrapper--thumbnail .qti-ext-vcq-merged-input {
+  color: inherit;
+  caret-color: transparent;
+  -webkit-text-fill-color: currentcolor;
 }
 
 .qti-ext-wrapper--thumbnail
@@ -5030,6 +5047,37 @@
   pointer-events: auto;
 }
 
+.qti-ext-wrapper--thumbnail
+  .qti-ext-vcq-cell--blank
+  .qti-ext-math-input-blank--vcq-formula
+  .qti-ext-mjx-blank-slot
+  .qti-ext-math-blank-slot-content {
+  pointer-events: none;
+}
+
+/*
+ * `\cancel{\inputblank}` : 정답 상자(z-index:1)가 MathJax 취소선보다 위에 올라온다.
+ * menclose 안 빈칸은 0, 표기 오버레이는 그보다 위.
+ */
+.qti-ext-math-blank-formula mjx-menclose .qti-ext-mjx-blank-slot,
+.qti-ext-math-blank-formula mjx-menclose .qti-ext-math-blank-slot-content,
+.qti-ext-math-blank-formula mjx-menclose .qti-ext-input-blank,
+.qti-ext-vcq-cell--blank mjx-menclose .qti-ext-mjx-blank-slot,
+.qti-ext-vcq-cell--blank mjx-menclose .qti-ext-math-blank-slot-content,
+.qti-ext-vcq-cell--blank mjx-menclose .qti-ext-input-blank {
+  z-index: 0;
+}
+
+.qti-ext-math-blank-formula mjx-menclose > :not(.qti-ext-mjx-blank-slot),
+.qti-ext-vcq-cell--blank mjx-menclose > :not(.qti-ext-mjx-blank-slot) {
+  z-index: 3;
+  pointer-events: none;
+}
+
+.qti-ext-vcq-cell--blank:has(mjx-menclose) {
+  overflow: visible;
+}
+
 .qti-ext-vcq-cell--blank
   .qti-ext-math-input-blank--vcq-formula
   .qti-ext-math-blank-slot-content
@@ -5253,6 +5301,20 @@
   border-color: var(--qti-option-border-selected);
 
   background-color: var(--qti-option-bg-selected);
+}
+
+.qti-ext-wrapper--thumbnail
+  .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged):focus-within
+  .qti-ext-input-blank.qti-ext-text-entry-input {
+  border-color: var(--qti-option-border);
+  background-color: transparent;
+}
+
+.qti-ext-wrapper--thumbnail
+  .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged):focus-within
+  .qti-ext-input-blank.qti-ext-text-entry-input-focus {
+  border-color: var(--qti-option-border-selected, var(--qti-option-border, #1a1a1a));
+  background-color: var(--qti-option-bg-selected, transparent);
 }
 
 /* preview·thumbnail·정답영역: :focus-within 없이 다른 유형과 같은 테두리 테마 */

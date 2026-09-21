@@ -156,6 +156,7 @@ export function MergedBlankSlot({
           size={1}
           value={text}
           readOnly
+          tabIndex={-1}
           data-response-identifier={id}
           aria-label={`${id} 입력`}
         />
