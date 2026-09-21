@@ -24,6 +24,7 @@ import {
 import { isMathLatexAnswer, isMathResponseId } from "../utils/isMathLatexAnswer";
 import type { CSSVariables } from "../utils/themeToCSS";
 import { MatchAnswerView } from "./MatchAnswerView";
+import { MathInputBlankCorrectAnswerPreview } from "./MathInputBlankCorrectAnswerPreview";
 import { VcqCorrectAnswerPreview } from "./VcqCorrectAnswerPreview";
 
 const SECTION_ICONS: Record<FeedbackType, React.ComponentType<{ className?: string }>> = {
@@ -67,6 +68,8 @@ export interface FeedbackInlineProps {
   qtiXml?: string;
   /** 미디어 인증 토큰 */
   token?: string;
+  /** 미디어 상대경로를 절대경로로 만들 때 쓰는 베이스 URL */
+  baseUrl?: string;
   /** 테마 CSS 변수 (없으면 부모 스코프 변수 사용) */
   themeVariables?: CSSVariables;
   /** 연결형(MATCH) 행/열 식별자. 없으면 qtiXml에서 추출 */
@@ -87,10 +90,11 @@ export const FeedbackInline = ({
   passageFeedbacks,
   qtiXml,
   token,
+  baseUrl,
   themeVariables,
   matchItems,
 }: FeedbackInlineProps) => {
-  const parserOptions = { token: token ?? undefined };
+  const parserOptions = { token: token ?? undefined, baseUrl };
   const safeCorrectAnswer = correctAnswer ?? {};
 
   const choiceDisplayMaps = useMemo(
@@ -205,9 +209,18 @@ export const FeedbackInline = ({
                   segment.kind === "default"
                     ? getMatchCorrectResponseStrings(qtiXml, segment.key, segment.value)
                     : null;
-                const isBlockAnswer = matchStrings !== null || segment.kind === "vcqGrid";
+                const isBlockAnswer =
+                  matchStrings !== null ||
+                  segment.kind === "vcqGrid" ||
+                  segment.kind === "mathInputBlank";
+                const isMultiMath =
+                  segment.kind === "default" &&
+                  matchStrings === null &&
+                  isMathResponseId(segment.key) &&
+                  Array.isArray(segment.value) &&
+                  segment.value.length > 1;
                 const defaultDisplay =
-                  segment.kind === "default" && matchStrings === null
+                  segment.kind === "default" && matchStrings === null && !isMultiMath
                     ? formatCorrectAnswerValueForDisplay(
                         segment.key,
                         segment.value,
@@ -229,6 +242,15 @@ export const FeedbackInline = ({
                           qtiXml={qtiXml ?? ""}
                           correctAnswer={segment.correctAnswer}
                           token={token}
+                          baseUrl={baseUrl}
+                        />
+                      ) : segment.kind === "mathInputBlank" ? (
+                        <MathInputBlankCorrectAnswerPreview
+                          qtiXml={qtiXml ?? ""}
+                          correctAnswer={segment.correctAnswer}
+                          token={token}
+                          baseUrl={baseUrl}
+                          responseIdentifier={segment.key}
                         />
                       ) : segment.kind === "fractionLatex" ? (
                         <span className="qti-ext-mathfield align-middle">
@@ -239,6 +261,28 @@ export const FeedbackInline = ({
                           items={resolvedMatchItems}
                           correctResponse={matchStrings}
                         />
+                      ) : isMultiMath ? (
+                        (Array.isArray(segment.value) ? segment.value : [segment.value]).map(
+                          (text, vi, values) => {
+                            const trimmed = text.trim();
+                            return (
+                              <React.Fragment
+                                key={`fb-correct-${segment.key}-${trimmed || vi}`}
+                              >
+                                <span className="qti-ext-mathfield align-middle">
+                                  {renderLaTeX(
+                                    trimmed,
+                                    `fb-correct-${segment.key}-${vi}`,
+                                    false
+                                  )}
+                                </span>
+                                {vi < values.length - 1 && (
+                                  <span aria-hidden="true">, </span>
+                                )}
+                              </React.Fragment>
+                            );
+                          }
+                        )
                       ) : defaultDisplay !== null &&
                         (isMathLatexAnswer(defaultDisplay) || isMathResponseId(segment.key)) ? (
                         <span className="qti-ext-mathfield align-middle">

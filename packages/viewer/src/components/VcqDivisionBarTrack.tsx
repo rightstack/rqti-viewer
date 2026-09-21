@@ -10,6 +10,7 @@ interface VcqDivisionBarTrackProps {
 /**
  * 나눗셈 division-bar-track 래퍼.
  * 백엔드 XML에는 SVG bracket이 빠져 있으므로 렌더 시 주입한다.
+ * 정방향/역방향 구분은 CSS(`.qti-ext-vcq-division-bar-track--reverse`)가 처리.
  */
 export function VcqDivisionBarTrack({
   className,

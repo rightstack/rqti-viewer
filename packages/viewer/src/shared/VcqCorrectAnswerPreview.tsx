@@ -30,9 +30,7 @@ export function VcqCorrectAnswerPreview({
           token,
           baseUrl,
           itemKey: "feedback-vcq",
-          isSubmit: true,
-          correct: true,
-          responses: correctAnswer,
+          answerKeyPreview: true,
           correctAnswers: correctAnswer as Record<string, ResponseValue>,
         },
         0

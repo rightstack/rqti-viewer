@@ -59,6 +59,32 @@ export const closeUnbalancedLatexGroups = (latex: string): string => {
   return depth > 0 ? `${latex}${"}".repeat(depth)}` : latex;
 };
 
+/**
+ * 빈칸 인터랙션으로 나뉜 수식 조각의 짝 없는 `\left`/`\right`에
+ * MathJax 표시용 비가시 구분자를 보충합니다. 저장 LaTeX는 변경하지 않습니다.
+ *
+ * 예: `\left(5 +` → `\left(5 + \right.`
+ *     `\right) \times 2` → `\left.\right) \times 2`
+ */
+export const balanceLeftRightDelimitersForMathJax = (latex: string): string => {
+  let unmatchedLeftCount = 0;
+  let unmatchedRightCount = 0;
+
+  for (const match of latex.matchAll(/\\(left|right)(?![A-Za-z])/g)) {
+    if (match[1] === "left") {
+      unmatchedLeftCount++;
+    } else if (unmatchedLeftCount > 0) {
+      unmatchedLeftCount--;
+    } else {
+      unmatchedRightCount++;
+    }
+  }
+
+  if (unmatchedLeftCount === 0 && unmatchedRightCount === 0) return latex;
+
+  return `${"\\left.".repeat(unmatchedRightCount)}${latex}${"\\right.".repeat(unmatchedLeftCount)}`;
+};
+
 const ROW_BREAK_ENVIRONMENTS = new Set([
   "array",
   "matrix",

@@ -1,3 +1,4 @@
+import { stripOuterMathDelimiters } from "../../utils/latex";
 import {
   cellSpan,
   findMergedVcqCell,
@@ -7,56 +8,163 @@ import {
   readMergedCellRange,
 } from "../../parser/vcqDomProps";
 
-/** 단순 숫자는 자릿수 토큰, 빈 값·복합 LaTeX는 null */
-export function tokenizeVCQColumnAnswer(answer: string): string[] | null {
-  const value = answer.trim();
-  if (!value) return null;
+type ColumnTrack = { separator?: "." | "," | "" };
+type ColumnSlot = { column: number; token: string | null };
+type ColumnAlign = "left" | "center" | "right";
+
+function tokenizeColumnContent(content: string): string[] | null {
+  const value = stripOuterMathDelimiters(content);
+  if (!value) return [];
   const isSimpleNumber = /^[+\-−]?(?:\d+(?:\.\d+)?|\d{1,3}(?:,\d{3})+(?:\.\d+)?)$/.test(value);
   if (!isSimpleNumber) return null;
   return Array.from(value);
 }
 
-export interface VCQAnswerColumnSlot {
-  column: number;
-  token: string | null;
+function placeTokens(
+  slots: ColumnSlot[],
+  indexes: number[],
+  tokens: string[],
+  align: ColumnAlign
+): boolean {
+  if (tokens.length > indexes.length) return false;
+  const remainingColumns = indexes.length - tokens.length;
+  const start =
+    align === "left" ? 0 : align === "center" ? Math.floor(remainingColumns / 2) : remainingColumns;
+  tokens.forEach((token, index) => {
+    slots[indexes[start + index]].token = token;
+  });
+  return true;
 }
 
-/** 토큰을 병합 열에 오른쪽 정렬. narrow 슬롯이 있으면 소수점 전용으로 비워 둔다. */
-export function alignVCQAnswerTokens(
+function alignColumnTokens(
   tokens: string[],
-  colSpan: number,
-  narrowSlots?: ReadonlySet<number>
-): VCQAnswerColumnSlot[] | null {
-  if (colSpan < 2 || tokens.length === 0) return null;
+  columns: readonly ColumnTrack[],
+  align: ColumnAlign
+): ColumnSlot[] | null {
+  if (columns.length < 2) return null;
+  const slots: ColumnSlot[] = columns.map((_, index) => ({ column: index + 1, token: null }));
+  const separatorIndexes = columns.flatMap((column, index) =>
+    column.separator !== undefined ? [index] : []
+  );
+  const valueIndexes = columns.flatMap((column, index) =>
+    column.separator !== undefined ? [] : [index]
+  );
+  const allIndexes = columns.map((_, index) => index);
 
-  if (!narrowSlots || narrowSlots.size === 0) {
-    if (tokens.length > colSpan) return null;
-    return Array.from({ length: colSpan }, (_, index) => {
-      const tokenIndex = index - (colSpan - tokens.length);
-      return { column: index + 1, token: tokenIndex >= 0 ? tokens[tokenIndex] : null };
-    });
+  if (separatorIndexes.length === 0) {
+    return placeTokens(slots, allIndexes, tokens, align) ? slots : null;
   }
 
-  const dotIndex = tokens.findIndex((t) => t === ".");
-  const normalTokens =
-    dotIndex >= 0 ? [...tokens.slice(0, dotIndex), ...tokens.slice(dotIndex + 1)] : tokens;
+  const separators = tokens.flatMap((token, index) =>
+    token === "." || token === "," ? [index] : []
+  );
+  if (separators.length === 0) {
+    const placementIndexes = valueIndexes.length >= 2 ? valueIndexes : allIndexes;
+    return placeTokens(slots, placementIndexes, tokens, align) ? slots : null;
+  }
+  if (separators.length > separatorIndexes.length) return null;
 
-  const normalSlots: number[] = [];
-  for (let i = 0; i < colSpan; i++) {
-    if (!narrowSlots.has(i)) normalSlots.push(i);
+  const separatorTrackIndexes = separatorIndexes.slice(separatorIndexes.length - separators.length);
+  let previousTokenIndex = -1;
+  let previousTrackIndex = -1;
+
+  for (let index = 0; index < separators.length; index += 1) {
+    const separatorTokenIndex = separators[index];
+    const separatorTrackIndex = separatorTrackIndexes[index];
+    const segmentTokens = tokens.slice(previousTokenIndex + 1, separatorTokenIndex);
+    const segmentTrackIndexes = valueIndexes.filter(
+      (trackIndex) => trackIndex > previousTrackIndex && trackIndex < separatorTrackIndex
+    );
+    if (!placeTokens(slots, segmentTrackIndexes, segmentTokens, "right")) return null;
+    slots[separatorTrackIndex].token = tokens[separatorTokenIndex];
+    previousTokenIndex = separatorTokenIndex;
+    previousTrackIndex = separatorTrackIndex;
   }
 
-  if (normalTokens.length > normalSlots.length) return null;
+  const trailingTokens = tokens.slice(previousTokenIndex + 1);
+  const trailingTrackIndexes = valueIndexes.filter((trackIndex) => trackIndex > previousTrackIndex);
+  if (!placeTokens(slots, trailingTrackIndexes, trailingTokens, "left")) return null;
+  return slots;
+}
 
-  const offset = normalSlots.length - normalTokens.length;
+function readCellText(cell: Element): string {
+  const mathfield = cell.querySelector(".qti-ext-mathfield");
+  return (
+    mathfield?.getAttribute("data-latex")?.trim() ||
+    mathfield?.textContent?.trim() ||
+    cell.textContent?.trim() ||
+    ""
+  );
+}
 
-  return Array.from({ length: colSpan }, (_, i) => {
-    if (narrowSlots.has(i)) {
-      return { column: i + 1, token: dotIndex >= 0 ? "." : null };
+function readMergedColumnTracks(element: Element): ColumnTrack[] {
+  const mergedCell = findMergedVcqCell(element);
+  if (!mergedCell) return [];
+  const range = readMergedCellRange(mergedCell);
+  const colSpan = range?.colSpan ?? cellSpan(mergedCell);
+  if (colSpan < 2) return [];
+
+  const tracks: ColumnTrack[] = Array.from({ length: colSpan }, () => ({}));
+  const trackValues: string[][] = Array.from({ length: colSpan }, () => []);
+  if (!range) return tracks;
+
+  for (const sibRow of Array.from(range.grid.children)) {
+    if (sibRow === range.row || !isVcqRow(sibRow)) continue;
+    let col = 0;
+    for (const cell of Array.from(sibRow.children)) {
+      if (!isVcqCell(cell)) continue;
+      const span = cellSpan(cell);
+      const local = col - range.startCol;
+      if (span === 1 && local >= 0 && local < range.colSpan && isNarrowCell(cell)) {
+        const isBlank =
+          cell.classList.contains("qti-ext-vcq-cell--blank") ||
+          Boolean(cell.querySelector(".qti-ext-input-blank"));
+        trackValues[local].push(isBlank ? "" : readCellText(cell));
+      }
+      col += span;
     }
-    const nIdx = normalSlots.indexOf(i) - offset;
-    return { column: i + 1, token: nIdx >= 0 ? normalTokens[nIdx] : null };
+  }
+
+  trackValues.forEach((values, index) => {
+    const explicitSeparator = values.find(
+      (value): value is "." | "," => value === "." || value === ","
+    );
+    if (explicitSeparator !== undefined) {
+      tracks[index].separator = explicitSeparator;
+    } else if (values.length > 0) {
+      tracks[index].separator = "";
+    }
   });
+  return tracks;
+}
+
+export function alignMergedColumnContent(
+  content: string,
+  element: Element,
+  colSpan: number,
+  alignClass?: string
+): ColumnSlot[] | null {
+  const tokens = tokenizeColumnContent(content);
+  if (!tokens?.length || colSpan < 2) return null;
+  const tracks = readMergedColumnTracks(element);
+  const columns = tracks.length >= 2 ? tracks : Array.from({ length: colSpan }, () => ({}));
+  return alignColumnTokens(tokens, columns, readMergedContentAlign(element, alignClass));
+}
+
+function readMergedContentAlign(element: Element, alignClass?: string): ColumnAlign {
+  const explicit = alignClass?.replace("qti-align-", "");
+  if (explicit === "left" || explicit === "center" || explicit === "right") return explicit;
+
+  let current: Element | null = findMergedVcqCell(element) ?? element;
+  while (current) {
+    const classNames = classNamesOf(current);
+    if (classNames.includes("qti-align-left")) return "left";
+    if (classNames.includes("qti-align-center")) return "center";
+    if (classNames.includes("qti-align-right")) return "right";
+    if (classNames.includes("qti-ext-vcq-grid")) break;
+    current = current.parentElement;
+  }
+  return "center";
 }
 
 function walkVcqAncestors(
@@ -72,6 +180,10 @@ function walkVcqAncestors(
     current = current.parentElement;
   }
   return false;
+}
+
+function classNamesOf(element: Element): string[] {
+  return (element.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
 }
 
 /** 좁은 열 셀이면 입력 폭을 셀에 맞춘다. `{N}ch` 인라인 min-width를 쓰지 않는다. */
@@ -116,32 +228,4 @@ export function readMergedColSpan(element: Element): number {
   if (!merged) return 0;
   const n = cellSpan(merged);
   return n >= 2 ? n : 0;
-}
-
-/** 병합 구간과 교차하는 narrow(소수점) 슬롯의 로컬 인덱스 */
-export function readNarrowSlotsInMerge(element: Element): ReadonlySet<number> {
-  const empty: ReadonlySet<number> = new Set();
-  const mergedCell = findMergedVcqCell(element);
-  if (!mergedCell) return empty;
-  const range = readMergedCellRange(mergedCell);
-  if (!range) return empty;
-
-  const result = new Set<number>();
-  for (const sibRow of Array.from(range.grid.children)) {
-    if (sibRow === range.row || !isVcqRow(sibRow)) continue;
-    let col = 0;
-    for (const cell of Array.from(sibRow.children)) {
-      if (!isVcqCell(cell)) continue;
-      const span = cellSpan(cell);
-      if (isNarrowCell(cell)) {
-        for (let i = 0; i < span; i++) {
-          const local = col + i - range.startCol;
-          if (local >= 0 && local < range.colSpan) result.add(local);
-        }
-      }
-      col += span;
-    }
-    if (result.size > 0) break;
-  }
-  return result;
 }

@@ -8,6 +8,16 @@ export function readBoxExtras(style: CSSStyleDeclaration) {
   return { padX, padY, borderX, borderY };
 }
 
+/** 칸에 묶인 scrollWidth가 아니라 사이저 텍스트 고유 폭. 짧아지면 줄어든다. */
+export function measureSizerContentWidth(sizer: HTMLElement | null): number {
+  if (!sizer) return 0;
+  const range = document.createRange();
+  range.selectNodeContents(sizer);
+  const width = range.getBoundingClientRect().width;
+  range.detach();
+  return width;
+}
+
 /** 조판 전 LaTeX 원문/스트레치 폭은 무시하고, 렌더된 수식 또는 일반 텍스트만 잰다. */
 export function measureDisplayContent(label: HTMLElement | null): { w: number; h: number } {
   if (!label) return { w: 0, h: 0 };

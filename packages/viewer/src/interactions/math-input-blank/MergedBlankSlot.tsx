@@ -2,12 +2,8 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import clsx from "clsx";
 import { renderLaTeX } from "../../parser/parseLatexToReact";
 import { measureDisplayContent, readBoxExtras } from "./slotMeasure";
-import { type BlankVariant, getBlankVariantClass, getInputBlankStateClass } from "./utils";
-import {
-  alignVCQAnswerTokens,
-  readNarrowSlotsInMerge,
-  tokenizeVCQColumnAnswer,
-} from "./vcqMergedAlign";
+import { type BlankVariant, getBlankVariantClass } from "./utils";
+import { alignMergedColumnContent } from "./vcqMergedAlign";
 
 type MergedBlankSlotProps = {
   id: string;
@@ -19,15 +15,14 @@ type MergedBlankSlotProps = {
   mergedColSpan: number;
   contextElement: Element;
   onChange: (id: string, value: string) => void;
-  isSubmit?: boolean;
-  correctAnswer?: string;
-  forceSelected?: boolean;
+  stateClassName?: string;
   displayVariant?: BlankVariant;
 };
 
 function applyMergedFallbackWidth(box: HTMLElement, contentW: number) {
   box.style.width = "";
   box.style.minWidth = "";
+  if (box.closest(".qti-ext-vcq-grid--size-small")) return;
   const cell = box.closest<HTMLElement>(".qti-ext-vcq-cell--merged") ?? box;
   const floor =
     cell.getBoundingClientRect().width || parseFloat(getComputedStyle(cell).minWidth) || 0;
@@ -48,9 +43,7 @@ export function MergedBlankSlot({
   mergedColSpan,
   contextElement,
   onChange,
-  isSubmit,
-  correctAnswer,
-  forceSelected,
+  stateClassName,
   displayVariant = "blank-box",
 }: MergedBlankSlotProps) {
   const sizerRef = useRef<HTMLSpanElement>(null);
@@ -58,17 +51,8 @@ export function MergedBlankSlot({
   const displayRef = useRef<HTMLSpanElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
   const text = displayOnly ? (displayLabel ?? "") : value;
-  const tokens = tokenizeVCQColumnAnswer(text);
-  const slots = tokens
-    ? alignVCQAnswerTokens(tokens, mergedColSpan, readNarrowSlotsInMerge(contextElement))
-    : null;
+  const slots = alignMergedColumnContent(text, contextElement, mergedColSpan, alignClass);
   const isFallback = !slots;
-  const stateClassName = getInputBlankStateClass({
-    value: text,
-    isSubmit,
-    correctAnswer,
-    forceSelected,
-  });
 
   useLayoutEffect(() => {
     const input = inputRef.current;
@@ -82,7 +66,7 @@ export function MergedBlankSlot({
   }, [displayOnly, isFallback, isReadOnly, value]);
 
   useEffect(() => {
-    if (!(displayOnly || isReadOnly)) return;
+    if (displayOnly || !isReadOnly) return;
     const box = displayRef.current;
     const label = labelRef.current;
     if (!box) return;
@@ -138,12 +122,28 @@ export function MergedBlankSlot({
           aria-hidden="true"
         >
           {slot.token &&
-            (displayOnly || isReadOnly
+            (isReadOnly
               ? renderLaTeX(slot.token, `merged-math-${id}-${slot.column}`, false)
               : slot.token)}
         </span>
       ))}
-      {displayOnly || isReadOnly ? (
+      {displayOnly ? (
+        <span
+          className={clsx(
+            "qti-ext-input-blank",
+            getBlankVariantClass(displayVariant),
+            !displayOnly && isFallback && text && "qti-ext-input-blank--latex-content",
+            stateClassName,
+            isFallback && alignClass
+          )}
+        >
+          {isFallback && text ? (
+            <span className="qti-ext-input-blank__label">
+              {renderLaTeX(text, `merged-val-${id}`, false)}
+            </span>
+          ) : null}
+        </span>
+      ) : isReadOnly ? (
         <span
           ref={displayRef}
           className={clsx(
@@ -151,7 +151,7 @@ export function MergedBlankSlot({
             isFallback && "qti-ext-vcq-merged-display--fallback",
             getBlankVariantClass(displayVariant),
             stateClassName,
-            alignClass
+            isFallback && alignClass
           )}
         >
           {isFallback && text ? (
@@ -173,7 +173,7 @@ export function MergedBlankSlot({
               "qti-ext-input-blank qti-ext-text-entry-input qti-ext-vcq-merged-input",
               isFallback && "qti-ext-vcq-merged-input--fallback",
               stateClassName,
-              alignClass
+              isFallback && alignClass
             )}
             type="text"
             size={1}

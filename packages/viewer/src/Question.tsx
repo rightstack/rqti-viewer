@@ -30,7 +30,10 @@ import type {
   Theme,
 } from "./types";
 import { MathJaxProviderWrapper } from "./providers/MathJaxProviderWrapper";
-import { extractMathBlankIdsFromItemXml } from "./interactions/math-input-blank/utils";
+import {
+  buildVcqSubmitResponse,
+  extractMathBlankIdsFromItemXml,
+} from "./interactions/math-input-blank/utils";
 import { loadThemeFont } from "./utils/fontLoader";
 import { formatQuestionNumber } from "./utils/formatQuestionNumber";
 import { injectInlineQuestionNumber } from "./utils/injectInlineQuestionNumber";
@@ -114,10 +117,9 @@ export interface QuestionProps {
   showInlineFeedback?: boolean;
   className?: string;
   /**
-   * 저작 기준 고정 폭(px). 기본 720.
-   * 콘텐츠는 항상 이 폭으로 렌더된 뒤 가용 폭에 맞춰 transform: scale()로만 축소된다
-   * (원본 이상으로 확대하지 않음). 폭이 변해도 내부 상대 좌표가 고정되어
-   * 화이트보드 필기 등 오버레이 정합이 유지된다.
+   * 저작 기준 고정 폭(px). 호스트가 넘긴다. 라이브러리 기본값 없음.
+   * 값이 있으면 이 폭으로 렌더한 뒤 가용 폭에 맞춰 transform: scale()로만 축소한다
+   * (원본 이상으로 확대하지 않음). 없으면 스케일하지 않는다.
    */
   designWidth?: number;
   /**
@@ -156,7 +158,7 @@ function Question({
   passageFeedbacks,
   showInlineFeedback = false,
   className,
-  designWidth = 720,
+  designWidth,
   annotationOverlay,
 }: QuestionProps) {
   const [responses, setResponses] = useState<ResponseValueMap>(
@@ -202,13 +204,17 @@ function Question({
   };
 
   const handleSubmit = useCallback(() => {
-    onSubmit?.(responses);
+    const submitted =
+      type === ITEM_TYPE.VCQ
+        ? (buildVcqSubmitResponse(data, responses as Record<string, unknown>) as unknown as ResponseValueMap)
+        : responses;
+    onSubmit?.(submitted);
     // 외부에서 채점 결과를 주입하지 않는 경우 자체 채점
     if (showFeedback && !submitResponse) {
-      const isCorrect = checkAnswerUtil(responses, correctAnswers);
-      setInternalSubmitResponse({ correct: isCorrect, response: responses });
+      const isCorrect = checkAnswerUtil(submitted, correctAnswers);
+      setInternalSubmitResponse({ correct: isCorrect, response: submitted });
     }
-  }, [onSubmit, responses, showFeedback, submitResponse, correctAnswers]);
+  }, [data, onSubmit, responses, showFeedback, submitResponse, correctAnswers, type]);
 
   // 정오답을 가릴 수 없는 유형(서술형/업로드 등 또는 정답 정보 부재)은 "제출 완료"만 표시
   const hasGrading =
@@ -381,7 +387,9 @@ function Question({
 
   const rootStyle: React.CSSProperties = {
     ...(themeVariables as React.CSSProperties),
-    ["--qti-design-width" as string]: `${designWidth}px`,
+    ...(designWidth != null
+      ? { ["--qti-design-width" as string]: `${designWidth}px` }
+      : {}),
   };
 
   const questionBody = (
@@ -432,6 +440,7 @@ function Question({
         passageFeedbacks={passageFeedbacks}
         qtiXml={data}
         token={token}
+        baseUrl={baseUrl}
         themeVariables={themeVariables}
       />
     ) : null;
@@ -518,13 +527,17 @@ function Question({
 
   return (
     <MathJaxProviderWrapper>
-      <FixedScaleContainer
-        designWidth={designWidth}
-        overlay={annotationOverlay}
-        className="rqti-viewer-scale"
-      >
-        {viewer}
-      </FixedScaleContainer>
+      {designWidth != null && designWidth > 0 ? (
+        <FixedScaleContainer
+          designWidth={designWidth}
+          overlay={annotationOverlay}
+          className="rqti-viewer-scale"
+        >
+          {viewer}
+        </FixedScaleContainer>
+      ) : (
+        viewer
+      )}
     </MathJaxProviderWrapper>
   );
 }

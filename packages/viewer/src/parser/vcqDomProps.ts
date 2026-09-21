@@ -5,6 +5,11 @@ const VCQ_ROW_CLASS = "qti-ext-vcq-row";
 const VCQ_CELL_CLASS = "qti-ext-vcq-cell";
 const VCQ_MERGED_CLASS = "qti-ext-vcq-cell--merged";
 const VCQ_NARROW_CLASS = "qti-ext-vcq-col--narrow";
+const VCQ_OVERLAY_CLASSES = [
+  "qti-ext-vcq-synthetic-bracket",
+  "qti-ext-vcq-remainder",
+  "qti-ext-vcq-division-bar-track",
+] as const;
 
 function classNamesOf(element: Element): string[] {
   return (element.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
@@ -16,6 +21,12 @@ export function isVcqRow(element: Element): boolean {
 
 export function isVcqCell(element: Element): boolean {
   return classNamesOf(element).includes(VCQ_CELL_CLASS);
+}
+
+export function hasVcqOverlayChildren(grid: Element): boolean {
+  return Array.from(grid.children).some((child) =>
+    VCQ_OVERLAY_CLASSES.some((name) => classNamesOf(child).includes(name))
+  );
 }
 
 export function isNarrowCell(element: Element): boolean {
@@ -55,7 +66,12 @@ function vcqColTrack(
   if (unit !== undefined && unit !== 1) {
     return sizedTrack(`var(--vcq-cell) * ${unit} + 2 * var(--vcq-pad)`, unit < 1, unit >= 1);
   }
-  return sizedTrack("var(--vcq-cell) + 2 * var(--vcq-pad)", false, true);
+  const minSize = "var(--vcq-cell) + 2 * var(--vcq-pad)";
+  return {
+    template: `minmax(max(calc(${minSize}), var(--vcq-col-${index + 1}-content, 0px)), max-content)`,
+    minSize,
+    shrinks: false,
+  };
 }
 
 function readVcqColTracks(grid: Element): VcqColTrack[] | undefined {
@@ -137,21 +153,27 @@ export function readMergedCellRange(
   return { grid, row, startCol, colSpan };
 }
 
+function mergedFallbackTemplate(track: VcqColTrack): string {
+  return track.shrinks ? `calc(${track.minSize})` : `minmax(calc(${track.minSize}), 1fr)`;
+}
+
 function readMergedTrackSum(
   cell: Element,
   colspan: number
-): { minWidth: string; colTemplate: string } | undefined {
+): { minWidth: string; colTemplate: string; startCol: number; colSpan: number } | undefined {
   const range = readMergedCellRange(cell);
   if (!range || range.colSpan !== colspan) return undefined;
   const tracks = readVcqColTracks(range.grid);
   if (!tracks) return undefined;
 
   const slice = tracks.slice(range.startCol, range.startCol + colspan);
-  if (slice.length !== colspan || !slice.some((track) => track.shrinks)) return undefined;
+  if (slice.length !== colspan) return undefined;
 
   return {
     minWidth: `calc(${slice.map((track) => track.minSize).join(" + ")})`,
-    colTemplate: slice.map((track) => track.template).join(" "),
+    colTemplate: slice.map(mergedFallbackTemplate).join(" "),
+    startCol: range.startCol,
+    colSpan: range.colSpan,
   };
 }
 
@@ -208,9 +230,9 @@ export function collectVcqDomProps(element: Element): {
   }
 
   const colspan = readSpanToken(element.getAttribute("data-vcq-colspan"));
+  const mergedTracks = colspan !== undefined ? readMergedTrackSum(element, colspan) : undefined;
   if (colspan !== undefined) {
     style["--vcq-blank-col-span"] = String(colspan);
-    const mergedTracks = readMergedTrackSum(element, colspan);
     if (mergedTracks) {
       style["--vcq-merged-min-width"] = mergedTracks.minWidth;
       style["--vcq-merged-col-template"] = mergedTracks.colTemplate;
@@ -226,6 +248,12 @@ export function collectVcqDomProps(element: Element): {
 
   const gridColumn = element.getAttribute("data-vcq-grid-column");
   if (gridColumn) style.gridColumn = gridColumn;
+  else if (mergedTracks) {
+    style.gridColumn = `${mergedTracks.startCol + 1} / span ${mergedTracks.colSpan}`;
+  } else if (colspan !== undefined) {
+    const range = readMergedCellRange(element);
+    if (range) style.gridColumn = `${range.startCol + 1} / span ${range.colSpan}`;
+  }
   const gridRow = element.getAttribute("data-vcq-grid-row");
   if (gridRow) style.gridRow = gridRow;
 

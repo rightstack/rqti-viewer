@@ -11,6 +11,11 @@
  * @see qti-ext.css @counter-style (circled_number, hangul-* …)
  */
 import { parsePairs } from "../interactions/match/utils";
+import {
+  MATH_INPUT_BLANK_TYPE,
+  extractResponseIds,
+  findMarkupDiv,
+} from "../interactions/math-input-blank/utils";
 import { extractListStyleType } from "../parser/listGrouping";
 import type { MatchingPairType, MediaContentType, ResponseValueMap } from "../types";
 import { extractMediaFromElement } from "./extractMediaFromElement";
@@ -467,7 +472,28 @@ function buildFractionLatexFromParts(
 export type CorrectAnswerFeedbackSegment =
   | { kind: "fractionLatex"; latex: string; key: string }
   | { kind: "vcqGrid"; key: string; correctAnswer: ResponseValueMap }
+  | { kind: "mathInputBlank"; key: string; correctAnswer: ResponseValueMap }
   | { kind: "default"; key: string; value: unknown };
+
+export function getMathInputBlankPciElementsFromQtiXml(
+  qtiXml: string | null | undefined
+): Element[] {
+  if (!qtiXml?.trim()) return [];
+  const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
+  if (doc.querySelector("parsererror")) return [];
+  return Array.from(doc.querySelectorAll("qti-portable-custom-interaction")).filter(
+    (el) => el.getAttribute("custom-interaction-type-identifier") === MATH_INPUT_BLANK_TYPE
+  );
+}
+
+function collectMathInputBlankIds(pciElements: Element[]): Set<string> {
+  const ids = new Set<string>();
+  for (const el of pciElements) {
+    const latex = findMarkupDiv(el)?.getAttribute("data-latex") ?? "";
+    for (const id of extractResponseIds(latex)) ids.add(id);
+  }
+  return ids;
+}
 
 export function getVcqResponseGridElementFromQtiXml(
   qtiXml: string | null | undefined,
@@ -500,6 +526,14 @@ export function buildCorrectAnswerFeedbackSegments(
     return [{ kind: "vcqGrid", key: "vcq", correctAnswer: correctAnswer as ResponseValueMap }];
   }
 
+  const mathPciElements = getMathInputBlankPciElementsFromQtiXml(qtiXml);
+  const mathPciResponseIds = new Set(
+    mathPciElements
+      .map((el) => el.getAttribute("response-identifier")?.trim() ?? "")
+      .filter((id) => id.length > 0)
+  );
+  const mathBlankIds = collectMathInputBlankIds(mathPciElements);
+
   const entries = Object.entries(correctAnswer);
   const order = extractInteractionResponseIdentifiersInDocumentOrder(qtiXml);
 
@@ -507,7 +541,9 @@ export function buildCorrectAnswerFeedbackSegments(
   const used = new Set<string>();
   if (order && order.length > 0) {
     for (const id of order) {
-      if (!Object.prototype.hasOwnProperty.call(correctAnswer, id)) continue;
+      if (!mathPciResponseIds.has(id) && !Object.prototype.hasOwnProperty.call(correctAnswer, id)) {
+        continue;
+      }
       orderedIds.push(id);
       used.add(id);
     }
@@ -544,7 +580,16 @@ export function buildCorrectAnswerFeedbackSegments(
 
   const out: CorrectAnswerFeedbackSegment[] = [];
   for (const rid of orderedIds) {
+    if (mathPciResponseIds.has(rid)) {
+      out.push({
+        kind: "mathInputBlank",
+        key: rid,
+        correctAnswer: correctAnswer as ResponseValueMap,
+      });
+      continue;
+    }
     if (!Object.prototype.hasOwnProperty.call(correctAnswer, rid)) continue;
+    if (mathBlankIds.has(rid)) continue;
     const seg = segmentForId(rid);
     if (seg) out.push(seg);
   }

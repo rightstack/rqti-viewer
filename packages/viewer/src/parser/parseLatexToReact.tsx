@@ -2,6 +2,7 @@
 import React from "react";
 import { MathJaxWithTextFont } from "../providers/MathJaxProviderWrapper";
 import {
+  balanceLeftRightDelimitersForMathJax,
   closeUnbalancedLatexGroups,
   normalizeArrayColumnsForMathJax,
   normalizeGeometryAccents,
@@ -11,19 +12,24 @@ import {
   stripOuterMathDelimiters,
 } from "../utils/latex";
 
+const BLOCK_MATH_ENV_RE = /\\begin\{(?:align|gather|multline)\*?\}/;
+
 export const renderLaTeX = (
   latex: string,
   key: string,
-  displayMode: boolean
+  displayMode: boolean,
+  dynamic = true
 ): React.ReactElement => {
   const normalized = normalizeGeometryAccents(
     normalizeArrayColumnsForMathJax(
-      closeUnbalancedLatexGroups(
-        normalizeNestedTextStylesForMathJax(
-          stripOuterMathDelimiters(
-            normalizeLatexWhitespaceEntities(normalizeLatexBackslashes(latex)).replace(
-              /\\require\{[^}]*\}\s*/g,
-              ""
+      balanceLeftRightDelimitersForMathJax(
+        closeUnbalancedLatexGroups(
+          normalizeNestedTextStylesForMathJax(
+            stripOuterMathDelimiters(
+              normalizeLatexWhitespaceEntities(normalizeLatexBackslashes(latex)).replace(
+                /\\require\{[^}]*\}\s*/g,
+                ""
+              )
             )
           )
         )
@@ -35,11 +41,14 @@ export const renderLaTeX = (
     return React.createElement("span", { key });
   }
 
-  const math = displayMode ? `\\[${normalized}\\]` : `\\(\\displaystyle ${normalized}\\)`;
+  const math =
+    displayMode || BLOCK_MATH_ENV_RE.test(normalized)
+      ? `\\[${normalized}\\]`
+      : `\\(\\displaystyle ${normalized}\\)`;
 
   if (!displayMode) {
     return (
-      <MathJaxWithTextFont key={key} inline dynamic className="qti-ext-mathfield">
+      <MathJaxWithTextFont key={key} inline dynamic={dynamic} className="qti-ext-mathfield">
         {math}
       </MathJaxWithTextFont>
     );
@@ -47,7 +56,7 @@ export const renderLaTeX = (
 
   return (
     <div key={key} className="qti-ext-math-display">
-      <MathJaxWithTextFont dynamic className="qti-ext-mathfield">
+      <MathJaxWithTextFont dynamic={dynamic} className="qti-ext-mathfield">
         {math}
       </MathJaxWithTextFont>
     </div>

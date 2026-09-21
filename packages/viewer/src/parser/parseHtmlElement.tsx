@@ -13,11 +13,7 @@ import {
   extractResponseIds,
   isStandaloneMathBlankMarkup,
 } from "../interactions/math-input-blank/utils";
-import {
-  alignVCQAnswerTokens,
-  readNarrowSlotsInMerge,
-  tokenizeVCQColumnAnswer,
-} from "../interactions/math-input-blank/vcqMergedAlign";
+import { alignMergedColumnContent } from "../interactions/math-input-blank/vcqMergedAlign";
 import { parseTextIndent } from "../themes/utils";
 import type { QTIParserOptions } from "../types";
 import { appendMediaToken, resolveMediaUrl } from "../utils/urlUtils";
@@ -26,7 +22,7 @@ import { buildImageStyle } from "./imageUtils";
 import { groupListItems } from "./listGrouping";
 import { parseNode } from "./parseInteraction";
 import { parseTextWithLaTeX, renderLaTeX } from "./parseLatexToReact";
-import { collectVcqDomProps } from "./vcqDomProps";
+import { collectVcqDomProps, hasVcqOverlayChildren } from "./vcqDomProps";
 
 /** 세로셈 레이아웃 들여쓰기는 그리드 트랙이 되면 안 된다. */
 function isVcqLayoutClass(className: string): boolean {
@@ -242,13 +238,20 @@ export const parseHTMLElement = (
 
       const groupedChildren = groupListItems(processedChildren);
       const vcq = collectVcqDomProps(element);
-      const sharedCols = Boolean(
+      const hasColTemplate = Boolean(
         (vcq.style as Record<string, unknown> | undefined)?.["--vcq-col-template"]
       );
-      const gridClassName = sharedCols
-        ? `${divClassName} qti-ext-vcq-grid--shared-cols`.trim()
-        : divClassName;
+      const overlayGrid = hasColTemplate && hasVcqOverlayChildren(element);
+      const sharedCols = hasColTemplate && !overlayGrid;
+      const gridClassName = overlayGrid
+        ? `${divClassName} qti-ext-vcq-grid--overlay-grid`.trim()
+        : sharedCols
+          ? `${divClassName} qti-ext-vcq-grid--shared-cols`.trim()
+          : divClassName;
 
+      /* 정적 merged 셀: mathfield 자릿수를 열별 span으로 분리 배치.
+         \inputblank 이 있으면 일반 셀과 같이 DisplayMarkup이 처리한다.
+         원문 매크로를 renderLaTeX에 넘기면 명령어가 그대로 노출된다. */
       if (
         className.includes("qti-ext-vcq-cell--merged") &&
         !className.includes("qti-ext-vcq-cell--blank")
@@ -262,11 +265,9 @@ export const parseHTMLElement = (
             mathfieldEl.textContent ??
             ""
           ).trim();
-          const tokens = tokenizeVCQColumnAnswer(rawLatex);
-          const colSpanN = Number.parseInt(element.getAttribute("data-vcq-colspan") ?? "1", 10);
-          if (tokens && Number.isFinite(colSpanN) && colSpanN >= 2) {
-            const narrowSlots = readNarrowSlotsInMerge(element);
-            const slots = alignVCQAnswerTokens(tokens, colSpanN, narrowSlots);
+          if (extractResponseIds(rawLatex).length === 0) {
+            const colSpanN = Number.parseInt(element.getAttribute("data-vcq-colspan") ?? "1", 10);
+            const slots = alignMergedColumnContent(rawLatex, element, colSpanN);
             if (slots) {
               return (
                 <div
@@ -289,24 +290,24 @@ export const parseHTMLElement = (
                 </div>
               );
             }
-          }
 
-          if (rawLatex) {
-            return (
-              <div
-                key={`div-${index}`}
-                className={gridClassName}
-                style={vcq.style}
-                {...vcq.dataAttrs}
-              >
-                <span
-                  className="qti-ext-mathfield qti-ext-vcq-merged-answer-slot"
-                  style={{ gridColumn: "1 / -1" }}
+            if (rawLatex) {
+              return (
+                <div
+                  key={`div-${index}`}
+                  className={gridClassName}
+                  style={vcq.style}
+                  {...vcq.dataAttrs}
                 >
-                  {renderLaTeX(rawLatex, `merged-latex-${index}`, false)}
-                </span>
-              </div>
-            );
+                  <span
+                    className="qti-ext-mathfield qti-ext-vcq-merged-fallback-content"
+                    style={{ gridColumn: "1 / -1" }}
+                  >
+                    {renderLaTeX(rawLatex, `merged-latex-${index}`, false)}
+                  </span>
+                </div>
+              );
+            }
           }
         }
       }

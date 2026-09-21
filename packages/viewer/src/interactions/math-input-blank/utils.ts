@@ -1,8 +1,10 @@
 import type { CSSProperties } from "react";
 import { isMathResponseId } from "../../utils";
+import { stripOuterMathDelimiters } from "../../utils/latex";
 import {
   INPUTBLANK_RE,
   PLACEHOLDER_RE,
+  hasFormulaContext,
   markerSlotWidthEm,
   parseWidthToken,
 } from "./mathBlankLatex";
@@ -50,15 +52,26 @@ export type DisplayBlankLabel = {
 
 const DISPLAY_LABEL_CLASS = "qti-ext-input-blank__label";
 
-/** XML의 `__label`만. 없으면 빈칸은 비어 있다. 정답·느슨한 텍스트는 라벨이 아니다. */
+/** `__label` 우선. 수식 문맥의 직계 텍스트는 식 미리보기이므로 라벨이 아니다. */
 export function readDisplayBlankLabels(element: Element): DisplayBlankLabel[] {
-  return Array.from(element.querySelectorAll(`.${DISPLAY_LABEL_CLASS}`)).map((node) => {
+  const fromClass = Array.from(element.querySelectorAll(`.${DISPLAY_LABEL_CLASS}`)).map((node) => {
     const id = node.getAttribute("data-response-identifier")?.trim();
     return {
       id: id || undefined,
       text: (node.textContent ?? "").trim(),
     };
   });
+  if (fromClass.length > 0) return fromClass;
+
+  const latex = element.getAttribute("data-latex")?.trim() ?? "";
+  if (hasFormulaContext(latex)) return [];
+
+  const ownText = Array.from(element.childNodes)
+    .filter((node) => node.nodeType === Node.TEXT_NODE)
+    .map((node) => (node.textContent ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+  return ownText ? [{ text: ownText }] : [];
 }
 
 export function extractResponseIds(latex: string): string[] {
@@ -153,18 +166,38 @@ export function extractInputWidthCh(markupClass: string, pciClass: string): numb
   );
 }
 
-/** 문자열에 LaTeX 명령어(`\frac` 등)가 포함되어 있는지 검사 */
-export function hasLatexCommand(text: string): boolean {
-  return /\\[a-zA-Z]/.test(text);
-}
-
-export function getResponseString(map: Record<string, unknown> | undefined, id: string): string {
+export function getResponseRawString(map: Record<string, unknown> | undefined, id: string): string {
   if (!map) return "";
   const raw = map[id];
   if (raw === undefined || raw === null) return "";
-  if (Array.isArray(raw)) return String(raw[0] ?? "").trim();
-  if (typeof raw === "string") return raw.trim();
-  return String(raw).trim();
+  if (typeof raw === "object" && !Array.isArray(raw)) return "";
+  return Array.isArray(raw) ? String(raw[0] ?? "") : String(raw);
+}
+
+export function getResponseString(map: Record<string, unknown> | undefined, id: string): string {
+  return stripOuterMathDelimiters(getResponseRawString(map, id));
+}
+
+function toVcqSubmitValue(raw: unknown): string {
+  if (raw === undefined || raw === null) return "";
+  const text = Array.isArray(raw)
+    ? String(raw[0] ?? "")
+    : typeof raw === "string"
+      ? raw
+      : String(raw);
+  return text.trim() === "" ? "" : text;
+}
+
+/** VCQ 제출: XML 응답 칸은 모두 키를 넣고, 비어 있으면 "". */
+export function buildVcqSubmitResponse(
+  xml: string | undefined,
+  responses: Record<string, unknown> | undefined
+): Record<string, string> {
+  const submitted: Record<string, string> = {};
+  for (const id of extractMathBlankIdsFromItemXml(xml ?? "")) {
+    submitted[id] = toVcqSubmitValue(responses?.[id]);
+  }
+  return submitted;
 }
 
 export type BlankVariant = "text-entry" | "blank-box";
@@ -179,17 +212,16 @@ export function getInputBlankStateClass(options: {
   value: string;
   isSubmit?: boolean;
   correctAnswer?: string;
-  forceSelected?: boolean;
+  answerKey?: boolean;
+  allowEmptySelected?: boolean;
 }): string {
-  if (options.forceSelected) return "qti-ext-text-entry-input-focus";
-
-  const classes: string[] = [];
-  if (options.value !== "") classes.push("qti-ext-text-entry-input-focus");
+  if (options.answerKey) return "qti-ext-text-entry-input-correct";
 
   if (options.isSubmit && options.correctAnswer !== undefined) {
-    const ok = options.value.trim() === options.correctAnswer.trim();
-    classes.push(ok ? "qti-ext-text-entry-input-correct" : "qti-ext-text-entry-input-incorrect");
+    const ok = options.value === options.correctAnswer;
+    return ok ? "qti-ext-text-entry-input-correct" : "qti-ext-text-entry-input-incorrect";
   }
 
-  return classes.join(" ");
+  const emptyIsSelected = options.allowEmptySelected === true && options.value === "";
+  return options.value !== "" || emptyIsSelected ? "qti-ext-text-entry-input-focus" : "";
 }

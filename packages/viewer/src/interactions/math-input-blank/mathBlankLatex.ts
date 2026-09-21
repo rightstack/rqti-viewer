@@ -36,14 +36,21 @@ export function markerSlotWidthPx(widthCh: number | undefined, fontSizePx: numbe
   return actualMinSlotEm(widthCh) * emPx;
 }
 
+/** 조판된 읽기 전용 값의 실측 칸 크기. LaTeX 원문 길이가 아니라 화면 폭이다. */
+export type SlotContentEm = {
+  widthEm: number;
+  heightEm: number;
+};
+
 function slotCommand(
   instanceId: string,
   id: string,
   widthCh: number | undefined,
-  scale = 1
+  scale = 1,
+  measured?: SlotContentEm
 ): string {
-  const widthEm = (actualMinSlotEm(widthCh) * scale).toFixed(2);
-  const heightEm = (CSS_MIN_SLOT_EM * scale).toFixed(2);
+  const widthEm = (measured?.widthEm ?? actualMinSlotEm(widthCh) * scale).toFixed(2);
+  const heightEm = (measured?.heightEm ?? CSS_MIN_SLOT_EM * scale).toFixed(2);
   return `\\cssId{${mathBlankSlotId(instanceId, id)}}{\\class{${MATH_BLANK_SLOT_CLASS}}{\\Rule{${widthEm}em}{${heightEm}em}{0em}}}`;
 }
 
@@ -66,7 +73,13 @@ export type TypesetSlotLatex = {
 };
 
 /** 빈칸 토큰을 조판 자리(`\\cssId`)로 바꾸고, 등장 순 ID를 반환한다. */
-export function toTypesetSlotLatex(latex: string, instanceId: string, scale = 1): TypesetSlotLatex {
+export function toTypesetSlotLatex(
+  latex: string,
+  instanceId: string,
+  scale = 1,
+  ignoreDeclaredWidth = false,
+  slotContentEm?: Record<string, SlotContentEm>
+): TypesetSlotLatex {
   const ids: string[] = [];
   const seen = new Set<string>();
   const remember = (id: string) => {
@@ -74,17 +87,17 @@ export function toTypesetSlotLatex(latex: string, instanceId: string, scale = 1)
     seen.add(id);
     ids.push(id);
   };
+  const replaceSlot = (_match: string, id: string, width: string | undefined) => {
+    remember(id);
+    const declared = ignoreDeclaredWidth ? undefined : parseWidthToken(width);
+    // `{{ID}{N}}`의 첫 `{`는 `\overline{…}` 인자 괄호이기도 하다. 그룹을 유지해야 윗줄이 남는다.
+    return `{${slotCommand(instanceId, id, declared, scale, slotContentEm?.[id])}}`;
+  };
 
   INPUTBLANK_RE.lastIndex = 0;
   PLACEHOLDER_RE.lastIndex = 0;
-  let out = latex.replace(INPUTBLANK_RE, (_match, id: string, width: string | undefined) => {
-    remember(id);
-    return slotCommand(instanceId, id, parseWidthToken(width), scale);
-  });
+  let out = latex.replace(INPUTBLANK_RE, replaceSlot);
   PLACEHOLDER_RE.lastIndex = 0;
-  out = out.replace(PLACEHOLDER_RE, (_match, id: string, width: string | undefined) => {
-    remember(id);
-    return slotCommand(instanceId, id, parseWidthToken(width), scale);
-  });
+  out = out.replace(PLACEHOLDER_RE, replaceSlot);
   return { latex: out, ids };
 }

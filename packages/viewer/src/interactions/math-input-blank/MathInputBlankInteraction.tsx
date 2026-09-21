@@ -1,11 +1,12 @@
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, type RefObject, useLayoutEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { renderLaTeX } from "../../parser/parseLatexToReact";
 import type { QTIParserOptions, ResponseValue, ResponseValueMap } from "../../types";
+import { isMathLatexAnswer } from "../../utils";
 import { FormulaSlotInput, FormulaSlotLatexDisplay } from "./FormulaSlotInput";
 import { MathBlankFormula } from "./MathBlankFormula";
 import { MergedBlankSlot } from "./MergedBlankSlot";
-import { MATH_BLANK_DISPLAY_SCALE, hasFormulaContext } from "./mathBlankLatex";
+import { MATH_BLANK_DISPLAY_SCALE, type SlotContentEm, hasFormulaContext } from "./mathBlankLatex";
 import {
   type BlankVariant,
   type DisplayBlankLabel,
@@ -15,8 +16,8 @@ import {
   findMarkupDiv,
   getBlankVariantClass,
   getInputBlankStateClass,
+  getResponseRawString,
   getResponseString,
-  hasLatexCommand,
   isMathInputBlankDisplay,
   isMathResponseId,
   parseMathBlankSegments,
@@ -24,6 +25,7 @@ import {
 } from "./utils";
 import {
   isVcqBlankCell,
+  isVcqCarryCell,
   isVcqNarrowCell,
   readMathBlankAlignClass,
   readMergedColSpan,
@@ -35,7 +37,7 @@ type BlankOptions = Omit<QTIParserOptions, "onResponseChange" | "responses"> & {
 };
 
 function needsMathRender(id: string | undefined, text: string, isMathContext = false): boolean {
-  return hasLatexCommand(text) || isMathResponseId(id ?? "") || isMathContext;
+  return isMathLatexAnswer(text) || isMathResponseId(id ?? "") || isMathContext;
 }
 
 function renderLabelContent(
@@ -76,18 +78,94 @@ interface MathInputBlankInteractionProps {
   index: number;
 }
 
-/** preview는 correctAnswers 우선. record 값은 inputblank 등장 순으로 매핑. */
+function recomputeVcqColumnWidth(grid: HTMLElement, column: number) {
+  const cells = grid.querySelectorAll<HTMLElement>(`[data-vcq-intrinsic-column="${column}"]`);
+  const width = Array.from(cells).reduce(
+    (max, cell) => Math.max(max, Number.parseFloat(cell.dataset.vcqIntrinsicWidth ?? "0")),
+    0
+  );
+  const property = `--vcq-col-${column}-content`;
+  if (width > 0) grid.style.setProperty(property, `${width}px`);
+  else grid.style.removeProperty(property);
+}
+
+function useVcqIntrinsicColumn(
+  ref: RefObject<HTMLSpanElement | null>,
+  enabled: boolean,
+  contentVersion: string
+) {
+  useLayoutEffect(() => {
+    if (!enabled) return;
+    const root = ref.current;
+    const cell = root?.closest<HTMLElement>(".qti-ext-vcq-cell");
+    const row = cell?.parentElement;
+    const grid = row?.closest<HTMLElement>(".qti-ext-vcq-grid");
+    if (!root || !cell || !row || !grid) return;
+
+    let column = 1;
+    for (const sibling of Array.from(row.children)) {
+      if (sibling === cell) break;
+      if (!sibling.classList.contains("qti-ext-vcq-cell")) continue;
+      const span = Number.parseInt(sibling.getAttribute("data-vcq-colspan") ?? "1", 10);
+      column += Number.isFinite(span) && span >= 2 ? span : 1;
+    }
+
+    let active = true;
+    const measure = () => {
+      if (!active) return;
+      const content =
+        root.querySelector<HTMLElement>(
+          ".qti-ext-math-blank-inline--vcq-standalone, .qti-ext-math-blank-formula"
+        ) ?? root;
+      const contentWidth = content.getBoundingClientRect().width;
+      const style = getComputedStyle(cell);
+      const padding =
+        (Number.parseFloat(style.paddingLeft) || 0) + (Number.parseFloat(style.paddingRight) || 0);
+      const width = Math.ceil(contentWidth + padding);
+      if (width <= 0 || cell.dataset.vcqIntrinsicWidth === String(width)) return;
+      cell.dataset.vcqIntrinsicColumn = String(column);
+      cell.dataset.vcqIntrinsicWidth = String(width);
+      recomputeVcqColumnWidth(grid, column);
+    };
+
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(
+      root.querySelector<HTMLElement>(
+        ".qti-ext-math-blank-inline--vcq-standalone, .qti-ext-math-blank-formula"
+      ) ?? root
+    );
+    const mutationObserver = new MutationObserver(measure);
+    mutationObserver.observe(root, { childList: true, subtree: true, characterData: true });
+    document.fonts?.ready.then(measure).catch(() => undefined);
+    measure();
+
+    return () => {
+      active = false;
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      delete cell.dataset.vcqIntrinsicColumn;
+      delete cell.dataset.vcqIntrinsicWidth;
+      recomputeVcqColumnWidth(grid, column);
+    };
+  }, [contentVersion, enabled, ref]);
+}
+
+/** 제출 후는 responses. preview 본문만 correctAnswers. 칸 ID 키만 본다. PCI 부모 배열·record는 RESPONSE_N으로 편평. */
+function isAnswerRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
 function buildAnswerSource(
   isPreview: boolean,
+  isSubmit: boolean | undefined,
   correctAnswers: Record<string, unknown> | undefined,
   responses: Record<string, unknown> | undefined,
   responseId: string | undefined,
   latex: string
 ): Record<string, unknown> | undefined {
-  const raw =
-    isPreview && correctAnswers && Object.keys(correctAnswers).length > 0
-      ? correctAnswers
-      : responses;
+  const usePreviewAnswers =
+    !isSubmit && isPreview && !!correctAnswers && Object.keys(correctAnswers).length > 0;
+  const raw = usePreviewAnswers ? correctAnswers : responses;
   if (!raw) return undefined;
 
   const flat: Record<string, unknown> = { ...raw };
@@ -95,12 +173,13 @@ function buildAnswerSource(
 
   if (blankIds.some((id) => !(id in flat))) {
     const parentValue = responseId ? raw[responseId] : undefined;
-    const arr = Array.isArray(parentValue)
-      ? parentValue
-      : Object.values(raw).find((v) => Array.isArray(v) && v.length > 0);
-    if (Array.isArray(arr)) {
-      for (let i = 0; i < Math.min(arr.length, blankIds.length); i++) {
-        if (!(blankIds[i] in flat)) flat[blankIds[i]] = arr[i];
+    if (Array.isArray(parentValue)) {
+      for (let i = 0; i < Math.min(parentValue.length, blankIds.length); i++) {
+        if (!(blankIds[i] in flat)) flat[blankIds[i]] = parentValue[i];
+      }
+    } else if (isAnswerRecord(parentValue)) {
+      for (const id of blankIds) {
+        if (!(id in flat) && id in parentValue) flat[id] = parentValue[id];
       }
     }
   }
@@ -142,6 +221,7 @@ function MathInputBlankView({
   displayLabels = [],
   responseId,
 }: MathInputBlankViewProps) {
+  const rootRef = useRef<HTMLSpanElement>(null);
   const segments = useMemo(() => parseMathBlankSegments(latex), [latex]);
   const fallbackWidthCh = extractInputWidthCh(
     markup?.getAttribute("class") ?? "",
@@ -150,7 +230,21 @@ function MathInputBlankView({
   const mergedColSpan = readMergedColSpan(contextElement);
   const alignClass = readMathBlankAlignClass(contextElement, markup);
   const formulaContext = hasFormulaContext(latex);
-  const useFormulaPath = mergedColSpan < 2 && formulaContext;
+  const inVcqBlankCell = isVcqBlankCell(contextElement);
+  const inVcqNarrowCell = isVcqNarrowCell(contextElement);
+  const vcqCell = contextElement.closest(".qti-ext-vcq-cell");
+  const canUseVcqTypedFlow =
+    inVcqBlankCell &&
+    !inVcqNarrowCell &&
+    !isVcqCarryCell(contextElement) &&
+    !vcqCell?.hasAttribute("data-vcq-width-unit");
+  const useVcqContentFlow = canUseVcqTypedFlow && mergedColSpan < 2;
+  const useVcqFormulaFlow = formulaContext && canUseVcqTypedFlow;
+  const useVcqStandaloneFlow = !formulaContext && useVcqContentFlow;
+  useVcqIntrinsicColumn(rootRef, useVcqContentFlow, String(options.mode));
+  const inNarrowRow = Boolean(contextElement.closest(".qti-ext-vcq-row--narrow"));
+  const inVcqCell = inVcqBlankCell || mergedColSpan >= 2;
+  const fillDisplaySlot = inNarrowRow || inVcqCell;
   const blankWidthMap = useMemo(() => {
     const map = new Map<string, number>();
     for (const seg of segments) {
@@ -163,20 +257,21 @@ function MathInputBlankView({
   }, [segments, fallbackWidthCh]);
 
   const isPreview = options.mode === "preview";
+  const isThumbnail = options.mode === "thumbnail";
   const isReadOnly = displayOnly || options.mode !== "practice";
-  const isMathContext =
-    isMathResponseId(responseId ?? "") || isVcqBlankCell(contextElement) || mergedColSpan >= 2;
+  const isMathContext = isMathResponseId(responseId ?? "") || inVcqBlankCell || mergedColSpan >= 2;
 
   const answerSource = useMemo(
     () =>
       buildAnswerSource(
         isPreview,
+        options.isSubmit,
         options.correctAnswers as Record<string, unknown>,
         options.responses as Record<string, unknown>,
         responseId,
         latex
       ),
-    [isPreview, latex, options.correctAnswers, options.responses, responseId]
+    [isPreview, latex, options.correctAnswers, options.isSubmit, options.responses, responseId]
   );
 
   const blankIds = useMemo(() => extractResponseIds(latex), [latex]);
@@ -186,43 +281,69 @@ function MathInputBlankView({
     [blankIds, displayLabels, displayOnly]
   );
 
+  /**
+   * 조판된 칸 크기를 실측해 Rule에 되돌린다. LaTeX 원문 길이는 화면 폭과 다르다.
+   * 값마다 한 번만 받는다. Rule을 바꾸면 재조판·재측정이 도는데 지수·분수 안에서는
+   * em 기준 글자 크기가 미세하게 달라져 값이 계속 흔들린다.
+   */
+  const measureSlots = isReadOnly && formulaContext;
+  const [slotContentEm, setSlotContentEm] = useState<
+    Record<string, { value: string; em: SlotContentEm }>
+  >({});
+
+  const handleSlotContentEm = (id: string, value: string, em: SlotContentEm) => {
+    setSlotContentEm((prev) =>
+      prev[id]?.value === value ? prev : { ...prev, [id]: { value, em } }
+    );
+  };
+
+  const slotRuleEm = useMemo(() => {
+    const next: Record<string, SlotContentEm> = {};
+    for (const [id, measured] of Object.entries(slotContentEm)) next[id] = measured.em;
+    return next;
+  }, [slotContentEm]);
+
+  /** 실측이 덜 온 칸이 있으면 조판을 감춘다. 첫 조판은 Rule이 글자 수 기준이라 틀린 폭이다. */
+  const awaitingMeasure =
+    Boolean(measureSlots) &&
+    !displayOnly &&
+    blankIds.some((id) => slotContentEm[id]?.value !== getResponseString(answerSource, id));
+
   const handleChange = (id: string, value: string) => {
     if (!isReadOnly) options.onResponseChange?.(id, value);
   };
 
   const answerRevealVariant: BlankVariant =
     isPreview || Boolean(options.isSubmit) || options.correct === true ? "text-entry" : "blank-box";
+  const slotVariant: BlankVariant = displayOnly ? "blank-box" : answerRevealVariant;
 
-  const blankDisplayState = (id: string) => {
+  const blankStateClass = (id: string) => {
+    if (displayOnly || isThumbnail) return "";
     const correctMap = options.correctAnswers as Record<string, unknown> | undefined;
-    const hasPerId = !!correctMap && Object.prototype.hasOwnProperty.call(correctMap, id);
-    const feedback = {
+    const hasCorrect = !!correctMap && Object.prototype.hasOwnProperty.call(correctMap, id);
+    return getInputBlankStateClass({
+      value: getResponseString(answerSource, id),
       isSubmit: options.isSubmit,
-      correctAnswer: hasPerId ? getResponseString(correctMap, id) : undefined,
-      forceSelected: options.correct === true,
-    };
-    return {
-      feedback,
-      stateClass: getInputBlankStateClass({
-        value: displayOnly ? (labelMap.get(id) ?? "") : getResponseString(answerSource, id),
-        ...feedback,
-      }),
-    };
+      correctAnswer: hasCorrect ? getResponseString(correctMap, id) : undefined,
+      answerKey: options.answerKeyPreview === true,
+      allowEmptySelected: isPreview && !options.answerKeyPreview && inVcqBlankCell,
+    });
   };
 
   const renderSizedBlank = (id: string, key: string, treatAsMath: boolean) => {
-    const widthCh = blankWidthMap.get(id) ?? fallbackWidthCh;
-    const { feedback, stateClass } = blankDisplayState(id);
+    const widthCh = useVcqFormulaFlow ? undefined : (blankWidthMap.get(id) ?? fallbackWidthCh);
+    const stateClass = blankStateClass(id);
 
     if (displayOnly) {
-      const label = labelMap.get(id);
+      const label = formulaContext ? undefined : labelMap.get(id);
       return (
         <span key={key} className="qti-ext-math-blank-inline">
           <FormulaSlotLatexDisplay
             widthCh={widthCh}
             stateClassName={stateClass}
-            variant="blank-box"
-            fillSlot={!label}
+            variant={slotVariant}
+            fillSlot={!label || fillDisplaySlot}
+            fitFormulaHost={useVcqFormulaFlow}
           >
             {label ? renderLabelContent(label, `label-${id}`, id, treatAsMath) : null}
           </FormulaSlotLatexDisplay>
@@ -230,16 +351,19 @@ function MathInputBlankView({
       );
     }
 
+    const raw = getResponseRawString(answerSource, id);
     const value = getResponseString(answerSource, id);
-    if (isReadOnly && needsMathRender(id, value, treatAsMath)) {
+    if (isReadOnly && needsMathRender(id, raw, treatAsMath)) {
       return (
         <span key={key} className="qti-ext-math-blank-inline">
           <FormulaSlotLatexDisplay
             widthCh={widthCh}
             stateClassName={stateClass}
-            variant={answerRevealVariant}
+            variant={slotVariant}
+            fitFormulaHost={useVcqFormulaFlow}
+            onContentEm={measureSlots ? (em) => handleSlotContentEm(id, value, em) : undefined}
           >
-            {renderLaTeX(value, `blank-val-${id}`, false)}
+            {value ? renderLaTeX(value, `blank-val-${id}`, false, false) : null}
           </FormulaSlotLatexDisplay>
         </span>
       );
@@ -254,19 +378,18 @@ function MathInputBlankView({
           readOnly={isReadOnly}
           alignClass={alignClass}
           onChange={handleChange}
-          isSubmit={feedback.isSubmit}
-          correctAnswer={feedback.correctAnswer}
-          forceSelected={feedback.forceSelected}
+          stateClassName={stateClass}
+          fitFormulaHost={useVcqFormulaFlow}
         />
       </span>
     );
   };
 
   const renderBlankSlot = (id: string, key: string, treatAsMath: boolean) => {
-    const { feedback, stateClass } = blankDisplayState(id);
-    const displayVariantClass = getBlankVariantClass(answerRevealVariant);
+    const stateClass = blankStateClass(id);
+    const displayVariantClass = getBlankVariantClass(slotVariant);
 
-    if (mergedColSpan >= 2) {
+    if (mergedColSpan >= 2 && !formulaContext) {
       return (
         <MergedBlankSlot
           key={key}
@@ -279,29 +402,31 @@ function MathInputBlankView({
           mergedColSpan={mergedColSpan}
           contextElement={contextElement}
           onChange={handleChange}
-          isSubmit={feedback.isSubmit}
-          correctAnswer={feedback.correctAnswer}
-          forceSelected={feedback.forceSelected}
-          displayVariant={answerRevealVariant}
+          stateClassName={stateClass}
+          displayVariant={slotVariant}
         />
       );
     }
 
-    if (!formulaContext && (isVcqNarrowCell(contextElement) || isVcqBlankCell(contextElement))) {
+    if (!displayOnly && !formulaContext && (inVcqNarrowCell || inVcqBlankCell)) {
       const value = getResponseString(answerSource, id);
-      const text = displayOnly ? (labelMap.get(id) ?? "") : value;
-      const showInput = !displayOnly && !isReadOnly;
       const overlayClass = clsx(
         "qti-ext-input-blank",
-        isReadOnly || displayOnly ? displayVariantClass : "qti-ext-text-entry-input",
+        isReadOnly ? displayVariantClass : "qti-ext-text-entry-input",
         stateClass
       );
 
       return (
-        <span key={key} className="qti-ext-math-blank-inline">
+        <span
+          key={key}
+          className={clsx(
+            "qti-ext-math-blank-inline",
+            useVcqStandaloneFlow && "qti-ext-math-blank-inline--vcq-standalone"
+          )}
+        >
           <span className={overlayClass} aria-hidden="true" />
-          {text ? renderCellText(text, `vcq-text-${id}`, id, true) : null}
-          {showInput && (
+          {value ? renderCellText(value, `vcq-text-${id}`, id, true) : null}
+          {!isReadOnly && (
             <input
               className={clsx("qti-ext-input-blank__field", alignClass)}
               type="text"
@@ -336,21 +461,26 @@ function MathInputBlankView({
 
   return (
     <span
+      ref={rootRef}
       className={clsx(
         "qti-ext-math-input-blank",
         displayOnly && "qti-ext-math-input-blank--display",
-        mergedColSpan >= 2 && "qti-ext-math-input-blank--merged",
+        mergedColSpan >= 2 && !useVcqFormulaFlow && "qti-ext-math-input-blank--merged",
+        useVcqFormulaFlow && "qti-ext-math-input-blank--vcq-formula",
         alignClass
       )}
       data-index={index}
     >
-      {useFormulaPath ? (
+      {formulaContext ? (
         <MathBlankFormula
           latex={latex}
           instanceId={String(index)}
-          renderSlot={(id) => renderBlankSlot(id, id, false)}
+          renderSlot={(id) => renderBlankSlot(id, id, isReadOnly)}
           fallback={renderSegments(segments, `math-blank-${index}`)}
-          slotScale={displayOnly ? MATH_BLANK_DISPLAY_SCALE : 1}
+          slotScale={displayOnly && !fillDisplaySlot ? MATH_BLANK_DISPLAY_SCALE : 1}
+          contentDrivenSlots={useVcqFormulaFlow}
+          slotContentEm={measureSlots ? slotRuleEm : undefined}
+          awaitingMeasure={awaitingMeasure}
         />
       ) : (
         renderSegments(segments, `math-blank-${index}`)
@@ -405,6 +535,7 @@ export function MathInputBlankDisplayMarkup({
   if (rawLatex === "") {
     const mergedColSpan = readMergedColSpan(element);
     const useOverlay = isVcqNarrowCell(element) || isVcqBlankCell(element);
+    const blankClass = clsx("qti-ext-input-blank", getBlankVariantClass("blank-box"));
 
     return (
       <span
@@ -415,40 +546,37 @@ export function MathInputBlankDisplayMarkup({
         )}
         data-index={index}
       >
-        {displayLabels.map((label) => (
-          <span
-            key={`display-label-${index}-${label.id ?? label.text}`}
-            className={clsx(
-              useOverlay && "qti-ext-math-blank-inline",
-              !useOverlay && mergedColSpan < 2 && "qti-ext-math-blank-field",
-              !useOverlay && "qti-ext-input-blank qti-ext-input-blank--display",
-              mergedColSpan >= 2 && "qti-ext-vcq-merged-display"
-            )}
-          >
-            {useOverlay && (
-              <span
-                className="qti-ext-input-blank qti-ext-input-blank--display"
-                aria-hidden="true"
-              />
-            )}
-            {useOverlay
-              ? renderCellText(
-                  label.text,
-                  `display-label-${index}-${label.id ?? label.text}`,
-                  label.id,
-                  true
-                )
-              : null}
-            {!useOverlay && mergedColSpan < 2 && (
-              <span className="qti-ext-input-blank__sizer" aria-hidden="true">
-                {"\u00a0"}
-              </span>
-            )}
-            {!useOverlay && label.text ? (
-              <span className="qti-ext-input-blank__label">{label.text}</span>
-            ) : null}
-          </span>
-        ))}
+        {displayLabels.map((label) =>
+          useOverlay ? (
+            <span
+              key={`display-label-${index}-${label.id ?? label.text}`}
+              className={clsx(blankClass, label.text && "qti-ext-input-blank--latex-content")}
+            >
+              {label.text ? (
+                <span className="qti-ext-input-blank__label">
+                  {renderCellText(
+                    label.text,
+                    `display-label-${index}-${label.id ?? label.text}`,
+                    label.id,
+                    true
+                  )}
+                </span>
+              ) : null}
+            </span>
+          ) : (
+            <span
+              key={`display-label-${index}-${label.id ?? label.text}`}
+              className={clsx(mergedColSpan < 2 && "qti-ext-math-blank-field", blankClass)}
+            >
+              {mergedColSpan < 2 && (
+                <span className="qti-ext-input-blank__sizer" aria-hidden="true">
+                  {"\u00a0"}
+                </span>
+              )}
+              {label.text ? <span className="qti-ext-input-blank__label">{label.text}</span> : null}
+            </span>
+          )
+        )}
       </span>
     );
   }

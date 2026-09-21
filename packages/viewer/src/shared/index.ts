@@ -10,3 +10,5 @@ export { FeedbackInline } from "./FeedbackInline";
 export type { FeedbackInlineProps } from "./FeedbackInline";
 export { VcqCorrectAnswerPreview } from "./VcqCorrectAnswerPreview";
 export type { VcqCorrectAnswerPreviewProps } from "./VcqCorrectAnswerPreview";
+export { MathInputBlankCorrectAnswerPreview } from "./MathInputBlankCorrectAnswerPreview";
+export type { MathInputBlankCorrectAnswerPreviewProps } from "./MathInputBlankCorrectAnswerPreview";

@@ -7,7 +7,7 @@ QTI 문항을 **상세 API**로 조회해 **문항 1개**를 렌더링하는 가
 > 호스트가 힌트를 직접 그릴 때: **[HINT_GUIDE.md](./HINT_GUIDE.md)**  
 > 힌트만 그리는 화면은 `HINT_GUIDE`를 보고 `styles.css`와 `MathJaxProviderWrapper`를 그 화면에 넣고, 힌트 영역을 `.rqti-viewer`로 감쌉니다.
 
-현재 패키지 버전: **0.4.7**
+현재 패키지 버전: **0.4.8**
 
 ---
 
@@ -234,14 +234,16 @@ export function ItemViewer() {
 
 ## 7. 너비 및 스케일 설정
 
-뷰어는 **고정형 스케일 단일 모드**입니다. 반응형(폭 구간별 재배치)은 지원하지 않습니다.
-문항은 항상 `designWidth` 고정 폭으로 렌더된 뒤, 부모 폭에 맞춰 `transform: scale()`로만
+뷰어는 **고정형 스케일**입니다. 반응형(폭 구간별 재배치)은 지원하지 않습니다.
+`designWidth`는 호스트가 넘깁니다. 라이브러리 기본값은 없습니다.
+값이 있으면 그 폭으로 렌더한 뒤 부모 폭에 맞춰 `transform: scale()`로만
 비례 축소됩니다(원본보다 크게 확대하지는 않습니다). 덕분에 폭이 달라져도 내부 좌표계가
 유지되어 화이트보드 필기 같은 오버레이 정합이 깨지지 않습니다.
+`designWidth`를 생략하면 스케일하지 않습니다.
 
 | 설정 | 설명 |
 | --- | --- |
-| `designWidth={1000}` | 고정형 스케일의 기준 너비를 1000px로 설정. 기본 `720` |
+| `designWidth={1000}` | 고정형 스케일의 기준 너비(px). 호스트가 지정. 기본값 없음 |
 | `maxWidth: "100%"` | 문항 콘텐츠가 기준 너비 전체를 사용 |
 | `padding: "0px"` | 문항 콘텐츠의 기본 내부 여백 제거 |
 
@@ -292,7 +294,7 @@ const exampleTheme: Theme = {
 | `onSubmit`           | practice 전용. 제출 시 응답 수신                                   |
 | `responses`          | preview·thumbnail. 저장해 둔 응답을 선택·입력으로 표시             |
 | `theme`              | `"default"` 또는 커스텀 `Theme`(JSON/객체) — `THEME_GUIDE.md` 참고 |
-| `designWidth`        | 고정형 스케일의 원본 기준 폭(px). 기본 `720`                       |
+| `designWidth`        | 고정형 스케일의 원본 기준 폭(px). 호스트가 지정. 없으면 스케일 없음 |
 
 문항 전환 시 `key={props.itemKey}`를 권장합니다.
 

@@ -90,6 +90,8 @@ export interface QTIParserOptions {
   submissionMode?: "INDIVIDUAL" | "SIMULTANEOUS";
   /** practice | preview | thumbnail. practice가 아니면 인터랙션 비활성 */
   mode?: QuestionMode;
+  /** 정답 키 미리보기. 빈칸을 정답 스타일로 표시 */
+  answerKeyPreview?: boolean;
   /** 미디어 상대 경로 해석용 베이스 URL */
   baseUrl?: string;
   submitAnswers?: string | Set<string>; // SCQ/TFQ는 string, MCQ는 Set<string>
