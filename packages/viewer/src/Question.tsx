@@ -30,6 +30,7 @@ import type {
   Theme,
 } from "./types";
 import { MathJaxProviderWrapper } from "./providers/MathJaxProviderWrapper";
+import { countImageBlankCellsInItemXml } from "./interactions/image-input-blank/utils";
 import {
   buildVcqSubmitResponse,
   extractMathBlankIdsFromItemXml,
@@ -256,7 +257,8 @@ function Question({
     if (type === ITEM_TYPE.CLOZE) {
       const textEntryCount = (data.match(/<qti-text-entry-interaction\b/g) ?? []).length;
       const mathBlankCount = extractMathBlankIdsFromItemXml(data).length;
-      expectedResponseCount = textEntryCount + mathBlankCount || undefined;
+      const imageBlankCount = countImageBlankCellsInItemXml(data);
+      expectedResponseCount = textEntryCount + mathBlankCount + imageBlankCount || undefined;
     } else if (type === ITEM_TYPE.DDQ) {
       expectedResponseCount =
         (data.match(/<qti-inline-choice-interaction\b/g) ?? []).length ||

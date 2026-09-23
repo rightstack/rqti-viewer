@@ -24,6 +24,7 @@ import {
 import { isMathLatexAnswer, isMathResponseId } from "../utils/isMathLatexAnswer";
 import type { CSSVariables } from "../utils/themeToCSS";
 import { MatchAnswerView } from "./MatchAnswerView";
+import { ImageInputBlankCorrectAnswerPreview } from "./ImageInputBlankCorrectAnswerPreview";
 import { MathInputBlankCorrectAnswerPreview } from "./MathInputBlankCorrectAnswerPreview";
 import { VcqCorrectAnswerPreview } from "./VcqCorrectAnswerPreview";
 
@@ -212,7 +213,8 @@ export const FeedbackInline = ({
                 const isBlockAnswer =
                   matchStrings !== null ||
                   segment.kind === "vcqGrid" ||
-                  segment.kind === "mathInputBlank";
+                  segment.kind === "mathInputBlank" ||
+                  segment.kind === "imageInputBlank";
                 const isMultiMath =
                   segment.kind === "default" &&
                   matchStrings === null &&
@@ -246,6 +248,14 @@ export const FeedbackInline = ({
                         />
                       ) : segment.kind === "mathInputBlank" ? (
                         <MathInputBlankCorrectAnswerPreview
+                          qtiXml={qtiXml ?? ""}
+                          correctAnswer={segment.correctAnswer}
+                          token={token}
+                          baseUrl={baseUrl}
+                          responseIdentifier={segment.key}
+                        />
+                      ) : segment.kind === "imageInputBlank" ? (
+                        <ImageInputBlankCorrectAnswerPreview
                           qtiXml={qtiXml ?? ""}
                           correctAnswer={segment.correctAnswer}
                           token={token}

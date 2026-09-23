@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import clsx from "clsx";
 import { renderLaTeX } from "../../parser/parseLatexToReact";
+import { isVcqFlowMerge } from "../../parser/vcqDomProps";
+import { markerSlotWidthEm } from "./mathBlankLatex";
 import { measureDisplayContent, readBoxExtras } from "./slotMeasure";
 import { type BlankVariant, getBlankVariantClass } from "./utils";
 import { alignMergedColumnContent } from "./vcqMergedAlign";
@@ -12,6 +14,7 @@ type MergedBlankSlotProps = {
   displayOnly: boolean;
   isReadOnly: boolean;
   alignClass?: string;
+  widthCh?: number;
   mergedColSpan: number;
   contextElement: Element;
   onChange: (id: string, value: string) => void;
@@ -19,9 +22,9 @@ type MergedBlankSlotProps = {
   displayVariant?: BlankVariant;
 };
 
-function applyMergedFallbackWidth(box: HTMLElement, contentW: number) {
+function applyMergedFallbackWidth(box: HTMLElement, contentW: number, flowMinWidth?: string) {
   box.style.width = "";
-  box.style.minWidth = "";
+  box.style.minWidth = flowMinWidth ?? "";
   if (box.closest(".qti-ext-vcq-grid--size-small")) return;
   const cell = box.closest<HTMLElement>(".qti-ext-vcq-cell--merged") ?? box;
   const floor =
@@ -40,6 +43,7 @@ export function MergedBlankSlot({
   displayOnly,
   isReadOnly,
   alignClass,
+  widthCh,
   mergedColSpan,
   contextElement,
   onChange,
@@ -51,8 +55,10 @@ export function MergedBlankSlot({
   const displayRef = useRef<HTMLSpanElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
   const text = displayOnly ? (displayLabel ?? "") : value;
+  const flowMerge = isVcqFlowMerge(contextElement);
   const slots = alignMergedColumnContent(text, contextElement, mergedColSpan, alignClass);
   const isFallback = !slots;
+  const flowMinWidth = flowMerge ? markerSlotWidthEm(widthCh) : undefined;
 
   useLayoutEffect(() => {
     const input = inputRef.current;
@@ -62,8 +68,8 @@ export function MergedBlankSlot({
       input.style.minWidth = "";
       return;
     }
-    applyMergedFallbackWidth(input, sizerRef.current?.scrollWidth ?? 0);
-  }, [displayOnly, isFallback, isReadOnly, value]);
+    applyMergedFallbackWidth(input, sizerRef.current?.scrollWidth ?? 0, flowMinWidth);
+  }, [displayOnly, flowMinWidth, isFallback, isReadOnly, value]);
 
   useEffect(() => {
     if (displayOnly || !isReadOnly) return;
@@ -87,7 +93,7 @@ export function MergedBlankSlot({
         return false;
       }
       applied = true;
-      applyMergedFallbackWidth(box, size.w);
+      applyMergedFallbackWidth(box, size.w, flowMinWidth);
       return true;
     };
 
@@ -110,7 +116,7 @@ export function MergedBlankSlot({
       observer.disconnect();
       window.cancelAnimationFrame(frame);
     };
-  }, [displayOnly, isFallback, isReadOnly, text]);
+  }, [displayOnly, flowMinWidth, isFallback, isReadOnly, text]);
 
   return (
     <>

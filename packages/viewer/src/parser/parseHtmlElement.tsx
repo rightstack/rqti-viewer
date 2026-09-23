@@ -8,6 +8,7 @@
 import React from "react";
 import { AudioPlayer } from "../components/AudioPlayer";
 import { VcqDivisionBarTrack } from "../components/VcqDivisionBarTrack";
+import { VcqSyntheticBracket } from "../components/VcqSyntheticBracket";
 import { MathInputBlankDisplayMarkup } from "../interactions/math-input-blank/MathInputBlankInteraction";
 import {
   extractResponseIds,
@@ -22,11 +23,22 @@ import { buildImageStyle, buildInlineImageStyle, getQtiInlineImageHeight } from 
 import { groupListItems } from "./listGrouping";
 import { parseNode } from "./parseInteraction";
 import { parseTextWithLaTeX, renderLaTeX } from "./parseLatexToReact";
-import { collectVcqDomProps, hasVcqOverlayChildren } from "./vcqDomProps";
+import {
+  collectVcqDomProps,
+  hasVcqOverlayChildren,
+  readVcqBracketHasFollowingRow,
+} from "./vcqDomProps";
 
 /** 세로셈 레이아웃 들여쓰기는 그리드 트랙이 되면 안 된다. */
 function isVcqLayoutClass(className: string): boolean {
   return className.includes("qti-ext-vcq-");
+}
+
+function isVcqSyntheticOverlay(className: string): boolean {
+  return (
+    className.includes("qti-ext-vcq-synthetic-bracket") ||
+    className.includes("qti-ext-vcq-remainder")
+  );
 }
 
 interface MediaAttributes {
@@ -312,6 +324,20 @@ export const parseHTMLElement = (
         }
       }
 
+      if (isVcqSyntheticOverlay(className)) {
+        return (
+          <VcqSyntheticBracket
+            key={`div-${index}`}
+            className={gridClassName}
+            style={vcq.style}
+            dataAttrs={vcq.dataAttrs}
+            hasFollowingRow={readVcqBracketHasFollowingRow(element)}
+          >
+            {groupedChildren}
+          </VcqSyntheticBracket>
+        );
+      }
+
       return (
         <div key={`div-${index}`} className={gridClassName} style={vcq.style} {...vcq.dataAttrs}>
           {groupedChildren}
@@ -331,6 +357,20 @@ export const parseHTMLElement = (
           >
             {processedChildren}
           </VcqDivisionBarTrack>
+        );
+      }
+
+      if (isVcqSyntheticOverlay(className)) {
+        return (
+          <VcqSyntheticBracket
+            key={`span-${index}`}
+            className={className}
+            style={vcq.style}
+            dataAttrs={vcq.dataAttrs}
+            hasFollowingRow={readVcqBracketHasFollowingRow(element)}
+          >
+            {processedChildren}
+          </VcqSyntheticBracket>
         );
       }
 

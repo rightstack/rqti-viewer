@@ -74,12 +74,61 @@ function vcqColTrack(
   };
 }
 
+function isExplicitCoordGrid(grid: Element): boolean {
+  const names = classNamesOf(grid);
+  if (!names.includes(VCQ_GRID_CLASS)) return false;
+  if (hasVcqOverlayChildren(grid)) return true;
+  return names.some(
+    (name) => name.includes("template-synthetic") || name.includes("template-div-")
+  );
+}
+
+function readGridRangeEnd(raw: string | null): number | undefined {
+  if (!raw) return undefined;
+  const parts = raw.split("/");
+  if (parts.length < 2) return undefined;
+  const n = Number.parseInt(parts[1].trim(), 10);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
+/** 에디터 VCQGrid처럼 overlay/synthetic/division 셀에 행·열 좌표를 준다. */
+function readExplicitCellPlacement(
+  cell: Element
+): { column: number | string; row: number } | undefined {
+  if (!isVcqCell(cell)) return undefined;
+  const rowEl = cell.parentElement;
+  if (!rowEl || !isVcqRow(rowEl)) return undefined;
+  const grid = rowEl.parentElement;
+  if (!grid || !isExplicitCoordGrid(grid)) return undefined;
+
+  const rows = Array.from(grid.children).filter(isVcqRow);
+  const rowIndex = rows.indexOf(rowEl);
+  if (rowIndex < 0) return undefined;
+
+  let col = 0;
+  for (const child of Array.from(rowEl.children)) {
+    if (child === cell) break;
+    if (isVcqCell(child)) col += cellSpan(child);
+  }
+
+  const span = cellSpan(cell);
+  return {
+    row: rowIndex + 1,
+    column: span > 1 ? `${col + 1} / span ${span}` : col + 1,
+  };
+}
+
+export function readVcqBracketHasFollowingRow(element: Element): boolean {
+  const grid = element.parentElement;
+  if (!grid || !classNamesOf(grid).includes(VCQ_GRID_CLASS)) return false;
+  const rowCount = Array.from(grid.children).filter(isVcqRow).length;
+  const endLine = readGridRangeEnd(element.getAttribute("data-vcq-grid-row"));
+  return endLine !== undefined && endLine <= rowCount;
+}
+
 function readVcqColTracks(grid: Element): VcqColTrack[] | undefined {
   const names = classNamesOf(grid);
   if (!names.includes(VCQ_GRID_CLASS)) return undefined;
-  if (names.some((name) => name.includes("template-synthetic"))) {
-    return undefined;
-  }
   if (Array.from(grid.children).some(isVcqCell)) return undefined;
 
   const rows = Array.from(grid.children).filter(isVcqRow);
@@ -111,11 +160,16 @@ function readVcqColTracks(grid: Element): VcqColTrack[] | undefined {
   return Array.from({ length: maxCols }, (_, index) => vcqColTrack(index, narrowCols, widthUnits));
 }
 
-/** 행 셀에서 공통 트랙. 조립제 자체 그리드는 건너뛴다. */
+/** 행 셀에서 공통 트랙. 조립제법·나눗셈도 실제 N열로 계산한다. */
 export function readVcqSharedColTemplate(grid: Element): string | undefined {
   return readVcqColTracks(grid)
     ?.map((track) => track.template)
     .join(" ");
+}
+
+export function isVcqFlowMerge(element: Element): boolean {
+  const merged = findMergedVcqCell(element);
+  return merged?.getAttribute("data-vcq-content-layout") === "flow";
 }
 
 export function findMergedVcqCell(element: Element): Element | undefined {
@@ -189,6 +243,7 @@ const VCQ_DATA_KEYS = [
   "data-vcq-border-style",
   "data-vcq-grid-column",
   "data-vcq-grid-row",
+  "data-vcq-content-layout",
 ] as const;
 
 type VcqDataKey = (typeof VCQ_DATA_KEYS)[number];
@@ -257,6 +312,11 @@ export function collectVcqDomProps(element: Element): {
   const gridRow = element.getAttribute("data-vcq-grid-row");
   if (gridRow) style.gridRow = gridRow;
 
+  const placement = readExplicitCellPlacement(element);
+  if (placement) {
+    if (style.gridColumn === undefined) style.gridColumn = placement.column;
+    if (style.gridRow === undefined) style.gridRow = placement.row;
+  }
   const lineWidth = borderWidth(element.getAttribute("data-vcq-line-width"));
   if (lineWidth) style["--vcq-line-width"] = lineWidth;
 

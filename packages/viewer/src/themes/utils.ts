@@ -58,9 +58,12 @@ function sumIndentEmFromClass(classAttr: string, re: RegExp): number {
   return acc;
 }
 
+/** 들여쓰기/내어쓰기 레벨당 em 단위 (레벨 × 이 값). */
+export const INDENT_UNIT_EM = 1.2;
+
 function emMargin(n: number): string | undefined {
   if (n === 0) return undefined;
-  return `${n}em`;
+  return `${n * INDENT_UNIT_EM}em`;
 }
 
 /**
@@ -91,7 +94,7 @@ export const parseTextIndent = (
   if (marginLeft) style.marginLeft = marginLeft;
 
   if (textIndentNetEm !== 0) {
-    style.textIndent = `${textIndentNetEm}em`;
+    style.textIndent = `${textIndentNetEm * INDENT_UNIT_EM}em`;
   }
 
   if (Object.keys(style).length === 0) {

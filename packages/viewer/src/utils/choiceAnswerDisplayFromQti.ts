@@ -10,6 +10,10 @@
  *
  * @see qti-ext.css @counter-style (circled_number, hangul-* …)
  */
+import {
+  IMAGE_INPUT_BLANK_TYPE,
+  collectImageBlankCellIds,
+} from "../interactions/image-input-blank/utils";
 import { parsePairs } from "../interactions/match/utils";
 import {
   MATH_INPUT_BLANK_TYPE,
@@ -473,17 +477,28 @@ export type CorrectAnswerFeedbackSegment =
   | { kind: "fractionLatex"; latex: string; key: string }
   | { kind: "vcqGrid"; key: string; correctAnswer: ResponseValueMap }
   | { kind: "mathInputBlank"; key: string; correctAnswer: ResponseValueMap }
+  | { kind: "imageInputBlank"; key: string; correctAnswer: ResponseValueMap }
   | { kind: "default"; key: string; value: unknown };
 
-export function getMathInputBlankPciElementsFromQtiXml(
-  qtiXml: string | null | undefined
-): Element[] {
+function getPciElementsByType(qtiXml: string | null | undefined, type: string): Element[] {
   if (!qtiXml?.trim()) return [];
   const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
   if (doc.querySelector("parsererror")) return [];
   return Array.from(doc.querySelectorAll("qti-portable-custom-interaction")).filter(
-    (el) => el.getAttribute("custom-interaction-type-identifier") === MATH_INPUT_BLANK_TYPE
+    (el) => el.getAttribute("custom-interaction-type-identifier") === type
   );
+}
+
+export function getMathInputBlankPciElementsFromQtiXml(
+  qtiXml: string | null | undefined
+): Element[] {
+  return getPciElementsByType(qtiXml, MATH_INPUT_BLANK_TYPE);
+}
+
+export function getImageInputBlankPciElementsFromQtiXml(
+  qtiXml: string | null | undefined
+): Element[] {
+  return getPciElementsByType(qtiXml, IMAGE_INPUT_BLANK_TYPE);
 }
 
 function collectMathInputBlankIds(pciElements: Element[]): Set<string> {
@@ -534,6 +549,16 @@ export function buildCorrectAnswerFeedbackSegments(
   );
   const mathBlankIds = collectMathInputBlankIds(mathPciElements);
 
+  // 이미지 빈칸도 수식 빈칸처럼 루트 ID 하나를 한 세그먼트(그림)로 보여준다.
+  // 안쪽 칸 ID는 정답 맵에 따로 들어 있으므로 거르지 않으면 같은 답이 두 번 나온다.
+  const imagePciElements = getImageInputBlankPciElementsFromQtiXml(qtiXml);
+  const imagePciResponseIds = new Set(
+    imagePciElements
+      .map((el) => el.getAttribute("response-identifier")?.trim() ?? "")
+      .filter((id) => id.length > 0)
+  );
+  const imageBlankIds = new Set(imagePciElements.flatMap(collectImageBlankCellIds));
+
   const entries = Object.entries(correctAnswer);
   const order = extractInteractionResponseIdentifiersInDocumentOrder(qtiXml);
 
@@ -541,7 +566,11 @@ export function buildCorrectAnswerFeedbackSegments(
   const used = new Set<string>();
   if (order && order.length > 0) {
     for (const id of order) {
-      if (!mathPciResponseIds.has(id) && !Object.prototype.hasOwnProperty.call(correctAnswer, id)) {
+      if (
+        !mathPciResponseIds.has(id) &&
+        !imagePciResponseIds.has(id) &&
+        !Object.prototype.hasOwnProperty.call(correctAnswer, id)
+      ) {
         continue;
       }
       orderedIds.push(id);
@@ -588,8 +617,16 @@ export function buildCorrectAnswerFeedbackSegments(
       });
       continue;
     }
+    if (imagePciResponseIds.has(rid)) {
+      out.push({
+        kind: "imageInputBlank",
+        key: rid,
+        correctAnswer: correctAnswer as ResponseValueMap,
+      });
+      continue;
+    }
     if (!Object.prototype.hasOwnProperty.call(correctAnswer, rid)) continue;
-    if (mathBlankIds.has(rid)) continue;
+    if (mathBlankIds.has(rid) || imageBlankIds.has(rid)) continue;
     const seg = segmentForId(rid);
     if (seg) out.push(seg);
   }

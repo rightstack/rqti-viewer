@@ -4,6 +4,7 @@ import {
   findMergedVcqCell,
   isNarrowCell,
   isVcqCell,
+  isVcqFlowMerge,
   isVcqRow,
   readMergedCellRange,
 } from "../../parser/vcqDomProps";
@@ -144,11 +145,27 @@ export function alignMergedColumnContent(
   colSpan: number,
   alignClass?: string
 ): ColumnSlot[] | null {
+  if (isVcqFlowMerge(element)) return null;
   const tokens = tokenizeColumnContent(content);
   if (!tokens?.length || colSpan < 2) return null;
   const tracks = readMergedColumnTracks(element);
-  const columns = tracks.length >= 2 ? tracks : Array.from({ length: colSpan }, () => ({}));
-  return alignColumnTokens(tokens, columns, readMergedContentAlign(element, alignClass));
+  const columns: ColumnTrack[] =
+    tracks.length >= 2 ? tracks : Array.from({ length: colSpan }, () => ({}));
+  const hasSeparator = columns.some((column) => column.separator !== undefined);
+  let align = readMergedContentAlign(element, alignClass);
+  if (hasSeparator && align === "center" && !isUnalignedResponseBlank(element)) {
+    align = "right";
+  }
+  return alignColumnTokens(tokens, columns, align);
+}
+
+function isUnalignedResponseBlank(element: Element): boolean {
+  const cell = findMergedVcqCell(element);
+  if (!cell) return false;
+  const names = classNamesOf(cell);
+  if (!names.includes("qti-ext-vcq-cell--blank")) return false;
+  if (names.some((name) => name.startsWith("qti-align-"))) return false;
+  return cell.closest(".qti-ext-vcq-grid--response") !== null;
 }
 
 function readMergedContentAlign(element: Element, alignClass?: string): ColumnAlign {

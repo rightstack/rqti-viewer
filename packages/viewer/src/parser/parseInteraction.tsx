@@ -13,6 +13,7 @@ import {
   parseGapMatchInteraction,
   parseInlineChoiceInteraction,
   parseMatchInteraction,
+  parseImageInputBlankInteraction,
   parseMathInputBlankInteraction,
   parseOrderInteraction,
   parseTextEntryInteraction,
@@ -89,7 +90,10 @@ export const parseNode = (
       parsedInteraction = parseGapMatchInteraction(element, options, index);
       break;
     case "qti-portable-custom-interaction":
-      parsedInteraction = parseMathInputBlankInteraction(element, options, index);
+      // 각 parser가 custom-interaction-type-identifier를 보고 자기 유형만 처리한다.
+      parsedInteraction =
+        parseMathInputBlankInteraction(element, options, index) ??
+        parseImageInputBlankInteraction(element, options, index);
       break;
     default:
       break;

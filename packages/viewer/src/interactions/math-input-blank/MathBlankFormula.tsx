@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import clsx from "clsx";
 import { createPortal } from "react-dom";
 import { renderLaTeX } from "../../parser/parseLatexToReact";
 import { type SlotContentEm, mathBlankSlotId, toTypesetSlotLatex } from "./mathBlankLatex";
@@ -109,8 +110,15 @@ export function MathBlankFormula({
     return () => observer.disconnect();
   }, [generation, instanceId, slotted.ids]);
 
+  const hasCancel = latex.includes("\\cancel");
+
   return (
-    <span className="qti-ext-math-blank-formula">
+    <span
+      className={clsx(
+        "qti-ext-math-blank-formula",
+        hasCancel && "qti-ext-math-blank-formula--cancel"
+      )}
+    >
       <span
         ref={rootRef}
         className="qti-ext-math-blank-formula__typeset"

@@ -9,6 +9,7 @@ import {
 } from "react";
 import clsx from "clsx";
 import { renderLaTeX } from "../../parser/parseLatexToReact";
+import { isVcqFlowMerge } from "../../parser/vcqDomProps";
 import type { QTIParserOptions, ResponseValue, ResponseValueMap } from "../../types";
 import { isMathLatexAnswer } from "../../utils";
 import { FormulaSlotInput, FormulaSlotLatexDisplay } from "./FormulaSlotInput";
@@ -103,6 +104,108 @@ function recomputeVcqColumnWidth(grid: HTMLElement, column: number) {
   else grid.style.removeProperty(property);
 }
 
+function recomputeAllVcqColumnWidths(grid: HTMLElement) {
+  const columns = new Set<number>();
+  grid.querySelectorAll<HTMLElement>("[data-vcq-intrinsic-column]").forEach((cell) => {
+    const column = Number.parseInt(cell.dataset.vcqIntrinsicColumn ?? "", 10);
+    if (Number.isFinite(column)) columns.add(column);
+  });
+  columns.forEach((column) => recomputeVcqColumnWidth(grid, column));
+}
+
+function vcqCellColumn(cell: HTMLElement): number {
+  const row = cell.parentElement;
+  if (!row) return 1;
+  let column = 1;
+  for (const sibling of Array.from(row.children)) {
+    if (sibling === cell) break;
+    if (!sibling.classList.contains("qti-ext-vcq-cell")) continue;
+    const span = Number.parseInt(sibling.getAttribute("data-vcq-colspan") ?? "1", 10);
+    column += Number.isFinite(span) && span >= 2 ? span : 1;
+  }
+  return column;
+}
+
+function cellContentWidth(cell: HTMLElement, content: HTMLElement): number {
+  const style = getComputedStyle(cell);
+  const padding =
+    (Number.parseFloat(style.paddingLeft) || 0) + (Number.parseFloat(style.paddingRight) || 0);
+  return Math.ceil(content.getBoundingClientRect().width + padding);
+}
+
+/** 빈칸이 없는 일반 셀의 수식도 같은 열 폭에 넣는다. 빈칸만 재면 짧은 빈칸 폭으로 열이 줄고 수식이 칸 밖으로 넘친다. */
+function syncPlainMathColumnWidths(grid: HTMLElement): boolean {
+  let changed = false;
+  grid
+    .querySelectorAll<HTMLElement>(
+      ".qti-ext-vcq-cell:not(.qti-ext-vcq-cell--blank, .qti-ext-vcq-cell--merged)"
+    )
+    .forEach((cell) => {
+      const math = cell.querySelector<HTMLElement>(":scope > .qti-ext-mathfield");
+      if (!math) return;
+      const width = cellContentWidth(cell, math);
+      if (width <= 0) return;
+      const column = String(vcqCellColumn(cell));
+      if (
+        cell.dataset.vcqIntrinsicWidth === String(width) &&
+        cell.dataset.vcqIntrinsicColumn === column
+      ) {
+        return;
+      }
+      cell.dataset.vcqIntrinsicColumn = column;
+      cell.dataset.vcqIntrinsicWidth = String(width);
+      changed = true;
+    });
+  return changed;
+}
+
+type PlainMathWatch = { count: number; measure: () => void; stop: () => void };
+
+const plainMathWatches = new WeakMap<HTMLElement, PlainMathWatch>();
+
+function retainPlainMathColumnWatch(grid: HTMLElement): () => void {
+  let watch = plainMathWatches.get(grid);
+  if (!watch) {
+    const resizeObserver = new ResizeObserver(() => watch?.measure());
+    const mutationObserver = new MutationObserver(() => {
+      attach();
+      watch?.measure();
+    });
+    const attach = () => {
+      grid
+        .querySelectorAll<HTMLElement>(
+          ".qti-ext-vcq-cell:not(.qti-ext-vcq-cell--blank, .qti-ext-vcq-cell--merged) > .qti-ext-mathfield"
+        )
+        .forEach((math) => resizeObserver.observe(math));
+    };
+    const measure = () => {
+      if (!syncPlainMathColumnWidths(grid)) return;
+      recomputeAllVcqColumnWidths(grid);
+    };
+    mutationObserver.observe(grid, { childList: true, subtree: true, characterData: true });
+    attach();
+    watch = {
+      count: 0,
+      measure,
+      stop: () => {
+        resizeObserver.disconnect();
+        mutationObserver.disconnect();
+        plainMathWatches.delete(grid);
+      },
+    };
+    plainMathWatches.set(grid, watch);
+    measure();
+  }
+  watch.count += 1;
+  watch.measure();
+  return () => {
+    const current = plainMathWatches.get(grid);
+    if (!current) return;
+    current.count -= 1;
+    if (current.count <= 0) current.stop();
+  };
+}
+
 function useVcqIntrinsicColumn(
   ref: RefObject<HTMLSpanElement | null>,
   enabled: boolean,
@@ -116,13 +219,8 @@ function useVcqIntrinsicColumn(
     const grid = row?.closest<HTMLElement>(".qti-ext-vcq-grid");
     if (!root || !cell || !row || !grid) return;
 
-    let column = 1;
-    for (const sibling of Array.from(row.children)) {
-      if (sibling === cell) break;
-      if (!sibling.classList.contains("qti-ext-vcq-cell")) continue;
-      const span = Number.parseInt(sibling.getAttribute("data-vcq-colspan") ?? "1", 10);
-      column += Number.isFinite(span) && span >= 2 ? span : 1;
-    }
+    const column = vcqCellColumn(cell);
+    const releasePlainMathWatch = retainPlainMathColumnWatch(grid);
 
     let active = true;
     const measure = () => {
@@ -131,15 +229,12 @@ function useVcqIntrinsicColumn(
         root.querySelector<HTMLElement>(
           ".qti-ext-math-blank-inline--vcq-standalone, .qti-ext-math-blank-formula"
         ) ?? root;
-      const contentWidth = content.getBoundingClientRect().width;
-      const style = getComputedStyle(cell);
-      const padding =
-        (Number.parseFloat(style.paddingLeft) || 0) + (Number.parseFloat(style.paddingRight) || 0);
-      const width = Math.ceil(contentWidth + padding);
-      if (width <= 0 || cell.dataset.vcqIntrinsicWidth === String(width)) return;
-      cell.dataset.vcqIntrinsicColumn = String(column);
-      cell.dataset.vcqIntrinsicWidth = String(width);
-      recomputeVcqColumnWidth(grid, column);
+      const width = cellContentWidth(cell, content);
+      if (width > 0 && cell.dataset.vcqIntrinsicWidth !== String(width)) {
+        cell.dataset.vcqIntrinsicColumn = String(column);
+        cell.dataset.vcqIntrinsicWidth = String(width);
+        recomputeVcqColumnWidth(grid, column);
+      }
     };
 
     const resizeObserver = new ResizeObserver(measure);
@@ -157,6 +252,7 @@ function useVcqIntrinsicColumn(
       active = false;
       resizeObserver.disconnect();
       mutationObserver.disconnect();
+      releasePlainMathWatch();
       delete cell.dataset.vcqIntrinsicColumn;
       delete cell.dataset.vcqIntrinsicWidth;
       recomputeVcqColumnWidth(grid, column);
@@ -220,11 +316,13 @@ function MathInputBlankView({
   const inVcqBlankCell = isVcqBlankCell(contextElement);
   const inVcqNarrowCell = isVcqNarrowCell(contextElement);
   const vcqCell = contextElement.closest(".qti-ext-vcq-cell");
+  // carry 단독 칸은 열 폭을 키우지 않는다. 병합된 식(flow)은 열 분배가 아니라 한 덩어리라 같은 정렬 경로를 쓴다.
+  const mergedFormula = formulaContext && mergedColSpan >= 2 && isVcqFlowMerge(contextElement);
   const canUseVcqTypedFlow =
     inVcqBlankCell &&
     !inVcqNarrowCell &&
-    !isVcqCarryCell(contextElement) &&
-    !vcqCell?.hasAttribute("data-vcq-width-unit");
+    !vcqCell?.hasAttribute("data-vcq-width-unit") &&
+    (!isVcqCarryCell(contextElement) || mergedFormula);
   const useVcqContentFlow = canUseVcqTypedFlow && mergedColSpan < 2;
   const useVcqFormulaFlow = formulaContext && canUseVcqTypedFlow;
   const useVcqStandaloneFlow = !formulaContext && useVcqContentFlow;
@@ -390,6 +488,7 @@ function MathInputBlankView({
           displayOnly={displayOnly}
           isReadOnly={isReadOnly}
           alignClass={alignClass}
+          widthCh={blankWidthMap.get(id) ?? fallbackWidthCh}
           mergedColSpan={mergedColSpan}
           contextElement={contextElement}
           onChange={handleChange}

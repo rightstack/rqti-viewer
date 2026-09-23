@@ -3559,6 +3559,11 @@
   @apply rqti:grid-cols-[repeat(4,_1fr)];
 }
 
+.qti-ext-grid-5 .qti-ext-grid-header,
+.qti-ext-grid-5 .qti-ext-grid-row {
+  @apply rqti:grid-cols-[40px_repeat(5,_1fr)];
+}
+
 /* ========================================
   parsed list (ol/ul from qti-list-style-type-* grouping)
 ======================================== */
@@ -4211,6 +4216,40 @@
   height: auto;
 }
 
+/* 빈칸 상자 안 분수·근호만 테두리와 간격을 둔다. 해설/지문 바깥 식은 padding: 0 1px 유지 */
+.qti-ext-mjx-blank-slot .qti-ext-mathfield:has(mjx-mfrac),
+.qti-ext-mjx-blank-slot .qti-ext-mathfield:has(mjx-msqrt),
+.qti-ext-mjx-blank-slot .qti-ext-mathfield:has(mjx-mroot),
+.qti-ext-input-blank .qti-ext-mathfield:has(mjx-mfrac),
+.qti-ext-input-blank__label .qti-ext-mathfield:has(mjx-mfrac),
+.qti-ext-input-blank__label .qti-ext-mathfield:has(mjx-msqrt),
+.qti-ext-input-blank__label .qti-ext-mathfield:has(mjx-mroot),
+.qti-ext-input-blank .qti-ext-mathfield:has(mjx-msqrt),
+.qti-ext-input-blank .qti-ext-mathfield:has(mjx-mroot),
+.qti-ext-input-blank .qti-ext-mathfield:has(.mfrac),
+.qti-ext-input-blank .qti-ext-mathfield:has(.sqrt),
+.qti-ext-input-blank__label .qti-ext-mathfield:has(.mfrac),
+.qti-ext-input-blank__label .qti-ext-mathfield:has(.sqrt),
+.qti-ext-mjx-blank-slot .qti-ext-mathfield:has(.mfrac),
+.qti-ext-mjx-blank-slot .qti-ext-mathfield:has(.sqrt) {
+  padding: 4px;
+}
+
+/* PCI 슬롯은 빈칸 padding으로 이미 테두리와 떨어진다.
+   mathfield 4px는 측정(mjx-math)에 없어서 칸 아래로 넘치고, overflow에 잘리면 분수가 밑변에 붙는다. */
+.qti-ext-mjx-blank-slot
+  .qti-ext-input-blank--latex-content:not(.qti-ext-math-blank-slot-content)
+  .qti-ext-mathfield:has(mjx-mfrac, mjx-msqrt, mjx-mroot) {
+  padding: 0;
+}
+
+/* 분수·근호 칸은 내용만큼 커진다.
+   overflow가 visible이 아니면 inline-block 기준선이 칸의 밑변이다. */
+.qti-ext-math-input-blank:not(.qti-ext-math-input-blank--vcq-formula)
+  .qti-ext-mjx-blank-slot:has(mjx-mfrac, mjx-msqrt, mjx-mroot) {
+  overflow: hidden;
+}
+
 .qti-ext-mjx-blank-slot .qti-ext-math-blank-inline {
   display: contents;
 }
@@ -4247,6 +4286,32 @@
 
   width: auto;
   min-width: 100%;
+  height: auto;
+  min-height: 0;
+}
+
+/* 정답 미리보기(text-entry)의 분수·근호.
+   입력용 overflow:hidden + MathJax baseline이면 분수가 칸 위로 올라가 잘린다. */
+.qti-ext-math-input-blank
+  .qti-ext-input-blank.qti-ext-text-entry-input.qti-ext-input-blank--latex-content {
+  overflow: visible;
+
+  height: auto;
+  min-height: var(--qti-math-blank-size, 2em);
+}
+
+.qti-ext-mjx-blank-slot
+  .qti-ext-input-blank.qti-ext-text-entry-input.qti-ext-input-blank--latex-content {
+  overflow: visible;
+
+  height: 100%;
+  min-height: 100%;
+}
+
+.qti-ext-mjx-blank-slot
+  .qti-ext-text-entry-input.qti-ext-input-blank--latex-content:not(
+    .qti-ext-math-blank-slot-content
+  ) {
   height: auto;
   min-height: 0;
 }
@@ -4309,6 +4374,21 @@
   display: inline;
 }
 
+/* \cancel{\inputblank} — 취소선이 정답칸 overlay(0)·슬롯(1)·입력(2) 위에 그려지게 */
+.qti-ext-math-blank-formula--cancel mjx-menclose,
+.qti-ext-math-blank-formula--cancel [data-mml-node="menclose"] {
+  isolation: isolate;
+}
+
+.qti-ext-math-blank-formula--cancel mjx-menclose > :is(mjx-dstrike, mjx-ustrike, mjx-hstrike),
+.qti-ext-math-blank-formula--cancel mjx-menclose::before,
+.qti-ext-math-blank-formula--cancel mjx-menclose::after,
+.qti-ext-math-blank-formula--cancel [data-mml-node="menclose"] > :is(line, path, use) {
+  z-index: 4;
+
+  pointer-events: none;
+}
+
 .qti-ext-math-blank-formula__typeset[data-ready="false"] {
   position: absolute;
 
@@ -4354,7 +4434,6 @@
   --vcq-pad: 6px;
   --vcq-box-inset: 3px;
   --vcq-regular-box-inset: 6px;
-  --vcq-align-inset: calc(0.3 * var(--qti-font-size-base, 16px));
   --vcq-line: 1px;
   --vcq-ink: #1f2328;
   --vcq-div-stroke: 1px;
@@ -4494,7 +4573,11 @@
 }
 
 .qti-ext-vcq-grid.qti-align-left
-  .qti-ext-vcq-cell:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow) {
+  .qti-ext-vcq-cell:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow,
+    .qti-ext-vcq-cell--blank
+  ) {
   justify-content: flex-start;
 
   padding: var(--vcq-pad);
@@ -4503,7 +4586,11 @@
 }
 
 .qti-ext-vcq-grid.qti-align-right
-  .qti-ext-vcq-cell:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow) {
+  .qti-ext-vcq-cell:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow,
+    .qti-ext-vcq-cell--blank
+  ) {
   justify-content: flex-end;
 
   padding: var(--vcq-pad);
@@ -4512,7 +4599,11 @@
 }
 
 .qti-ext-vcq-grid
-  .qti-ext-vcq-cell.qti-align-left:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow) {
+  .qti-ext-vcq-cell.qti-align-left:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow,
+    .qti-ext-vcq-cell--blank
+  ) {
   justify-content: flex-start;
 
   padding: var(--vcq-pad);
@@ -4521,7 +4612,11 @@
 }
 
 .qti-ext-vcq-grid
-  .qti-ext-vcq-cell.qti-align-right:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow) {
+  .qti-ext-vcq-cell.qti-align-right:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow,
+    .qti-ext-vcq-cell--blank
+  ) {
   justify-content: flex-end;
 
   padding: var(--vcq-pad);
@@ -4564,15 +4659,17 @@
   display: contents;
 }
 
-/* 조립제법 ㄴ — 저작과 같이 셀 범위에 L (absolute 전체 덮개 아님) */
 .qti-ext-vcq-synthetic-bracket,
 .qti-ext-vcq-remainder {
+  position: relative;
+
+  overflow: visible;
+
   box-sizing: border-box;
   min-width: var(--vcq-cell);
   min-height: var(--vcq-cell);
 
-  border-bottom: var(--vcq-syn-stroke) solid currentcolor;
-  border-left: var(--vcq-syn-stroke) solid currentcolor;
+  border: 0;
 
   pointer-events: none;
 }
@@ -4581,19 +4678,12 @@
   z-index: 1;
 }
 
-.qti-ext-vcq-synthetic-bracket--stacked {
-  clip-path: inset(var(--vcq-syn-stack-gap) 0 0 0);
-}
-
 .qti-ext-vcq-remainder {
   z-index: 2;
 }
 
 .qti-ext-vcq-grid--overlay-grid > .qti-ext-vcq-synthetic-bracket,
 .qti-ext-vcq-grid--overlay-grid > .qti-ext-vcq-remainder {
-  position: absolute;
-  inset: 0;
-
   min-width: 0;
   min-height: 0;
 }
@@ -4746,24 +4836,60 @@
   -webkit-text-fill-color: transparent;
 }
 
-.qti-ext-vcq-grid.qti-align-left .qti-ext-vcq-cell .qti-ext-input-blank__field,
-.qti-ext-vcq-grid.qti-align-left .qti-ext-vcq-cell .qti-ext-input-blank__label {
+.qti-ext-vcq-grid.qti-align-left
+  .qti-ext-vcq-cell:not(.qti-ext-vcq-cell--blank)
+  .qti-ext-input-blank__field,
+.qti-ext-vcq-grid.qti-align-left
+  .qti-ext-vcq-cell:not(.qti-ext-vcq-cell--blank)
+  .qti-ext-input-blank__label {
   text-align: left;
 }
 
-.qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell .qti-ext-input-blank__field,
-.qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell .qti-ext-input-blank__label {
+.qti-ext-vcq-grid.qti-align-right
+  .qti-ext-vcq-cell:not(.qti-ext-vcq-cell--blank)
+  .qti-ext-input-blank__field,
+.qti-ext-vcq-grid.qti-align-right
+  .qti-ext-vcq-cell:not(.qti-ext-vcq-cell--blank)
+  .qti-ext-input-blank__label {
   text-align: right;
 }
 
-.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-left .qti-ext-input-blank__field,
-.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-left .qti-ext-input-blank__label {
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-left:not(.qti-ext-vcq-cell--blank)
+  .qti-ext-input-blank__field,
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-left:not(.qti-ext-vcq-cell--blank)
+  .qti-ext-input-blank__label {
   text-align: left;
 }
 
-.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-right .qti-ext-input-blank__field,
-.qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-right .qti-ext-input-blank__label {
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-right:not(.qti-ext-vcq-cell--blank)
+  .qti-ext-input-blank__field,
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell.qti-align-right:not(.qti-ext-vcq-cell--blank)
+  .qti-ext-input-blank__label {
   text-align: right;
+}
+
+/* 셀·그리드 정렬은 빈칸 상자 위치만 옮긴다. 상자 안 글자는 항상 가운데. */
+.qti-ext-vcq-grid.qti-align-left .qti-ext-vcq-cell--blank .qti-ext-input-blank,
+.qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell--blank .qti-ext-input-blank,
+.qti-ext-vcq-grid .qti-ext-vcq-cell--blank.qti-align-left .qti-ext-input-blank,
+.qti-ext-vcq-grid .qti-ext-vcq-cell--blank.qti-align-right .qti-ext-input-blank {
+  justify-content: center;
+}
+
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell--blank
+  :is(
+    .qti-ext-input-blank__field,
+    .qti-ext-input-blank__label,
+    .qti-ext-input-blank .qti-ext-mathfield
+  ) {
+  justify-content: center;
+
+  text-align: center;
 }
 
 .qti-ext-vcq-grid .qti-ext-vcq-cell.qti-align-center .qti-ext-input-blank__field,
@@ -5208,73 +5334,6 @@
 
   font-size: calc(var(--vcq-narrow-box-size) - 4px);
   line-height: 1;
-}
-
-/* 좌·우 정렬 inset. narrow는 중앙 유지 */
-.qti-ext-vcq-grid.qti-align-left
-  .qti-ext-vcq-cell:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
-  .qti-ext-mathfield {
-  padding-left: var(--vcq-align-inset);
-}
-
-.qti-ext-vcq-grid.qti-align-right
-  .qti-ext-vcq-cell:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
-  .qti-ext-mathfield {
-  padding-right: var(--vcq-align-inset);
-}
-
-.qti-ext-vcq-grid
-  .qti-ext-vcq-cell.qti-align-left:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
-  .qti-ext-mathfield {
-  padding-right: 0;
-  padding-left: var(--vcq-align-inset);
-}
-
-.qti-ext-vcq-grid
-  .qti-ext-vcq-cell.qti-align-right:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
-  .qti-ext-mathfield {
-  padding-right: var(--vcq-align-inset);
-  padding-left: 0;
-}
-
-.qti-ext-vcq-grid
-  .qti-ext-vcq-cell.qti-align-center:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
-  .qti-ext-mathfield {
-  padding-right: 0;
-  padding-left: 0;
-}
-
-.qti-ext-vcq-grid.qti-align-left
-  .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
-  .qti-ext-input-blank__field {
-  padding-left: var(--vcq-align-inset);
-}
-
-.qti-ext-vcq-grid.qti-align-right
-  .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
-  .qti-ext-input-blank__field {
-  padding-right: var(--vcq-align-inset);
-}
-
-.qti-ext-vcq-grid
-  .qti-ext-vcq-cell--blank.qti-align-left:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
-  .qti-ext-input-blank__field {
-  padding-right: 0;
-  padding-left: var(--vcq-align-inset);
-}
-
-.qti-ext-vcq-grid
-  .qti-ext-vcq-cell--blank.qti-align-right:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
-  .qti-ext-input-blank__field {
-  padding-right: var(--vcq-align-inset);
-  padding-left: 0;
-}
-
-.qti-ext-vcq-grid
-  .qti-ext-vcq-cell--blank.qti-align-center:not(.qti-ext-vcq-cell--merged, .qti-ext-vcq-col--narrow)
-  .qti-ext-input-blank__field {
-  padding-right: 0;
-  padding-left: 0;
 }
 
 .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged):focus-within
@@ -5790,8 +5849,6 @@
   > .qti-ext-vcq-merged-fallback-content {
   justify-content: flex-start;
 
-  padding-left: var(--vcq-align-inset);
-
   text-align: left;
 }
 
@@ -5800,8 +5857,6 @@
   .qti-ext-vcq-cell--merged:where(:not(.qti-align-left, .qti-align-center))
   > .qti-ext-vcq-merged-fallback-content {
   justify-content: flex-end;
-
-  padding-right: var(--vcq-align-inset);
 
   text-align: right;
 }
@@ -5935,5 +5990,215 @@ img.qti-ext-inline-image,
   margin: 0;
 
   vertical-align: middle;
+}
+
+/* ========================================
+   Image Input Blank - 이미지 빈칸 (CLOZE)
+
+   칸의 위치·크기·글자 크기는 저작 기준계로만 계산한다.
+   테마는 테두리·글꼴·글자색만 관여하고, 일반 빈칸·text-entry 규칙은 쓰지 않는다.
+   ======================================== */
+
+.qti-ext-image-input-blank {
+  position: relative;
+
+  display: block;
+
+  max-width: 100%;
+}
+
+/* 정답 영역은 문항 본문보다 작게 보여준다. 값이 이미 채워져 있어 입력 정밀도가 필요 없다. */
+.qti-ext-image-input-blank-answer {
+  --qti-image-blank-scale: 0.75;
+}
+
+.qti-ext-image-input-blank__image {
+  display: block;
+
+  width: 100%;
+  height: auto;
+}
+
+/* 이미지 content box와 좌상단·폭·높이가 같은 기준면 */
+.qti-ext-image-input-blank__overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.qti-ext-image-input-blank__region {
+  position: absolute;
+
+  display: flex;
+  overflow: hidden;
+
+  justify-content: center;
+  align-items: center;
+
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+
+  font-size: var(--image-blank-calculated-font-size, inherit);
+  line-height: 1;
+}
+
+.qti-ext-image-input-blank__input {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+
+  /* 두께·색은 선택지 테마를 따른다 */
+  border-width: var(--qti-option-border-width, 1px);
+  border-style: solid;
+  border-color: var(--qti-option-border, #d4d4d8);
+
+  /* 라운드는 4px 고정. 테마의 8px는 낮은 칸에서 알약 모양이 된다 */
+  border-radius: 4px;
+  outline: none;
+
+  /* 이미지 위에서 글자가 묻히지 않게 칸 배경은 항상 흰색 */
+  background-color: #ffffff;
+
+  color: var(--qti-base-text-color, #1a1a1a);
+  font-family: var(--qti-font-family, inherit);
+
+  /* 테마 본문 font-size가 덮으면 저작 배율과 어긋난다 */
+  font-size: var(--image-blank-calculated-font-size, inherit);
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+
+  caret-color: currentcolor;
+
+  appearance: none;
+}
+
+/* 수식 값은 입력칸 대신 렌더한 수식을 같은 상자에 넣는다. 칸 크기는 저작 좌표 그대로다. */
+.qti-ext-image-input-blank__math {
+  display: flex;
+  overflow: hidden;
+
+  justify-content: center;
+  align-items: center;
+}
+
+.qti-ext-image-input-blank__text {
+  width: 100%;
+  height: 100%;
+}
+
+.qti-ext-image-input-blank__fraction {
+  display: flex;
+  overflow: hidden;
+
+  justify-content: center;
+  align-items: center;
+  gap: 0.18em;
+
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+
+  line-height: 1;
+}
+
+.qti-ext-image-input-blank__fraction-stack {
+  display: grid;
+
+  align-items: stretch;
+  row-gap: max(1px, 0.12em);
+  grid-template-rows: minmax(0, 1fr) 0.08em minmax(0, 1fr);
+
+  width: 100%;
+  min-width: 0;
+  max-width: 2.6em;
+  height: 100%;
+  min-height: 0;
+}
+
+.qti-ext-image-input-blank__fraction-part {
+  width: 100%;
+  height: 100%;
+}
+
+.qti-ext-image-input-blank__fraction-whole {
+  flex-shrink: 0;
+
+  width: 32%;
+  height: 50%;
+}
+
+.qti-ext-image-input-blank__fraction--mixed .qti-ext-image-input-blank__fraction-stack {
+  flex: 1;
+
+  max-width: 2.2em;
+}
+
+.qti-ext-image-input-blank__fraction-line {
+  display: block;
+
+  width: 100%;
+  min-height: 1px;
+
+  background-color: var(--qti-option-border, #d4d4d8);
+}
+
+/* 분수 선도 칸 테두리와 같은 상태 색을 쓴다. 칸마다 상태가 다르면 JS에서 한쪽으로 합친다.
+   대분수는 정수부도 같은 분수로 보므로 세 칸을 함께 본다. */
+.qti-ext-image-input-blank__fraction-stack--selected .qti-ext-image-input-blank__fraction-line {
+  background-color: var(--qti-option-border-selected, var(--qti-option-border, #d4d4d8));
+}
+
+.qti-ext-image-input-blank__fraction-stack--correct .qti-ext-image-input-blank__fraction-line {
+  background-color: var(--qti-option-border-correct, #16a34a);
+}
+
+.qti-ext-image-input-blank__fraction-stack--incorrect .qti-ext-image-input-blank__fraction-line {
+  background-color: var(--qti-option-border-incorrect, #dc2626);
+}
+
+/* hover는 분수를 한 덩어리로 본다. 대분수 정수부에 올려도 선이 같이 반응하도록
+   hover 대상은 스택이 아니라 분수 전체다. `:has(input:read-write)`로 입력 가능한 분수에서만 쓴다. */
+.qti-ext-image-input-blank__fraction:hover
+  .qti-ext-image-input-blank__fraction-stack:where(
+    :not(
+      .qti-ext-image-input-blank__fraction-stack--selected,
+      .qti-ext-image-input-blank__fraction-stack--correct,
+      .qti-ext-image-input-blank__fraction-stack--incorrect
+    )
+  ):has(:where(input:read-write))
+  .qti-ext-image-input-blank__fraction-line {
+  background-color: var(--qti-option-border-hover, var(--qti-option-border, #d4d4d8));
+}
+
+/* 선택지 hover 규칙과 같다: 값이 없고 입력 가능한 칸에서만 hover 색을 쓴다.
+   `:read-only`는 미리보기·시험지의 읽기 전용 input과 수식 표시용 span을 함께 걸러낸다. */
+.qti-ext-image-input-blank__input:hover:not(
+    :read-only,
+    .qti-ext-image-input-blank__input--selected,
+    .qti-ext-image-input-blank__input--correct,
+    .qti-ext-image-input-blank__input--incorrect
+  ) {
+  border-color: var(--qti-option-border-hover, var(--qti-option-border, #d4d4d8));
+}
+
+/* 값이 들어갔거나 포커스된 칸은 text-entry와 같이 선택 색을 쓴다. 채점된 칸은 정오답 색을 유지한다. */
+.qti-ext-image-input-blank__input--selected,
+.qti-ext-image-input-blank__input:focus:not(
+    .qti-ext-image-input-blank__input--correct,
+    .qti-ext-image-input-blank__input--incorrect
+  ) {
+  border-color: var(--qti-option-border-selected, var(--qti-option-border, #d4d4d8));
+}
+
+/* 정오답은 테두리색만 바꾼다. 배경은 흰색을 유지한다. */
+.qti-ext-image-input-blank__input--correct {
+  border-color: var(--qti-option-border-correct, #16a34a);
+}
+
+.qti-ext-image-input-blank__input--incorrect {
+  border-color: var(--qti-option-border-incorrect, #dc2626);
 }
 

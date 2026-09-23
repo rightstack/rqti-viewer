@@ -194,7 +194,36 @@ export function FormulaSlotLatexDisplay({
       });
     };
 
-    if (tryApply() && !fitFormulaHost) return;
+    if (!fitFormulaHost) {
+      if (!content) return;
+      let stopped = false;
+      let quietFrames = 0;
+      const tick = () => {
+        if (stopped) return;
+        quietFrames += 1;
+        if (quietFrames < 2) {
+          frame = window.requestAnimationFrame(tick);
+          return;
+        }
+        if (tryApply() || quietFrames > 30) return;
+        frame = window.requestAnimationFrame(tick);
+      };
+      const poke = () => {
+        if (stopped) return;
+        quietFrames = 0;
+        window.cancelAnimationFrame(frame);
+        frame = window.requestAnimationFrame(tick);
+      };
+      const mutationObserver = new MutationObserver(poke);
+      mutationObserver.observe(content, { childList: true, subtree: true, attributes: true });
+      document.fonts?.ready.then(poke).catch(poke);
+      poke();
+      return () => {
+        stopped = true;
+        mutationObserver.disconnect();
+        window.cancelAnimationFrame(frame);
+      };
+    }
     if (!content) return;
 
     const mutationObserver = new MutationObserver(() => {

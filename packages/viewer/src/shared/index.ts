@@ -12,3 +12,5 @@ export { VcqCorrectAnswerPreview } from "./VcqCorrectAnswerPreview";
 export type { VcqCorrectAnswerPreviewProps } from "./VcqCorrectAnswerPreview";
 export { MathInputBlankCorrectAnswerPreview } from "./MathInputBlankCorrectAnswerPreview";
 export type { MathInputBlankCorrectAnswerPreviewProps } from "./MathInputBlankCorrectAnswerPreview";
+export { ImageInputBlankCorrectAnswerPreview } from "./ImageInputBlankCorrectAnswerPreview";
+export type { ImageInputBlankCorrectAnswerPreviewProps } from "./ImageInputBlankCorrectAnswerPreview";
