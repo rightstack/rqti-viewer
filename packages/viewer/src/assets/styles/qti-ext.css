@@ -1719,6 +1719,12 @@
   @apply rqti:mt-4 rqti:ml-auto;
 }
 
+/* thumbnail 서술형: textarea 대신 text-entry input(h-9)과 같은 높이의 여백 */
+.qti-ext-essay-thumbnail-gap {
+  height: 2.25rem;
+  min-height: 2em;
+}
+
 /* gap-match-interaction 보기 조각 UI */
 .qti-ext-gap-source {
   /* TODO: 스타일 추가 */

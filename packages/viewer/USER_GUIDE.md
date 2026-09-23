@@ -7,7 +7,7 @@ QTI 문항을 **상세 API**로 조회해 **문항 1개**를 렌더링하는 가
 > 호스트가 힌트를 직접 그릴 때: **[HINT_GUIDE.md](./HINT_GUIDE.md)**  
 > 힌트만 그리는 화면은 `HINT_GUIDE`를 보고 `styles.css`와 `MathJaxProviderWrapper`를 그 화면에 넣고, 힌트 영역을 `.rqti-viewer`로 감쌉니다.
 
-현재 패키지 버전: **0.4.12**
+현재 패키지 버전: **0.4.16**
 
 ---
 
@@ -314,7 +314,7 @@ thumbnail은 지정된 7유형만 크롬을 숨깁니다.
 
 - **SCQ / MCQ / GCQ**: 라디오·체크박스 미렌더. 선택 카드 스타일은 유지. GCQ 그리드 header 여백 조정
 - **SRQ / CLOZE**: placeholder 빈값 (XML `placeholder-text` 포함)
-- **ESSAY**: placeholder 빈값, 글자수 숨김. 입력 제한은 유지
+- **ESSAY**: textarea 미렌더. text-entry input 높이(2.25rem)만큼 여백만 남김
 - **DDQ**: placeholder 빈값, 드롭다운 화살표 미렌더. 박스 형태는 유지
 
 TFQ, GMQ, MATCH, ORDER, UPLOAD, VCQ 등은 크롬 변경 없이 읽기 전용만 적용됩니다.

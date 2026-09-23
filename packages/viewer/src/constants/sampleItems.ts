@@ -54,11 +54,12 @@ export const SAMPLE_ITEMS: readonly SampleItem[] = [
   {
     type: ITEM_TYPE.ESSAY,
     label: "서술형 (ESSAY)",
-    qtiIdentifier: "i_1m7u6xcu9wdo59lt",
+    qtiIdentifier: "i_6dstignz96hrtuyd",
   },
 ] as const;
 
 /** type → qtiIdentifier 빠른 조회 */
-export const SAMPLE_IDS: Partial<Record<ItemsType, string>> = Object.fromEntries(
-  SAMPLE_ITEMS.map((item) => [item.type, item.qtiIdentifier]),
-);
+export const SAMPLE_IDS: Partial<Record<ItemsType, string>> =
+  Object.fromEntries(
+    SAMPLE_ITEMS.map((item) => [item.type, item.qtiIdentifier]),
+  );

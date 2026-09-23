@@ -318,8 +318,8 @@ export default function App() {
                 {m === "practice"
                   ? "practice (제출)"
                   : m === "preview"
-                    ? "preview (복원)"
-                    : "thumbnail (크롬 숨김)"}
+                  ? "preview (복원)"
+                  : "thumbnail (크롬 숨김)"}
               </button>
             ))}
           </div>
@@ -562,13 +562,13 @@ export default function App() {
               passage={demoPassage ? DEMO_PASSAGE_HTML : props.passage}
               onSubmit={setLastSubmit}
               designWidth={DESIGN_WIDTH}
-              annotationOverlay={
-                <Whiteboard
-                  strokes={strokes}
-                  onChange={setStrokes}
-                  enabled={drawing}
-                />
-              }
+              // annotationOverlay={
+              //   <Whiteboard
+              //     strokes={strokes}
+              //     onChange={setStrokes}
+              //     enabled={drawing}
+              //   />
+              // }
             />
           )}
           {showHostHints && (

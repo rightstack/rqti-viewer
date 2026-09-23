@@ -36,21 +36,31 @@ export const ExtendedTextInteraction: React.FC<ExtendedTextInteractionProps> = (
   };
 
   const maxLength = maxStrings ? Number.parseInt(maxStrings, 10) : undefined;
+  const isThumbnail = options.mode === "thumbnail";
 
   useEffect(() => {
     setValue(initialValue);
   }, [initialValue]);
+
+  if (isThumbnail) {
+    return (
+      <div
+        key={`extended-text-${responseIdentifier}-${index}`}
+        className="qti-ext-essay-thumbnail-gap"
+        aria-hidden
+      />
+    );
+  }
 
   return (
     <div key={`extended-text-${responseIdentifier}-${index}`} className="my-4">
       <EssayTextArea
         value={value}
         onChange={handleChange}
-        placeholder={options.mode === "thumbnail" ? "" : placeholderText || "내용을 입력하세요."}
+        placeholder={placeholderText || "내용을 입력하세요."}
         maxLength={maxLength}
         disabled={!!options.isSubmit}
         readOnly={options.mode !== "practice"}
-        hideCount={options.mode === "thumbnail"}
       />
     </div>
   );
