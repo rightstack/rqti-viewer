@@ -239,8 +239,13 @@ function loadTypekitKit(kitId: string): void {
   watchTypekitFontFaces();
 }
 
+/** link id. btoa는 Latin1만 허용해서 한글 폰트명에서 InvalidCharacterError가 난다. */
 function themeFontLinkId(url: string): string {
-  return `font-url-${btoa(url).substring(0, 20)}`;
+  let hash = 5381;
+  for (let i = 0; i < url.length; i++) {
+    hash = (Math.imul(hash, 33) ^ url.charCodeAt(i)) >>> 0;
+  }
+  return `font-url-${hash.toString(36)}`;
 }
 
 function removeCurrentThemeFontLink(): void {
