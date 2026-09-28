@@ -26,6 +26,7 @@ export {
 // 테마 (기본 테마 + 커스텀 테마 작성용 — THEME_GUIDE.md 참고)
 export { DEFAULT_THEME, DEFAULT_THEME_ID } from "./themes";
 export { getThemeCSSVariables } from "./utils/themeToCSS";
+export { loadThemeFont, typekitKitIdFromUrl } from "./utils/fontLoader";
 
 // 피드백 (컨트롤드 컴포넌트 — open 상태는 소비자가 관리)
 export { FeedbackSheet, FeedbackModal, FeedbackInline } from "./shared";

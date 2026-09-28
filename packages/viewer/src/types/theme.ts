@@ -228,7 +228,7 @@ export interface ExampleStimulusStyleType extends TextStyleType {
  * 타이포그래피 설정 타입
  */
 export interface TypographyConfigType {
-  /** 폰트 패밀리 (CSS 파일 또는 Google Fonts URL) */
+  /** 폰트 CSS URL, Typekit 키트 스크립트 URL, 또는 CSS font-family 스택 (시스템 돋움/고딕) */
   fontFamily?: string;
   /** 기본 폰트 크기 (공통) */
   baseFontSize?: string;

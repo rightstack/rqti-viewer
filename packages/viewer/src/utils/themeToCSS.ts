@@ -43,7 +43,7 @@ function extractFontFamilyName(fontFamily?: string): string | undefined {
     }
   }
 
-  // 이미 폰트 패밀리 이름인 경우 그대로 반환
+  // CSS font-family 스택은 따옴표를 다시 감싸지 않고 그대로 반환
   return fontFamily;
 }
 

@@ -78,7 +78,7 @@ containerConfig: {
 
 | 필드              | 예시                                                 | 설명                                                                   |
 | ----------------- | ---------------------------------------------------- | ---------------------------------------------------------------------- |
-| `fontFamily`      | `"https://fonts.googleapis.com/..."`                 | 폰트 CSS URL(Google Fonts 등). 아래 [폰트 프리셋](#5-폰트-프리셋) 참고 |
+| `fontFamily`      | Typekit 키트 URL 또는 `"돋움", Dotum, sans-serif`   | 폰트 CSS URL, Typekit `.js` URL, 또는 CSS `font-family` 스택. 아래 [폰트 프리셋](#5-폰트-프리셋) 참고 |
 | `baseFontSize`    | `"16px"`                                             | 기본 글자 크기                                                         |
 | `baseFontWeight`  | `"400"`                                              | 기본 글자 굵기                                                         |
 | `baseLineHeight`  | `"1.5"`                                              | 기본 줄 간격                                                           |
@@ -305,10 +305,13 @@ containerConfig: {
 
 ## 5. 폰트 프리셋
 
-`typography.fontFamily`에는 폰트 CSS URL을 넣습니다. 자주 쓰는 값(내장 프리셋):
+`typography.fontFamily`에는 폰트 CSS URL, Typekit 키트 스크립트 URL, 또는 CSS `font-family` 스택을 넣습니다.
 
-| 프리셋 키          | 폰트             | URL                                                                                        |
+| 프리셋 키          | 폰트             | 저장값                                                                                     |
 | ------------------ | ---------------- | ------------------------------------------------------------------------------------------ |
+| `pretendard`       | Pretendard Web   | `https://use.typekit.net/fyj5vqd.js` (Adobe Fonts 동적 키트. CSS 패밀리명은 `Pretendard Web`) |
+| `dotum`            | 돋움             | `"돋움", Dotum, sans-serif` (시스템 폰트)                                                  |
+| `gothic`           | 고딕             | `"맑은 고딕", "Malgun Gothic", sans-serif` (시스템 폰트)                                   |
 | `noto-sans-kr`     | Noto Sans KR     | `https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap`  |
 | `noto-serif-kr`    | Noto Serif KR    | `https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap` |
 | `ibm-plex-sans-kr` | IBM Plex Sans KR | `https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap`  |
@@ -317,7 +320,7 @@ containerConfig: {
 | `jua`              | Jua              | `https://fonts.googleapis.com/css2?family=Jua&display=swap`                                |
 | `do-hyeon`         | Do Hyeon         | `https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap`                           |
 
-> 폰트는 뷰어가 `<link>` 태그로 자동 로드합니다. 사내/커스텀 폰트도 CSS URL만 있으면 동일하게 사용할 수 있습니다.
+> `use.typekit.net/{kitId}.js`는 뷰어가 스크립트로 불러오고, 키트의 `@font-face` 패밀리를 `Pretendard Web`으로 바꿉니다. 그 외 `http(s)` CSS URL만 `<link>`로 불러옵니다. 돋움·고딕은 기기에 설치된 글꼴을 쓰고, 없으면 `sans-serif`로 떨어집니다. 문항 밖 힌트·피드백에서 Typekit을 쓰려면 그 화면에서 `loadThemeFont`를 호출합니다.
 
 ---
 

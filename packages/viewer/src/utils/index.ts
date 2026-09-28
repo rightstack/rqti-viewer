@@ -2,7 +2,13 @@ export { extractMediaFromElement } from "./extractMediaFromElement";
 export { extractTextFromElement } from "./extractTextFromElement";
 export { inferChoiceQuestionType } from "./detectQuestionType";
 export { extractCorrectPairs } from "./extractCorrectPairs";
-export { loadFont, loadFontByPreset, loadThemeFont, FONT_PRESETS } from "./fontLoader";
+export {
+  loadFont,
+  loadFontByPreset,
+  loadThemeFont,
+  FONT_PRESETS,
+  typekitKitIdFromUrl,
+} from "./fontLoader";
 export { getThemeCSSVariables } from "./themeToCSS";
 export {
   checkAnswerUtil,
