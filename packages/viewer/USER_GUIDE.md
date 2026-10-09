@@ -331,29 +331,7 @@ const exampleTheme: Theme = {
 
 ## 11. 수식입력기 (MathKeyboard)
 
-학생용 수식 키패드다. MathLive 가상키보드를 커스텀한다. 입력창은 문항 흐름에 두고, 키패드는 포커스 시 열리는 **플로팅 팝업**이다. 핸들로 드래그할 수 있고, 뷰포트 밖으로 나가지 않게 위치가 보정된다.
-
-- **우측 고정 패드**: 5×5. 왼쪽 열은 커서(`<` `>`)·백스페이스·엔터, 가운데는 숫자, 오른쪽은 사칙. 맨 아래는 분수·루트·`x`/`y`. 서랍을 열지 않아도 웬만한 대수/연산을 입력한다.
-- **좌측 서랍**: `>` / `<` 로 열고 닫는다. 폭·높이는 우측 패드와 맞춰 고정한다. 탭은 한 줄 가로 나열(넘치면 가로 스크롤), 심화 기호는 4열 격자에서 세로 스크롤만 한다. 행렬처럼 넓은 키는 한 행에 2개만 둔다. 열린 동안 좌·우를 함께 쓴다.
-- **이력**: 마지막 탭, 최근 기호(최대 12개, id만), 서랍 열림, 팝업 위치를 `localStorage`에 저장한다. 키는 `rqti:math-keyboard:{level}` 또는 `rqti:math-keyboard:{level}:{historyScope}`. 브라우저를 닫아도 이력이 유지된다. 이력이 없거나 탭이 레벨에 없으면 `basic`, 서랍은 닫힘.
-- 우측 숫자·사칙·분수·루트·변수는 최근 목록에 넣지 않는다. 좌측 심화 키만 기록한다.
-
-`level` prop으로 중등/고등 키캡 세트와 탭을 고른다(`"middle"` | `"high"`, 기본 `"middle"`). 기본 MathLive 레이아웃은 없다. `alwaysOpen`이면 같은 플로팅 셸을 상시 노출한다.
-
-```tsx
-import { MathKeyboard } from "@rightstack/rqti-viewer";
-
-<MathKeyboard
-  value={latex}
-  onChange={setLatex}
-  level="middle" // "middle" | "high"
-  historyScope={attemptId} // 선택. 퀴즈/응시 회차별로 이력을 나눈다
-/>
-```
-
-`correctAnswer`는 호환을 위해 받을 수 있으나 탭을 열지 않는다.
-
-값은 LaTeX 문자열이다.
+입력형 문항의 `isMath`가 true이면 `qti-text-entry-interaction`이 수식 키패드를 쓴다. 입력칸은 문항 자리에 있고, 키패드는 화면 위에 뜬다. `level`은 `"middle"` | `"high"`이고 기본은 `"middle"`이다. 값은 `$` 없는 LaTeX 문자열이다.
 
 ---
 

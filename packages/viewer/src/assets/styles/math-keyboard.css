@@ -1,77 +1,34 @@
-/* 수식입력기 — 입력창은 문항 흐름, 키패드는 플로팅+서랍 */
-
 .rqti-math-input {
-  --rqti-mlk-width: 220px; /* 4열 격자 + 스크롤바 여유. 격자는 가운데. */
-  --rqti-mlk-key-size: 3rem;
-  --rqti-mlk-key-gap: 0.25rem;
-  --rqti-mlk-right-rows: 5;
-  --rqti-mlk-height: calc(
-    var(--rqti-mlk-right-rows) * var(--rqti-mlk-key-size) +
-      (var(--rqti-mlk-right-rows) - 1) * var(--rqti-mlk-key-gap)
-  );
   display: inline-flex;
-  flex-direction: row;
   align-items: center;
   vertical-align: baseline;
   width: fit-content;
-  height: auto;
   max-width: 100%;
 }
 
-/*
- * 수식 input 셸. 값(MathJax/math-field)과 키보드 아이콘을 한 박스 안에 둔다.
- * 기본 최소 10ch × 2em. 수식 내용(분수·행렬 등)에 맞춰 가로·세로로 커진다.
- */
 .rqti-math-input-shell {
   display: inline-flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: flex-start;
-  gap: 0.125rem;
-  box-sizing: border-box;
-  min-width: 10ch;
+  gap: 0.5rem;
+  padding: 4px 8px;
+  cursor: pointer;
   width: max-content;
   max-width: none;
-  min-height: 2em;
-  height: max-content;
+  min-width: 8ch;
   overflow: visible;
-  padding: 2px 0.25rem 2px 0.5rem;
+  white-space: normal;
   vertical-align: baseline;
+}
 
-  border-width: var(--qti-option-border-width);
-  border-style: solid;
-  border-color: var(--qti-option-border);
-  border-radius: var(--qti-option-border-radius);
-
-  background-color: var(--qti-option-bg);
-
-  color: var(--qti-base-text-color, inherit);
+/* 정오 표시는 테두리·배경만. text-lg로 칸 높이가 바뀌지 않게 한다. */
+.rqti-math-input-shell.qti-ext-text-entry-input-correct,
+.rqti-math-input-shell.qti-ext-text-entry-input-incorrect,
+.rqti-math-input-display.qti-ext-text-entry-input-correct,
+.rqti-math-input-display.qti-ext-text-entry-input-incorrect {
   font-size: var(--qti-font-size-base, inherit) !important;
-  font-weight: var(--qti-option-font-weight, inherit);
   line-height: 1.5;
-}
-
-.rqti-math-input-shell:hover {
-  border-color: var(--qti-option-border-hover);
-  background-color: var(--qti-option-bg-hover);
-}
-
-/* 편집 중·값 있음: 일반 입력칸 selected와 같은 토큰 */
-.rqti-math-input-shell--open,
-.rqti-math-input-shell--filled {
-  border-color: var(--qti-option-border-selected);
-  background-color: var(--qti-option-bg-selected);
-}
-
-.rqti-math-input-shell--correct,
-.rqti-math-input-shell--correct:hover {
-  border-color: var(--qti-option-border-correct);
-  background-color: var(--qti-option-bg-correct);
-}
-
-.rqti-math-input-shell--incorrect,
-.rqti-math-input-shell--incorrect:hover {
-  border-color: var(--qti-option-border-incorrect);
-  background-color: var(--qti-option-bg-incorrect);
+  text-align: start;
 }
 
 .rqti-math-input-shell--empty .rqti-math-input-field {
@@ -82,16 +39,10 @@
 }
 
 .rqti-math-input-value {
-  position: relative;
   display: inline-flex;
-  flex: 1 1 auto;
   align-items: center;
-  min-width: min-content;
   min-height: 1.5em;
   width: max-content;
-  height: max-content;
-  max-width: none;
-  overflow: visible;
   cursor: pointer;
   outline: none;
 }
@@ -106,8 +57,7 @@
   overflow: visible;
 }
 
-.rqti-math-input-mathjax mjx-container,
-.rqti-math-input-mathjax .qti-edit__mathjax {
+.rqti-math-input-mathjax mjx-container {
   display: inline-block;
   width: max-content;
   height: max-content;
@@ -121,62 +71,20 @@
   min-height: 1.5em;
 }
 
-/*
- * readOnly는 아이콘 없이 표시만. 기존 text-entry와 같은 박스.
- */
+/* readOnly는 아이콘 없이 같은 입력 스타일. 크기는 수식만큼. */
 .rqti-math-input-display {
-  box-sizing: border-box;
-  min-width: 10ch;
-  width: max-content;
-  max-width: none;
-  min-height: 2em;
-  height: max-content;
-  overflow: visible;
-  padding: 2px 0.5rem;
-
-  border-width: var(--qti-option-border-width);
-  border-style: solid;
-  border-color: var(--qti-option-border);
-  border-radius: var(--qti-option-border-radius);
-
-  background-color: var(--qti-option-bg);
-
-  color: var(--qti-base-text-color, inherit);
-  font-size: var(--qti-font-size-base, inherit) !important;
-  font-weight: var(--qti-option-font-weight, inherit);
-  line-height: 1.5;
-
   display: inline-flex;
   align-items: center;
+  width: max-content;
+  max-width: none;
+  min-width: 8ch;
+  overflow: visible;
+  white-space: normal;
   vertical-align: baseline;
 }
 
-.rqti-math-input-display--filled {
-  border-color: var(--qti-option-border-selected);
-  background-color: var(--qti-option-bg-selected);
-}
-
-.rqti-math-input-display--correct {
-  border-color: var(--qti-option-border-correct);
-  background-color: var(--qti-option-bg-correct);
-}
-
-.rqti-math-input-display--incorrect {
-  border-color: var(--qti-option-border-incorrect);
-  background-color: var(--qti-option-bg-incorrect);
-}
-
-
 /* 셸 안 키보드 아이콘: 크기 고정, 항상 우측 */
 .rqti-math-input-toggle {
-  flex: 0 0 1.75rem;
-  align-self: center;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  margin-left: auto;
   padding: 0;
   border: none;
   border-radius: 4px;
@@ -198,9 +106,9 @@
 
 /* 플로팅 팝업: 뷰포트 기준 고정. 위치는 인라인 left/top. */
 .rqti-math-input-float {
-  --rqti-mlk-key-size: 3rem;
+  --rqti-mlk-key-size: 2rem;
   --rqti-mlk-key-gap: 0.25rem;
-  --rqti-mlk-right-rows: 5;
+  --rqti-mlk-right-rows: 6;
   --rqti-mlk-height: calc(
     var(--rqti-mlk-right-rows) * var(--rqti-mlk-key-size) +
       (var(--rqti-mlk-right-rows) - 1) * var(--rqti-mlk-key-gap)
@@ -210,13 +118,23 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   padding: 8px 8px 12px;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   background: #ffffff;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12),
     0 2px 6px rgba(15, 23, 42, 0.06);
+  width: 12rem;
+  min-width: 12rem;
+  max-width: 12rem;
+  transition: width 0.2s ease, min-width 0.2s ease, max-width 0.2s ease;
+}
+
+.rqti-math-input-float:has(.rqti-math-input-drawer--open) {
+  width: 22.5rem;
+  min-width: 22.5rem;
+  max-width: 22.5rem;
 }
 
 .rqti-math-input-float-handle {
@@ -241,11 +159,42 @@
   background: #cbd5e1;
 }
 
+.rqti-math-input-float-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.rqti-math-input-float-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
 .rqti-math-input-float-body {
   display: flex;
-  flex-direction: row;
-  align-items: stretch;
   gap: 8px;
+}
+
+/* 닫힌 서랍은 폭 0이어도 gap이 펼침 버튼 왼쪽에 남는다. */
+.rqti-math-input-float-body:not(:has(.rqti-math-input-drawer--open)) {
+  gap: 0;
+}
+
+.rqti-math-input-float-body:not(:has(.rqti-math-input-drawer--open))
+  .rqti-math-input-drawer-toggle {
+  margin-right: 8px;
 }
 
 /* 좌측 서랍: 닫힘 시 폭 0, 열림 시 고정 폭으로 슬라이드 */
@@ -275,7 +224,7 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 1.5rem;
+  width: 1rem;
   margin: 0;
   padding: 0;
   border: 1px solid #e5e7eb;
@@ -294,12 +243,12 @@
   color: #0c75d8;
 }
 
-/* 우측 고정 패드: 5×5. 왼쪽 열=커서·삭제·엔터, 가운데=숫자, 오른쪽=사칙. */
+/* 우측 고정 패드: 4×6. */
 .rqti-math-input-right {
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: repeat(5, var(--rqti-mlk-key-size));
-  grid-template-rows: repeat(5, var(--rqti-mlk-key-size));
+  grid-template-columns: repeat(4, var(--rqti-mlk-key-size));
+  grid-template-rows: repeat(6, var(--rqti-mlk-key-size));
   gap: var(--rqti-mlk-key-gap);
 }
 
@@ -319,11 +268,6 @@
   transition: background-color 0.12s ease, border-color 0.12s ease;
 }
 
-.rqti-math-input-right-key--control {
-  background: #cbd5e1;
-  border-color: #94a3b8;
-}
-
 .rqti-math-input-right-key--empty {
   border: none;
   background: transparent;
@@ -333,12 +277,6 @@
 .rqti-math-input-right-key:hover {
   background: #eff6ff;
   border-color: #bfdbfe;
-}
-
-.rqti-math-input-right-key--control:hover {
-  background: #94a3b8;
-  border-color: #64748b;
-  color: #ffffff;
 }
 
 .rqti-math-input-right-key:active {
@@ -351,19 +289,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1;
-}
-
-.rqti-math-input-right-key-math .ML__latex,
-.rqti-math-input-right-key-math .ML__base {
-  font-size: inherit;
 }
 
 /* MathLive math-field (키패드 열림). 셸 안에서 테두리 없이 값만 그린다. */
 .rqti-math-input-field {
   --caret-color: var(--qti-base-text-color, currentColor);
-  --selection-color: var(--qti-option-text-selected, var(--qti-base-text-color, currentColor));
+  --selection-color: var(
+    --qti-option-text-selected,
+    var(--qti-base-text-color, currentColor)
+  );
   --selection-background-color: var(--qti-option-bg-selected);
   --contains-highlight-background-color: var(--qti-option-bg-selected);
 
@@ -405,7 +341,9 @@
 }
 
 .rqti-math-input math-field::part(virtual-keyboard-toggle),
-.rqti-math-input math-field::part(menu-toggle) {
+.rqti-math-input math-field::part(menu-toggle),
+.rqti-math-input-float math-field::part(virtual-keyboard-toggle),
+.rqti-math-input-float math-field::part(menu-toggle) {
   display: none;
 }
 
@@ -422,14 +360,12 @@
   min-height: 0;
   height: 100%;
   overflow: hidden;
-  color: #000;
 }
 
 /* 탭은 한 줄로 가로 나열. 넘치면 가로 스크롤, 스크롤바는 숨긴다. */
 .rqti-mlk-tabs {
   display: flex;
   flex: 0 0 auto;
-  flex-wrap: nowrap;
   gap: 4px;
   width: 100%;
   overflow-x: auto;
@@ -448,14 +384,14 @@
 
 .rqti-mlk-tab {
   flex: 0 0 auto;
-  padding: 4px 6px 6px;
+  padding: 3px 4px 4px;
   margin-bottom: -1px;
   border: none;
   border-bottom: 2px solid transparent;
   border-radius: 0;
   background: transparent;
   color: #2c2e2f;
-  font-size: 0.75rem;
+  font-size: 0.625rem;
   line-height: 1.2;
   white-space: nowrap;
   cursor: pointer;
@@ -496,16 +432,12 @@
 .rqti-mlk-keys {
   display: grid;
   box-sizing: border-box;
-  flex: 0 0 auto;
-  align-self: center;
   width: max-content;
   margin-inline: auto;
   grid-template-columns: repeat(4, var(--rqti-mlk-key-size));
   /* auto: 넓은 키 min-height가 행을 키운다. minmax(key-size, auto)는 행이 48px에 묶여 겹친다. */
   grid-auto-rows: auto;
-  align-content: start;
   gap: var(--rqti-mlk-key-gap);
-  justify-content: start;
 }
 
 .rqti-mlk-key {
@@ -557,8 +489,175 @@
   justify-content: center;
 }
 
-/* mathlive 정적 마크업이 키 폰트 크기를 따르도록 한다. */
-.rqti-mlk-key-math .ML__latex,
-.rqti-mlk-key-math .ML__base {
-  font-size: inherit;
+/* 확장 키캡은 1.5rem. 왼쪽 영역은 360px 패널에서 고정 패드를 뺀 너비. */
+.rqti-math-input-float .rqti-math-input-drawer {
+  --rqti-mlk-key-size: 1.5rem;
+  --rqti-mlk-width: 10.625rem;
+}
+
+.rqti-math-input-float .rqti-mlk-key {
+  padding: 0.125rem;
+}
+
+/* 왼쪽 4열은 영역 너비에 맞춰 키를 채운다. 문자 탭 6열은 그대로. */
+.rqti-math-input-float .rqti-mlk-keys:not(.rqti-mlk-keys--abc) {
+  width: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.rqti-math-input-float .rqti-mlk-keys:not(.rqti-mlk-keys--abc) .rqti-mlk-key {
+  min-width: 0;
+  aspect-ratio: 1;
+}
+
+.rqti-math-input-float .rqti-math-input-float-body,
+.rqti-math-input-float .rqti-math-input-preview {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rqti-math-input-preview {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.5rem;
+  max-height: 40vh;
+  /* overlay: 가로 막대가 내용 위에 겹치고 칸 높이를 밀지 않는다. */
+  overflow: overlay;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  padding: 6px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.rqti-math-input-preview-render {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  max-width: 100%;
+  min-height: 1.5em;
+}
+
+.rqti-math-input-preview-render--hidden {
+  display: none;
+}
+
+.rqti-math-input-preview-caret {
+  display: inline-block;
+  width: 1px;
+  height: 1.1em;
+  margin-left: 1px;
+  background: currentColor;
+  vertical-align: middle;
+  animation: rqti-mlk-caret 1s steps(1) infinite;
+}
+
+@keyframes rqti-mlk-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.rqti-math-input-preview-field {
+  max-width: 100%;
+}
+
+.rqti-math-input-preview-field--ghost {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* abc / αβγ 는 탭이 아니라 한 덩어리 전환. a/A 는 오른쪽. */
+.rqti-mlk-script-row {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.rqti-mlk-script-switch {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 8px;
+  background: #e8edf2;
+}
+
+.rqti-mlk-script {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.85rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  font-family: "STIX Two Math", "Times New Roman", serif;
+  font-size: 0.72rem;
+  font-style: italic;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.rqti-mlk-script--case {
+  min-width: 2.55rem;
+  margin-left: auto;
+  padding: 0 0.35rem;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #1e293b;
+}
+
+.rqti-mlk-script--active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+.rqti-mlk-script--shift {
+  background: #efefef;
+  border-color: #d4d4d4;
+  color: #1e293b;
+}
+
+.rqti-mlk-script--caps {
+  background: #e4e4e4;
+  border-color: #a3a3a3;
+  color: #1e293b;
+}
+
+.rqti-mlk-keys--abc {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  width: 100%;
+}
+
+.rqti-mlk-key--abc {
+  min-width: 0;
+  min-height: 1.55rem;
+  padding: 0;
+  font-family: "STIX Two Math", "Times New Roman", serif;
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.rqti-math-input-float .rqti-mlk-key mjx-container,
+.rqti-math-input-float .rqti-math-input-right-key mjx-container {
+  margin: 0 !important;
+  font-size: 0.85em !important;
 }

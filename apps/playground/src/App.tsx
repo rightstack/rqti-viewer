@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_THEME,
   ITEM_TYPE,
-  MathKeyboard,
   Question,
   SAMPLE_ITEMS,
   toQuestionProps,
@@ -52,81 +51,6 @@ function detailUrl(qtiIdentifier: string) {
 
 type Status = "idle" | "loading" | "error" | "ready";
 type Sizing = "responsive" | "fixed";
-type Stroke = Array<{ x: number; y: number }>;
-
-/**
- * designWidth 좌표계 위에서 동작하는 데모용 화이트보드.
- * clientX/Y를 현재 scale(rect.width / DESIGN_WIDTH)로 역변환해 designWidth 좌표로
- * 저장하므로, 뷰어 폭이 달라져도 필기 위치가 항상 정합된다.
- */
-function Whiteboard({
-  strokes,
-  onChange,
-  enabled,
-}: {
-  strokes: Stroke[];
-  onChange: (strokes: Stroke[]) => void;
-  enabled: boolean;
-}) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const drawingRef = useRef(false);
-
-  const toDesignPoint = (clientX: number, clientY: number) => {
-    const svg = svgRef.current;
-    if (!svg) return { x: 0, y: 0 };
-    const rect = svg.getBoundingClientRect();
-    const scale = rect.width / DESIGN_WIDTH;
-    return {
-      x: (clientX - rect.left) / scale,
-      y: (clientY - rect.top) / scale,
-    };
-  };
-
-  return (
-    <svg
-      ref={svgRef}
-      width="100%"
-      height="100%"
-      style={{
-        position: "absolute",
-        inset: 0,
-        pointerEvents: enabled ? "auto" : "none",
-        cursor: enabled ? "crosshair" : "default",
-        touchAction: "none",
-      }}
-      onPointerDown={(e) => {
-        if (!enabled) return;
-        (e.target as Element).setPointerCapture(e.pointerId);
-        drawingRef.current = true;
-        onChange([...strokes, [toDesignPoint(e.clientX, e.clientY)]]);
-      }}
-      onPointerMove={(e) => {
-        if (!enabled || !drawingRef.current) return;
-        const next = strokes.slice();
-        const last = next[next.length - 1];
-        next[next.length - 1] = [...last, toDesignPoint(e.clientX, e.clientY)];
-        onChange(next);
-      }}
-      onPointerUp={() => {
-        drawingRef.current = false;
-      }}
-    >
-      {strokes.map((stroke, i) => (
-        <polyline
-          key={i}
-          points={stroke.map((p) => `${p.x},${p.y}`).join(" ")}
-          fill="none"
-          stroke="#e11d48"
-          strokeWidth={3}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      ))}
-    </svg>
-  );
-}
-
-const STORAGE_KEY = "rqti-playground-annotations";
 
 export default function App() {
   const [selected, setSelected] = useState<SampleItem>(SAMPLE_ITEMS[0]);
@@ -137,39 +61,11 @@ export default function App() {
   const [showInlineFeedback, setShowInlineFeedback] = useState(true);
   const [mode, setMode] = useState<"practice" | "preview">("practice");
   const [lastSubmit, setLastSubmit] = useState<ResponseValueMap | null>(null);
-  const [drawing, setDrawing] = useState(true);
-  const [strokes, setStrokes] = useState<Stroke[]>([]);
-  // 문항 컨테이너 가용 폭(px). 슬라이더로 좁혀 고정폭 scale 축소 / 반응형 재배치를 시연한다.
   const [previewWidth, setPreviewWidth] = useState(1000);
   const [demoPassage, setDemoPassage] = useState(false);
-  const [showMathKeyboard, setShowMathKeyboard] = useState(true);
-  const [mathLatex, setMathLatex] = useState("");
-  const [mathLevel, setMathLevel] = useState<"middle" | "high">("high");
   const [forceIsMath, setForceIsMath] = useState(false);
   const isTextEntry =
     selected.type === ITEM_TYPE.SRQ || selected.type === ITEM_TYPE.CLOZE;
-
-  const saveAnnotations = () => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        qtiIdentifier: selected.qtiIdentifier,
-        designWidth: DESIGN_WIDTH,
-        strokes,
-      }),
-    );
-  };
-
-  const loadAnnotations = () => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    try {
-      const parsed = JSON.parse(raw) as { strokes?: Stroke[] };
-      if (Array.isArray(parsed.strokes)) setStrokes(parsed.strokes);
-    } catch {
-      /* ignore */
-    }
-  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -324,46 +220,6 @@ export default function App() {
             </>
           )}
 
-          <h2 style={styles.stateTitle}>수식입력기</h2>
-          <label style={styles.checkboxRow}>
-            <input
-              type="checkbox"
-              checked={showMathKeyboard}
-              onChange={(e) => setShowMathKeyboard(e.target.checked)}
-            />
-            키패드 데모
-          </label>
-          {showMathKeyboard && (
-            <div style={styles.toggleRow}>
-              {(
-                [
-                  ["middle", "중등"],
-                  ["high", "고등"],
-                ] as const
-              ).map(([lv, label]) => (
-                <button
-                  key={lv}
-                  type="button"
-                  onClick={() => setMathLevel(lv)}
-                  style={{
-                    ...styles.toggleBtn,
-                    ...(mathLevel === lv ? styles.toggleBtnActive : null),
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
-          {showMathKeyboard && (
-            <p style={styles.hint}>
-              플로팅 패드입니다. 위 핸들로 드래그하고, {">"} / {"<"} 로 좌측
-              서랍을 엽니다. 고등은 집합·행렬·통계 탭과 n제곱근·구간·벡터 등이
-              추가됩니다. 최근 사용 탭·마지막 탭·위치는 localStorage에
-              남아 브라우저를 닫아도 유지됩니다.
-            </p>
-          )}
-
           <h2 style={styles.stateTitle}>연결지문</h2>
           <label style={styles.checkboxRow}>
             <input
@@ -394,92 +250,19 @@ export default function App() {
           <p style={styles.hint}>
             응답값만 전달됩니다. 정오 채점은 호스트 백엔드 → QMS 범위입니다.
           </p>
-
-          {sizing === "fixed" && (
-            <>
-              <h2 style={styles.stateTitle}>화이트보드 필기</h2>
-              <label style={styles.checkboxRow}>
-                <input
-                  type="checkbox"
-                  checked={drawing}
-                  onChange={(e) => setDrawing(e.target.checked)}
-                />
-                필기 모드 (드래그해서 그리기)
-              </label>
-              <div style={styles.toggleRow}>
-                <button
-                  type="button"
-                  style={styles.toggleBtn}
-                  onClick={saveAnnotations}
-                >
-                  저장
-                </button>
-                <button
-                  type="button"
-                  style={styles.toggleBtn}
-                  onClick={loadAnnotations}
-                >
-                  불러오기
-                </button>
-                <button
-                  type="button"
-                  style={styles.toggleBtn}
-                  onClick={() => setStrokes([])}
-                >
-                  지우기
-                </button>
-              </div>
-              <p style={styles.hint}>
-                브라우저 창 폭을 바꿔도 필기 위치가 문항과 계속 정합됩니다.
-              </p>
-            </>
-          )}
         </section>
-
-        {/* <section style={styles.state}>
-          <h2 style={styles.stateTitle}>상태</h2>
-          <pre style={styles.pre}>
-            {JSON.stringify(
-              {
-                type: selected.type,
-                qtiIdentifier: selected.qtiIdentifier,
-                status,
-                title: item?.title ?? null,
-              },
-              null,
-              2,
-            )}
-          </pre>
-          {status === "error" && (
-            <>
-              <h2 style={styles.stateTitle}>오류</h2>
-              <pre style={styles.pre}>{error}</pre>
-            </>
-          )}
-        </section> */}
       </aside>
 
       <main style={styles.main}>
         <div style={{ ...styles.card, maxWidth: previewWidth }}>
-          {/* {status === "loading" && (
-            <p style={styles.statusText}>API 불러오는 중…</p>
-          )}
           {status === "error" && (
             <p style={styles.statusText}>API 오류: {error}</p>
-          )} */}
-          {showMathKeyboard && (
-            <div className="rqti-viewer">
-              <MathKeyboard
-                key={mathLevel}
-                value={mathLatex}
-                onChange={setMathLatex}
-                level={mathLevel}
-              />
-            </div>
           )}
-          {!showMathKeyboard && status === "ready" && props && (
+          {status === "ready" && props && (
             <Question
-              key={`${props.itemKey}-${isTextEntry && forceIsMath ? "math" : "text"}`}
+              key={`${props.itemKey}-${
+                isTextEntry && forceIsMath ? "math" : "text"
+              }`}
               theme={FULL_WIDTH_THEME}
               mode={mode}
               {...props}
@@ -493,15 +276,6 @@ export default function App() {
               onSubmit={setLastSubmit}
               sizing={sizing}
               designWidth={DESIGN_WIDTH}
-              // annotationOverlay={
-              //   sizing === "fixed" ? (
-              //     <Whiteboard
-              //       strokes={strokes}
-              //       onChange={setStrokes}
-              //       enabled={drawing}
-              //     />
-              //   ) : undefined
-              // }
             />
           )}
         </div>

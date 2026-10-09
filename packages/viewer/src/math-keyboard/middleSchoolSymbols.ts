@@ -1,17 +1,10 @@
-/**
- * 중등 수식입력기 기호 세트.
- * QMS 기획안(2026.07) 학생용 UX(3쪽) + 중등 기호(5–7쪽).
- * 3개 탭(기본/대수/기하)만 포함한다. 수 표현(분수 등)은 기본 탭.
- * "고등" 표기 심볼·저작 전용은 제외.
- */
-
 import { type MathKey, type MathTab } from "./mathSymbols";
 
-/** 중등 노출 탭(3장). */
 export const MIDDLE_SCHOOL_MATH_TABS = [
   "basic",
-  "algebra",
   "geometry",
+  "algebra",
+  "characters",
 ] as const satisfies readonly MathTab[];
 
 const key = (
@@ -23,23 +16,27 @@ const key = (
   ...partial,
 });
 
-/** 1) 기본 — 연산·수 표현·괄호·연립 */
 export const MIDDLE_SCHOOL_BASIC_KEYS: readonly MathKey[] = [
+  key({
+    id: "neq",
+    tab: "basic",
+    group: "연산",
+    insert: "\\neq",
+    label: "\\neq",
+  }),
+  key({
+    id: "colon",
+    tab: "basic",
+    group: "연산",
+    insert: "\\colon",
+    label: "\\colon",
+  }),
   key({
     id: "pm",
     tab: "basic",
     group: "연산",
     insert: "\\pm",
     label: "\\pm",
-    command: "pm",
-  }),
-  key({
-    id: "cdot",
-    tab: "basic",
-    group: "연산",
-    insert: "\\cdot",
-    label: "\\cdot",
-    command: "cdot",
   }),
   key({
     id: "percent",
@@ -47,24 +44,6 @@ export const MIDDLE_SCHOOL_BASIC_KEYS: readonly MathKey[] = [
     group: "연산",
     insert: "\\%",
     label: "\\%",
-    command: "%",
-  }),
-  key({
-    id: "eq",
-    tab: "basic",
-    group: "연산",
-    insert: "=",
-    label: "=",
-    labelType: "text",
-    command: "=",
-  }),
-  key({
-    id: "neq",
-    tab: "basic",
-    group: "연산",
-    insert: "\\neq",
-    label: "\\neq",
-    command: "neq",
   }),
   key({
     id: "lt",
@@ -73,7 +52,6 @@ export const MIDDLE_SCHOOL_BASIC_KEYS: readonly MathKey[] = [
     insert: "<",
     label: "<",
     labelType: "text",
-    command: "<",
   }),
   key({
     id: "leq",
@@ -81,7 +59,6 @@ export const MIDDLE_SCHOOL_BASIC_KEYS: readonly MathKey[] = [
     group: "연산",
     insert: "\\leq",
     label: "\\leq",
-    command: "leq",
   }),
   key({
     id: "gt",
@@ -90,7 +67,6 @@ export const MIDDLE_SCHOOL_BASIC_KEYS: readonly MathKey[] = [
     insert: ">",
     label: ">",
     labelType: "text",
-    command: ">",
   }),
   key({
     id: "geq",
@@ -98,47 +74,6 @@ export const MIDDLE_SCHOOL_BASIC_KEYS: readonly MathKey[] = [
     group: "연산",
     insert: "\\geq",
     label: "\\geq",
-    command: "geq",
-  }),
-  key({
-    id: "dfrac",
-    tab: "basic",
-    group: "수 표현",
-    insert: "\\dfrac{#?}{#?}",
-    label: "\\dfrac{\\square}{\\square}",
-    command: "dfrac",
-  }),
-  key({
-    id: "dot",
-    tab: "basic",
-    group: "수 표현",
-    insert: "\\dot{#?}",
-    label: "\\dot{\\square}",
-    command: "dot",
-  }),
-  key({
-    id: "sup",
-    tab: "basic",
-    group: "수 표현",
-    insert: "{#?}^{#?}",
-    label: "\\square^{\\square}",
-    command: "^",
-  }),
-  key({
-    id: "sub",
-    tab: "basic",
-    group: "수 표현",
-    insert: "{#?}_{#?}",
-    label: "\\square_{\\square}",
-    command: "_",
-  }),
-  key({
-    id: "sqrt",
-    tab: "basic",
-    group: "수 표현",
-    insert: "\\sqrt{#?}",
-    label: "\\sqrt{\\square}",
-    command: "sqrt",
   }),
   key({
     id: "paren",
@@ -146,15 +81,6 @@ export const MIDDLE_SCHOOL_BASIC_KEYS: readonly MathKey[] = [
     group: "괄호1",
     insert: "\\left(#?\\right)",
     label: "\\left(\\square\\right)",
-    command: "left",
-  }),
-  key({
-    id: "abs",
-    tab: "basic",
-    group: "괄호1",
-    insert: "\\left|#?\\right|",
-    label: "\\left|\\square\\right|",
-    command: "left",
   }),
   key({
     id: "brace",
@@ -162,7 +88,6 @@ export const MIDDLE_SCHOOL_BASIC_KEYS: readonly MathKey[] = [
     group: "괄호1",
     insert: "\\left\\{#?\\right\\}",
     label: "\\left\\{\\square\\right\\}",
-    command: "left",
   }),
   key({
     id: "bracket",
@@ -170,16 +95,34 @@ export const MIDDLE_SCHOOL_BASIC_KEYS: readonly MathKey[] = [
     group: "괄호1",
     insert: "\\left[#?\\right]",
     label: "\\left[\\square\\right]",
-    command: "left",
   }),
-  // 괄호2 — 순서쌍/좌표 (□, □). 반개구간·폐구간은 고등이라 제외.
   key({
-    id: "ordered-pair",
+    id: "abs",
     tab: "basic",
-    group: "괄호2",
-    insert: "\\left(#?, #?\\right)",
-    label: "\\left(\\square, \\square\\right)",
-    command: "left",
+    group: "괄호1",
+    insert: "\\left|#?\\right|",
+    label: "\\left|\\square\\right|",
+  }),
+  key({
+    id: "dot",
+    tab: "basic",
+    group: "수 표현",
+    insert: "\\dot{#?}",
+    label: "\\dot{\\square}",
+  }),
+  key({
+    id: "cdots",
+    tab: "basic",
+    group: "수 표현",
+    insert: "\\cdots",
+    label: "\\cdots",
+  }),
+  key({
+    id: "sqrt",
+    tab: "basic",
+    group: "수 표현",
+    insert: "\\sqrt{#?}",
+    label: "\\sqrt{\\square}",
   }),
   key({
     id: "cases",
@@ -187,11 +130,16 @@ export const MIDDLE_SCHOOL_BASIC_KEYS: readonly MathKey[] = [
     group: "연립",
     insert: "\\begin{cases}#?\\\\#?\\end{cases}",
     label: "\\begin{cases}\\square\\\\\\square\\end{cases}",
-    command: "cases",
+  }),
+  key({
+    id: "prime",
+    tab: "basic",
+    group: "수 표현",
+    insert: "\\prime",
+    label: "\\prime",
   }),
 ];
 
-/** 2) 대수 — 삼각비·π·degree. 고등(로그·시그마·극한 등)은 제외 */
 export const MIDDLE_SCHOOL_ALGEBRA_KEYS: readonly MathKey[] = [
   key({
     id: "sin",
@@ -199,7 +147,6 @@ export const MIDDLE_SCHOOL_ALGEBRA_KEYS: readonly MathKey[] = [
     group: "삼각비",
     insert: "\\sin{#?}",
     label: "\\sin",
-    command: "sin",
   }),
   key({
     id: "cos",
@@ -207,7 +154,6 @@ export const MIDDLE_SCHOOL_ALGEBRA_KEYS: readonly MathKey[] = [
     group: "삼각비",
     insert: "\\cos{#?}",
     label: "\\cos",
-    command: "cos",
   }),
   key({
     id: "tan",
@@ -215,35 +161,9 @@ export const MIDDLE_SCHOOL_ALGEBRA_KEYS: readonly MathKey[] = [
     group: "삼각비",
     insert: "\\tan{#?}",
     label: "\\tan",
-    command: "tan",
-  }),
-  key({
-    id: "pi",
-    tab: "algebra",
-    group: "기호",
-    insert: "\\pi",
-    label: "\\pi",
-    command: "pi",
-  }),
-  key({
-    id: "degree",
-    tab: "algebra",
-    group: "기호",
-    insert: "{#?}^{\\circ}",
-    label: "\\square^{\\circ}",
-    command: "circ",
-  }),
-  key({
-    id: "bracket-bound",
-    tab: "algebra",
-    group: "기호",
-    insert: "\\left[#?\\right]_{#?}^{#?}",
-    label: "\\left[\\square\\right]_{\\square}^{\\square}",
-    command: "left",
   }),
 ];
 
-/** 3) 기하 — 선·관계·도형·각. 벡터·집합·행렬은 제외 */
 export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
   key({
     id: "segment",
@@ -251,7 +171,6 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "선",
     insert: "\\overline{#?}",
     label: "\\overline{\\square}",
-    command: "overline",
   }),
   key({
     id: "ray-right",
@@ -259,7 +178,6 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "선",
     insert: "\\overrightarrow{#?}",
     label: "\\overrightarrow{\\square}",
-    command: "overrightarrow",
   }),
   key({
     id: "ray-left",
@@ -267,7 +185,6 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "선",
     insert: "\\overleftarrow{#?}",
     label: "\\overleftarrow{\\square}",
-    command: "overleftarrow",
   }),
   key({
     id: "line",
@@ -275,7 +192,6 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "선",
     insert: "\\overleftrightarrow{#?}",
     label: "\\overleftrightarrow{\\square}",
-    command: "overleftrightarrow",
   }),
   key({
     id: "arc",
@@ -283,7 +199,6 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "선",
     insert: "\\overset{\\huge\\frown}{#?}",
     label: "\\overset{\\frown}{\\square}",
-    command: "overset",
   }),
   key({
     id: "equiv",
@@ -291,7 +206,6 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "관계",
     insert: "\\equiv",
     label: "\\equiv",
-    command: "equiv",
   }),
   key({
     id: "sim",
@@ -299,7 +213,6 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "관계",
     insert: "\\sim",
     label: "\\sim",
-    command: "sim",
   }),
   key({
     id: "sslash",
@@ -307,7 +220,6 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "관계",
     insert: "\\sslash",
     label: "\\sslash",
-    command: "sslash",
   }),
   key({
     id: "perp",
@@ -315,7 +227,6 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "관계",
     insert: "\\perp",
     label: "\\perp",
-    command: "perp",
   }),
   key({
     id: "triangle",
@@ -323,7 +234,6 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "도형",
     insert: "\\triangle",
     label: "\\triangle",
-    command: "triangle",
   }),
   key({
     id: "square",
@@ -331,7 +241,6 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "도형",
     insert: "\\Box",
     label: "\\Box",
-    command: "Box",
   }),
   key({
     id: "angle",
@@ -339,7 +248,6 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "각",
     insert: "\\angle",
     label: "\\angle",
-    command: "angle",
   }),
   key({
     id: "geo-degree",
@@ -347,49 +255,129 @@ export const MIDDLE_SCHOOL_GEOMETRY_KEYS: readonly MathKey[] = [
     group: "각",
     insert: "{#?}^{\\circ}",
     label: "\\square^{\\circ}",
-    command: "circ",
   }),
 ];
+
+export const MIDDLE_SCHOOL_GREEK_KEYS: readonly MathKey[] = [
+  key({
+    id: "greek-alpha",
+    tab: "characters",
+    group: "그리스",
+    insert: "\\alpha",
+    label: "\\alpha",
+  }),
+  key({
+    id: "greek-beta",
+    tab: "characters",
+    group: "그리스",
+    insert: "\\beta",
+    label: "\\beta",
+  }),
+  key({
+    id: "greek-gamma",
+    tab: "characters",
+    group: "그리스",
+    insert: "\\gamma",
+    label: "\\gamma",
+  }),
+  key({
+    id: "greek-delta",
+    tab: "characters",
+    group: "그리스",
+    insert: "\\delta",
+    label: "\\delta",
+  }),
+  key({
+    id: "greek-theta",
+    tab: "characters",
+    group: "그리스",
+    insert: "\\theta",
+    label: "\\theta",
+  }),
+  key({
+    id: "greek-pi",
+    tab: "characters",
+    group: "그리스",
+    insert: "\\pi",
+    label: "\\pi",
+  }),
+  key({
+    id: "greek-sigma",
+    tab: "characters",
+    group: "그리스",
+    insert: "\\sigma",
+    label: "\\sigma",
+  }),
+  key({
+    id: "greek-omega",
+    tab: "characters",
+    group: "그리스",
+    insert: "\\omega",
+    label: "\\omega",
+  }),
+];
+
+export const MIDDLE_SCHOOL_LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
 
 export const MIDDLE_SCHOOL_MATH_KEYS: readonly MathKey[] = [
   ...MIDDLE_SCHOOL_BASIC_KEYS,
   ...MIDDLE_SCHOOL_ALGEBRA_KEYS,
   ...MIDDLE_SCHOOL_GEOMETRY_KEYS,
+  ...MIDDLE_SCHOOL_GREEK_KEYS,
 ];
 
 export const MIDDLE_SCHOOL_KEYS_BY_TAB: Record<
-  "basic" | "algebra" | "geometry",
+  "basic" | "algebra" | "geometry" | "characters",
   readonly MathKey[]
 > = {
   basic: MIDDLE_SCHOOL_BASIC_KEYS,
   algebra: MIDDLE_SCHOOL_ALGEBRA_KEYS,
   geometry: MIDDLE_SCHOOL_GEOMETRY_KEYS,
+  characters: MIDDLE_SCHOOL_GREEK_KEYS,
 };
 
 export interface MiddleSchoolPadKey {
   id: string;
-  insert?: string;
-  action?: "backspace";
   label: string;
+  insert?: string;
+  command?: string;
+  labelLatex?: string;
+  empty?: boolean;
 }
 
-/** 우측 고정 패드 — 숫자·사칙·등호·백스페이스 */
 export const MIDDLE_SCHOOL_PAD_KEYS: readonly MiddleSchoolPadKey[] = [
-  { id: "7", insert: "7", label: "7" },
-  { id: "8", insert: "8", label: "8" },
-  { id: "9", insert: "9", label: "9" },
-  { id: "plus", insert: "+", label: "+" },
-  { id: "4", insert: "4", label: "4" },
-  { id: "5", insert: "5", label: "5" },
-  { id: "6", insert: "6", label: "6" },
-  { id: "minus", insert: "-", label: "−" },
-  { id: "1", insert: "1", label: "1" },
-  { id: "2", insert: "2", label: "2" },
-  { id: "3", insert: "3", label: "3" },
-  { id: "times", insert: "\\times", label: "×" },
-  { id: "0", insert: "0", label: "0" },
-  { id: "dot", insert: ".", label: "." },
-  { id: "eq", insert: "=", label: "=" },
-  { id: "div", insert: "\\div", label: "÷" },
-  { id: "backspace", action: "backspace", label: "⌫" },
+  { id: "left", label: "<", command: "moveToPreviousChar" },
+  { id: "right", label: ">", command: "moveToNextChar" },
+  { id: "spacer", label: "", empty: true },
+  { id: "backspace", label: "⌫", command: "deleteBackward" },
+  { id: "7", label: "7", insert: "7" },
+  { id: "8", label: "8", insert: "8" },
+  { id: "9", label: "9", insert: "9" },
+  { id: "div", label: "÷", insert: "\\div" },
+  { id: "4", label: "4", insert: "4" },
+  { id: "5", label: "5", insert: "5" },
+  { id: "6", label: "6", insert: "6" },
+  { id: "times", label: "×", insert: "\\times" },
+  { id: "1", label: "1", insert: "1" },
+  { id: "2", label: "2", insert: "2" },
+  { id: "3", label: "3", insert: "3" },
+  { id: "minus", label: "−", insert: "-" },
+  { id: "0", label: "0", insert: "0" },
+  { id: "decimal", label: ".", insert: "." },
+  { id: "comma", label: ",", insert: "," },
+  { id: "plus", label: "+", insert: "+" },
+  {
+    id: "dfrac",
+    label: "분수",
+    labelLatex: "\\frac{\\square}{\\square}",
+    insert: "\\dfrac{#?}{#?}",
+  },
+  {
+    id: "sup",
+    label: "위첨자",
+    labelLatex: "\\square^{\\square}",
+    insert: "{#?}^{#?}",
+  },
+  { id: "pi", label: "π", labelLatex: "\\pi", insert: "\\pi" },
+  { id: "eq", label: "=", insert: "=" },
 ];

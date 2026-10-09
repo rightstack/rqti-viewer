@@ -75,8 +75,6 @@ export {
   HIGH_SCHOOL_MATH_KEYS,
   HIGH_SCHOOL_MATH_TABS,
   HIGH_SCHOOL_KEYS_BY_TAB,
-  extractFirstLatexCommand,
-  resolveMathTab,
   type MathKeyboardProps,
   type MathKey,
   type MathTab,

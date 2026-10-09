@@ -1,13 +1,11 @@
 import type { MathLevel } from "./mathLevels";
 import type { MathTab } from "./mathSymbols";
 
-/** localStorage 키 접두사. `rqti:math-keyboard:{level}` 또는 `:{historyScope}` 접미. */
 const STORAGE_PREFIX = "rqti:math-keyboard";
 
-/** 서랍 맨 앞 탭. 최근 누른 좌측 심화 키만 모은다. */
 export const RECENT_TAB = "recent" as const;
 
-export const MAX_RECENT_KEY_IDS = 12;
+export const MAX_RECENT_KEY_IDS = 20;
 
 export type MathKeyboardTab = MathTab | typeof RECENT_TAB;
 
@@ -69,7 +67,6 @@ function sanitizeHistory(raw: unknown): MathKeyboardHistory {
   return history;
 }
 
-/** localStorage가 없거나 파싱에 실패하면 빈 이력. */
 export function readMathKeyboardHistory(
   level: MathLevel,
   historyScope?: string,
@@ -102,7 +99,6 @@ export function writeMathKeyboardHistory(
   }
 }
 
-/** 같은 id는 맨 앞으로 당기고 최대 12개만 유지. */
 export function pushRecentKeyId(
   ids: readonly string[],
   id: string,
@@ -112,10 +108,6 @@ export function pushRecentKeyId(
   return [id, ...ids.filter((item) => item !== id)].slice(0, max);
 }
 
-/**
- * 저장된 탭을 레벨 탭 목록에 맞게 복원.
- * 이력이 없거나 해당 레벨에 없는 탭이면 `basic`.
- */
 export function resolveStoredTab(
   lastTab: string | undefined,
   tabs: readonly MathTab[],

@@ -167,11 +167,16 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
   }, [initialValue]);
 
   if (isMath) {
+    const variant = isSRQ ? "srq" : isCLOZE ? "cloze" : "default";
     return (
       <span
         className={cn(
           "qti-ext-text-entry",
+          "qti-text-entry",
+          "qti-text-entry--inline",
           "qti-ext-text-entry-math",
+          isCLOZE && "qti-ext-text-entry-cloze",
+          isSRQ && "qti-ext-text-entry-srq",
           isPreview && "rqti:pointer-events-none"
         )}
       >
@@ -183,6 +188,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
           historyScope={options.itemKey}
           isCorrect={isCorrect}
           isSubmit={options.isSubmit}
+          variant={variant}
         />
       </span>
     );

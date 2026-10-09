@@ -16,12 +16,6 @@ export {
 } from "./middleSchoolSymbols";
 
 export {
-  extractFirstLatexCommand,
-  firstCorrectAnswerLatex,
-  resolveMathTab,
-} from "./resolveMathTab";
-
-export {
   HIGH_SCHOOL_ALGEBRA_KEYS,
   HIGH_SCHOOL_BASIC_KEYS,
   HIGH_SCHOOL_GEOMETRY_KEYS,

@@ -26,6 +26,7 @@ const mathJaxConfig = {
     macros: {
       sim: "\\unicode{x223D}", // ∽ 둥근 닮음 기호
       neg: "\\unicode{xFF5E}", // ～ (전각 틸드)
+      sslash: "\\mathbin{/\\!/}", // // 평행. stmaryrd 명령은 MathJax에 없다.
     },
   },
   chtml: {

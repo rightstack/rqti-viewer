@@ -81,7 +81,7 @@ export const DEFAULT_THEME: Theme = {
       correct: {
         title: {
           text: "정답입니다!",
-          textColor: "",
+          textColor: "#1A1A1A",
         },
         button: {
           textColor: "#FFFFFF",
@@ -90,20 +90,19 @@ export const DEFAULT_THEME: Theme = {
         textColor: "#065F46",
         description: {
           text: "정답입니다!",
-          textColor: "",
+          textColor: "#1A1A1A",
         },
         backgroundColor: "#ECFDF5",
       },
       default: {
         button: {
-          textColor: "#ffffff",
-          backgroundColor: "#919397",
+          backgroundColor: "#606071",
         },
       },
       incorrect: {
         title: {
           text: "다시 생각해보세요.",
-          textColor: "",
+          textColor: "#1A1A1A",
         },
         button: {
           textColor: "#FFFFFF",
@@ -111,14 +110,14 @@ export const DEFAULT_THEME: Theme = {
         },
         textColor: "#991B1B",
         description: {
-          textColor: "",
+          textColor: "#1A1A1A",
         },
         backgroundColor: "#FEF2F2",
       },
       explanation: {
         title: {
-          text: "해설",
-          textColor: "",
+          text: "풀이",
+          textColor: "#1A1A1A",
         },
         button: {
           textColor: "#ffffff",
@@ -126,7 +125,7 @@ export const DEFAULT_THEME: Theme = {
         },
         textColor: "#1A1A1A",
         description: {
-          textColor: "",
+          textColor: "#1A1A1A",
         },
         backgroundColor: "#F3F4F6",
       },

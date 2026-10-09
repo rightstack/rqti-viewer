@@ -1352,18 +1352,18 @@
   min-width: 0;
   min-height: 2em;
 
-  border-width: var(--qti-option-border-width);
+  border-width: var(--qti-option-border-width, 2px);
 
-  /* border-style은 상위에서 상속 (solid) */
-  border-color: var(--qti-option-border);
-  border-radius: var(--qti-option-border-radius);
+  /* border-style은 상위에서 상속 (solid). 없으면 DEFAULT_THEME questionOptionConfig */
+  border-color: var(--qti-option-border, #e5e7eb);
+  border-radius: var(--qti-option-border-radius, 8px);
 
-  background-color: var(--qti-option-bg);
+  background-color: var(--qti-option-bg, #ffffff);
 
-  color: inherit;
-  font-size: var(--qti-font-size-base, inherit) !important;
-  font-weight: var(--qti-option-font-weight, inherit);
-  line-height: 1.5;
+  color: var(--qti-base-text-color, #1a1a1a);
+  font-size: var(--qti-font-size-base, 16px) !important;
+  font-weight: var(--qti-option-font-weight, 400);
+  line-height: var(--qti-line-height-base, 1.5);
   white-space: nowrap;
 
   @apply rqti:px-2 rqti:transition-all rqti:duration-200 rqti:placeholder:text-gray-300;
@@ -1427,37 +1427,44 @@
   cursor: not-allowed;
 }
 
-.qti-ext-text-entry-input:hover:not(:disabled) {
-  border-color: var(--qti-option-border-hover);
+/* 선택·포커스·정오 상태가 아닐 때만 hover. selected가 hover보다 우선한다. */
+.qti-ext-text-entry-input:not(
+    :disabled,
+    :focus,
+    .qti-ext-text-entry-input-focus,
+    .qti-ext-text-entry-input-correct,
+    .qti-ext-text-entry-input-incorrect
+  ):hover {
+  border-color: var(--qti-option-border-hover, #d1d5db);
 
-  background-color: var(--qti-option-bg-hover);
+  background-color: var(--qti-option-bg-hover, #f3f4f6);
 }
 
 .qti-ext-text-entry-input:focus:not(:disabled),
 .qti-ext-input-blank.qti-ext-text-entry-input:focus-within {
-  border-color: var(--qti-option-border-selected);
+  border-color: var(--qti-option-border-selected, #6366f1);
 
-  background-color: var(--qti-option-bg-selected);
+  background-color: var(--qti-option-bg-selected, #eef2ff);
 }
 
 .qti-ext-text-entry-input-focus {
-  border-color: var(--qti-option-border-selected);
+  border-color: var(--qti-option-border-selected, #6366f1);
 
-  background-color: var(--qti-option-bg-selected);
+  background-color: var(--qti-option-bg-selected, #eef2ff);
 }
 
 .qti-ext-text-entry-input-correct {
-  border-color: var(--qti-option-border-correct);
+  border-color: var(--qti-option-border-correct, #10b981);
 
-  background-color: var(--qti-option-bg-correct);
+  background-color: var(--qti-option-bg-correct, #ecfdf5);
 
   @apply rqti:text-center rqti:text-lg;
 }
 
 .qti-ext-text-entry-input-incorrect {
-  border-color: var(--qti-option-border-incorrect);
+  border-color: var(--qti-option-border-incorrect, #ef4444);
 
-  background-color: var(--qti-option-bg-incorrect);
+  background-color: var(--qti-option-bg-incorrect, #fef2f2);
 
   @apply rqti:text-center rqti:text-lg;
 }
