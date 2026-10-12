@@ -1,6 +1,8 @@
 import clsx from "clsx";
+import { Pencil } from "lucide-react";
 import { renderLaTeX } from "../../parser/parseLatexToReact";
 import { isMathLatexAnswer } from "../../utils";
+import { buildFractionLatexFromParts } from "../../utils/choiceAnswerDisplayFromQti";
 import { IMAGE_BLANK_INPUT_MAX_LENGTH, type ImageBlankRegion } from "./utils";
 
 interface ImageBlankInputProps {
@@ -50,18 +52,25 @@ function ImageBlankInput({
     );
   }
 
+  const showPencil = !readOnly && value === "";
+
   return (
-    <input
-      type="text"
-      inputMode={numeric ? "numeric" : undefined}
-      className={clsx("qti-ext-image-input-blank__input", partClassName, stateClassName)}
-      data-response-identifier={responseIdentifier}
-      aria-label={label}
-      value={value}
-      maxLength={IMAGE_BLANK_INPUT_MAX_LENGTH}
-      readOnly={readOnly}
-      onChange={(event) => onChange(responseIdentifier, event.target.value)}
-    />
+    <span className={clsx("qti-ext-image-input-blank__field", partClassName)}>
+      <input
+        type="text"
+        inputMode={numeric ? "numeric" : undefined}
+        className={clsx("qti-ext-image-input-blank__input", stateClassName)}
+        data-response-identifier={responseIdentifier}
+        aria-label={label}
+        value={value}
+        maxLength={IMAGE_BLANK_INPUT_MAX_LENGTH}
+        readOnly={readOnly}
+        onChange={(event) => onChange(responseIdentifier, event.target.value)}
+      />
+      {showPencil ? (
+        <Pencil className="qti-ext-image-input-blank__pencil" aria-hidden="true" />
+      ) : null}
+    </span>
   );
 }
 
@@ -71,6 +80,8 @@ interface ImageBlankRegionContentProps {
   displayIndex: number;
   readOnly: boolean;
   showMath: boolean;
+  /** 정답 영역에서 분수·대분수를 LaTeX 하나로 그린다. */
+  showFractionAsLatex: boolean;
   valueOf: (responseIdentifier: string) => string;
   stateClassOf: (responseIdentifier: string) => string;
   onChange: (responseIdentifier: string, value: string) => void;
@@ -102,7 +113,7 @@ function ImageBlankFractionStack({
   wholeId?: string;
   numeratorId: string;
   denominatorId: string;
-} & Omit<ImageBlankRegionContentProps, "region">) {
+} & Omit<ImageBlankRegionContentProps, "region" | "showFractionAsLatex">) {
   const numeratorState = stateClassOf(numeratorId);
   const denominatorState = stateClassOf(denominatorId);
 
@@ -149,11 +160,30 @@ export function ImageBlankRegionContent({
   displayIndex,
   readOnly,
   showMath,
+  showFractionAsLatex,
   valueOf,
   stateClassOf,
   onChange,
 }: ImageBlankRegionContentProps) {
   const shared = { displayIndex, readOnly, showMath, valueOf, stateClassOf, onChange };
+
+  if (showFractionAsLatex && region.inputType !== "text") {
+    const latex = buildFractionLatexFromParts(
+      region.inputType === "mixedFraction" ? valueOf(region.wholeId).trim() : "",
+      valueOf(region.numeratorId).trim(),
+      valueOf(region.denominatorId).trim()
+    );
+    if (latex) {
+      return (
+        <span
+          className="qti-ext-image-input-blank__fraction-latex"
+          aria-label={`이미지 빈칸 ${displayIndex}`}
+        >
+          {renderLaTeX(latex, `image-blank-fraction-${region.id}`, false)}
+        </span>
+      );
+    }
+  }
 
   if (region.inputType === "text") {
     return (

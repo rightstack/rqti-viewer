@@ -1,10 +1,9 @@
-import { type CSSProperties, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { QTIParserOptions, ResponseValue, ResponseValueMap } from "../../types";
 import { appendMediaToken, resolveMediaUrl } from "../../utils/urlUtils";
 import { ImageBlankRegionContent } from "./ImageBlankRegionContent";
 import {
   type ImageBlankConfig,
-  getImageBlankRegionFontSize,
   getImageBlankRegionResponseIds,
   imageBlankPercent,
   parseImageBlankConfig,
@@ -63,10 +62,6 @@ interface ImageInputBlankViewProps {
   index: number;
 }
 
-/**
- * 저작 `ImageBlankOverlay`와 같은 방식으로 그린다. 배치는 기준계 퍼센트, 글자는 `regionBaseFont * scale`.
- * `scale`은 실제 이미지 폭 하나로만 구한다. 부모의 `transform: scale`을 다시 곱하지 않는다.
- */
 function ImageInputBlankView({
   config,
   rootResponseIdentifier,
@@ -74,18 +69,20 @@ function ImageInputBlankView({
   index,
 }: ImageInputBlankViewProps) {
   const imageRef = useRef<HTMLImageElement>(null);
-  const [displayWidth, setDisplayWidth] = useState(0);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
 
   useLayoutEffect(() => {
     const image = imageRef.current;
     if (!image) return;
 
     const measure = () => {
-      const width = image.getBoundingClientRect().width;
-      if (width > 0) setDisplayWidth(width);
+      const { width, height } = image.getBoundingClientRect();
+      if (width <= 0 || height <= 0) return;
+      setImageSize((current) =>
+        current.width === width && current.height === height ? current : { width, height }
+      );
     };
 
-    // ResizeObserver 첫 콜백은 프레임이 돌아야 오는데, 캐시된 이미지에서는 그 프레임이 늦다.
     measure();
     image.addEventListener("load", measure);
     const observer = new ResizeObserver(measure);
@@ -113,6 +110,7 @@ function ImageInputBlankView({
 
   /** 채점 전 preview는 빈 칸을 정답으로 채운다. 문항 미리보기와 정답 영역이 여기에 해당한다. */
   const fillEmptyWithCorrectAnswers = !options.isSubmit && isPreview;
+  const showFractionAsLatex = options.answerKeyPreview === true;
 
   const valueOf = (cellId: string) => {
     const entered = readCell(responses, cellId);
@@ -139,51 +137,47 @@ function ImageInputBlankView({
   };
 
   const src = buildImageSrc(config.src, options.token, options.baseUrl);
-  const scale = displayWidth > 0 ? displayWidth / config.baseWidth : 0;
 
   return (
-    <div
-      className="qti-ext-image-input-blank"
-      data-index={index}
-      style={{
-        // 배율은 폭으로만 준다. 좌표는 퍼센트, 글자는 측정된 폭에서 다시 계산되므로 같이 줄어든다.
-        width: `calc(min(${config.displayWidth ?? config.baseWidth}px, 100%) * var(--qti-image-blank-scale, 1))`,
-      }}
-    >
-      <img ref={imageRef} className="qti-ext-image-input-blank__image" src={src} alt={config.alt} />
-      {scale > 0 && (
-        <div className="qti-ext-image-input-blank__overlay">
-          {config.regions.map((region, regionIndex) => {
-            const screenFontSize = getImageBlankRegionFontSize(region, config.fontSize) * scale;
-            return (
-              <div
-                key={region.id}
-                className="qti-ext-image-input-blank__region"
-                data-input-type={region.inputType}
-                style={
-                  {
-                    left: imageBlankPercent(region.x, config.baseWidth),
-                    top: imageBlankPercent(region.y, config.baseHeight),
-                    width: imageBlankPercent(region.width, config.baseWidth),
-                    height: imageBlankPercent(region.height, config.baseHeight),
-                    // 테마 본문 font-size가 계산값을 덮지 않도록 변수로도 내려준다.
-                    "--image-blank-calculated-font-size": `${screenFontSize}px`,
-                    fontSize: `${screenFontSize}px`,
-                  } as CSSProperties
-                }
-              >
-                <ImageBlankRegionContent
-                  region={region}
-                  displayIndex={regionIndex + 1}
-                  readOnly={isReadOnly}
-                  showMath={isPreview || options.isSubmit === true}
-                  valueOf={valueOf}
-                  stateClassOf={stateClassOf}
-                  onChange={handleChange}
-                />
-              </div>
-            );
-          })}
+    <div className="qti-ext-image-input-blank" data-index={index}>
+      <img
+        ref={imageRef}
+        className="qti-ext-image-input-blank__image"
+        src={src}
+        alt={config.alt}
+        style={{
+          width: `${config.displayWidth ?? config.baseWidth}px`,
+        }}
+      />
+      {imageSize.width > 0 && (
+        <div
+          className="qti-ext-image-input-blank__overlay"
+          style={{ width: imageSize.width, height: imageSize.height }}
+        >
+          {config.regions.map((region, regionIndex) => (
+            <div
+              key={region.id}
+              className="qti-ext-image-input-blank__region"
+              data-input-type={region.inputType}
+              style={{
+                left: imageBlankPercent(region.x, config.baseWidth),
+                top: imageBlankPercent(region.y, config.baseHeight),
+                width: imageBlankPercent(region.width, config.baseWidth),
+                height: imageBlankPercent(region.height, config.baseHeight),
+              }}
+            >
+              <ImageBlankRegionContent
+                region={region}
+                displayIndex={regionIndex + 1}
+                readOnly={isReadOnly}
+                showMath={isPreview || options.isSubmit === true}
+                showFractionAsLatex={showFractionAsLatex}
+                valueOf={valueOf}
+                stateClassOf={stateClassOf}
+                onChange={handleChange}
+              />
+            </div>
+          ))}
         </div>
       )}
     </div>

@@ -70,6 +70,7 @@ export const Dropdown = ({
   const showDisabledStyle = isDisabledState && !isPreview;
 
   const selectedOption = options.find((opt) => opt.identifier === value);
+  const useWrappedMenu = options.length >= 5;
 
   /**
    * 옵션 텍스트 + placeholder 중 가장 "픽셀 너비"가 큰 문자열 (드롭다운 너비용)
@@ -151,20 +152,141 @@ export const Dropdown = ({
     };
   }, [isOpen]);
 
-  // 열린 직후 옵션 패널이 뷰포트·스크롤 영역에 잘리지 않도록 스크롤 조정
+  // 아래로 펼치되 화면을 넘으면 옵션 박스를 하단에 맞추고 내부 스크롤을 사용합니다.
   useLayoutEffect(() => {
     if (!isOpen) return;
     const menu = menuRef.current;
     if (!menu) return;
-    const id = requestAnimationFrame(() => {
-      menu.scrollIntoView({
-        block: "nearest",
-        inline: "nearest",
-        behavior: "smooth",
-      });
+    const dropdown = dropdownRef.current;
+    if (!dropdown) return;
+
+    const positionMenu = () => {
+      const scrollTop = menu.scrollTop;
+      menu.style.setProperty("--qti-dropdown-menu-offset-y", "0px");
+      menu.style.removeProperty("--qti-dropdown-menu-max-height");
+      menu.style.setProperty("--qti-dropdown-menu-offset-x", "0px");
+      menu.style.removeProperty("width");
+      menu.style.removeProperty("min-width");
+      menu.style.removeProperty("max-width");
+
+      const viewportPadding = 16;
+      const questionContainer = dropdown.closest<HTMLElement>(".qti-ext-question");
+      const deviceContainer = dropdown.closest<HTMLElement>("[data-device]");
+      const questionBounds = questionContainer?.getBoundingClientRect();
+      const deviceBounds = deviceContainer?.getBoundingClientRect();
+      const visualViewport = window.visualViewport;
+      const boundary = questionBounds ??
+        deviceBounds ?? {
+          left: visualViewport?.offsetLeft ?? 0,
+          right: (visualViewport?.offsetLeft ?? 0) + (visualViewport?.width ?? window.innerWidth),
+          width: visualViewport?.width ?? window.innerWidth,
+        };
+
+      const scaleX =
+        deviceContainer && deviceContainer.offsetWidth > 0
+          ? deviceBounds!.width / deviceContainer.offsetWidth
+          : 1;
+      const scaleY =
+        deviceContainer && deviceContainer.offsetHeight > 0
+          ? deviceBounds!.height / deviceContainer.offsetHeight
+          : 1;
+      const horizontalPadding = viewportPadding * scaleX;
+
+      if (useWrappedMenu) {
+        const availableWidth = Math.max(0, (boundary.width - horizontalPadding * 2) / scaleX);
+        const maxMenuWidth = Math.min(384, availableWidth);
+        const minMenuWidth = Math.min(dropdown.offsetWidth, maxMenuWidth);
+        menu.style.minWidth = `${minMenuWidth}px`;
+        menu.style.maxWidth = `${maxMenuWidth}px`;
+
+        const initialMenuRect = menu.getBoundingClientRect();
+        const optionRects = Array.from(
+          menu.querySelectorAll<HTMLElement>(".qti-ext-dropdown-option")
+        ).map((option) => option.getBoundingClientRect());
+
+        if (optionRects.length > 0) {
+          const leftInset =
+            Math.min(...optionRects.map((option) => option.left)) - initialMenuRect.left;
+          const usedRight =
+            Math.max(...optionRects.map((option) => option.right)) - initialMenuRect.left;
+          const balancedWidth = (usedRight + leftInset) / scaleX;
+          const compactWidth = Math.min(maxMenuWidth, Math.max(minMenuWidth, balancedWidth));
+
+          menu.style.width = `${compactWidth}px`;
+        }
+      }
+
+      const triggerRect = dropdown.getBoundingClientRect();
+      const viewportHeight = visualViewport?.height ?? window.innerHeight;
+      let visibleTop = visualViewport?.offsetTop ?? 0;
+      let visibleBottom = visibleTop + viewportHeight;
+
+      for (let parent = dropdown.parentElement; parent; parent = parent.parentElement) {
+        if (parent === document.scrollingElement) break;
+        const { overflowY } = window.getComputedStyle(parent);
+        if (!/(auto|scroll|hidden|clip)/.test(overflowY)) continue;
+        const bounds = parent.getBoundingClientRect();
+        const parentScaleY = parent.offsetHeight > 0 ? bounds.height / parent.offsetHeight : 1;
+        const top = bounds.top + parent.clientTop * parentScaleY;
+        visibleTop = Math.max(visibleTop, top);
+        visibleBottom = Math.min(visibleBottom, top + parent.clientHeight * parentScaleY);
+      }
+
+      const verticalPadding = viewportPadding * scaleY;
+      const availableHeight = Math.max(0, visibleBottom - visibleTop - verticalPadding * 2);
+      menu.style.setProperty(
+        "--qti-dropdown-menu-max-height",
+        `${Math.min(viewportHeight * 0.8, availableHeight) / scaleY}px`
+      );
+      menu.scrollTop = scrollTop;
+
+      const rect = menu.getBoundingClientRect();
+      const minTop = visibleTop + verticalPadding;
+      const maxTop = Math.max(minTop, visibleBottom - verticalPadding - rect.height);
+      const adjustedTop = Math.max(minTop, Math.min(rect.top, maxTop));
+      menu.style.setProperty(
+        "--qti-dropdown-menu-offset-y",
+        `${(adjustedTop - rect.top) / scaleY}px`
+      );
+      const triggerCenterX = triggerRect.left + triggerRect.width / 2;
+      const triggerPosition = (triggerCenterX - boundary.left) / boundary.width;
+      const preferredLeft =
+        triggerPosition < 1 / 3
+          ? triggerRect.left
+          : triggerPosition > 2 / 3
+            ? triggerRect.right - rect.width
+            : triggerCenterX - rect.width / 2;
+      const minLeft = boundary.left + horizontalPadding;
+      const maxLeft = boundary.right - horizontalPadding - rect.width;
+      const adjustedLeft = Math.min(Math.max(preferredLeft, minLeft), Math.max(minLeft, maxLeft));
+      const offsetX = (adjustedLeft - rect.left) / scaleX;
+
+      menu.style.setProperty("--qti-dropdown-menu-offset-x", `${offsetX}px`);
+    };
+
+    const handleScroll = (event: Event) => {
+      if (event.target !== menu) positionMenu();
+    };
+
+    positionMenu();
+    const observer = new ResizeObserver(positionMenu);
+    observer.observe(dropdown);
+    menu.querySelectorAll(".qti-ext-dropdown-option-content").forEach((option) => {
+      observer.observe(option);
     });
-    return () => cancelAnimationFrame(id);
-  }, [isOpen]);
+    window.addEventListener("resize", positionMenu);
+    window.addEventListener("scroll", handleScroll, true);
+    window.visualViewport?.addEventListener("resize", positionMenu);
+    window.visualViewport?.addEventListener("scroll", positionMenu);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", positionMenu);
+      window.removeEventListener("scroll", handleScroll, true);
+      window.visualViewport?.removeEventListener("resize", positionMenu);
+      window.visualViewport?.removeEventListener("scroll", positionMenu);
+    };
+  }, [isOpen, useWrappedMenu, options]);
 
   const handleToggle = () => {
     if (isPreview) return;
@@ -243,7 +365,11 @@ export const Dropdown = ({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div ref={menuRef} className="qti-ext-dropdown-menu" role="listbox">
+        <div
+          ref={menuRef}
+          className={cn("qti-ext-dropdown-menu", useWrappedMenu && "qti-ext-dropdown-menu-wrapped")}
+          role="listbox"
+        >
           {options.map((option) => (
             <div
               key={option.identifier}

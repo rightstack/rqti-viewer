@@ -26,90 +26,90 @@ import { extractMediaFromElement } from "./extractMediaFromElement";
 import { removeMediaFromElementClone } from "./extractTextFromElement";
 import { wrapMathFieldTextForInlineLatex } from "./wrapMathFieldTextForInlineLatex";
 
-/** qti-ext.css @counter-style circled_number 과 동일 */
+/** 정답 영역에 표시할 원문자 레이블. 본문용 마침표·공백은 넣지 않는다. */
 const CIRCLED_MARKERS = [
-  "① ",
-  "② ",
-  "③ ",
-  "④ ",
-  "⑤ ",
-  "⑥ ",
-  "⑦ ",
-  "⑧ ",
-  "⑨ ",
-  "⑩ ",
+  "①",
+  "②",
+  "③",
+  "④",
+  "⑤",
+  "⑥",
+  "⑦",
+  "⑧",
+  "⑨",
+  "⑩",
 ] as const;
 
-/** qti-ext.css @counter-style hangul-consonant */
+/** 정답 영역에 표시할 한글 자음 레이블 */
 const HANGUL_CONSONANT_MARKERS = [
-  "ㄱ ",
-  "ㄴ ",
-  "ㄷ ",
-  "ㄹ ",
-  "ㅁ ",
-  "ㅂ ",
-  "ㅅ ",
-  "ㅇ ",
-  "ㅈ ",
-  "ㅊ ",
-  "ㅋ ",
-  "ㅌ ",
-  "ㅍ ",
-  "ㅎ ",
+  "ㄱ",
+  "ㄴ",
+  "ㄷ",
+  "ㄹ",
+  "ㅁ",
+  "ㅂ",
+  "ㅅ",
+  "ㅇ",
+  "ㅈ",
+  "ㅊ",
+  "ㅋ",
+  "ㅌ",
+  "ㅍ",
+  "ㅎ",
 ] as const;
 
 /** hangul-consonant-paren */
 const HANGUL_CONSONANT_PAREN_MARKERS = [
-  "ㄱ) ",
-  "ㄴ) ",
-  "ㄷ) ",
-  "ㄹ) ",
-  "ㅁ) ",
-  "ㅂ) ",
-  "ㅅ) ",
-  "ㅇ) ",
-  "ㅈ) ",
-  "ㅊ) ",
-  "ㅋ) ",
-  "ㅌ) ",
-  "ㅍ) ",
-  "ㅎ) ",
+  "ㄱ)",
+  "ㄴ)",
+  "ㄷ)",
+  "ㄹ)",
+  "ㅁ)",
+  "ㅂ)",
+  "ㅅ)",
+  "ㅇ)",
+  "ㅈ)",
+  "ㅊ)",
+  "ㅋ)",
+  "ㅌ)",
+  "ㅍ)",
+  "ㅎ)",
 ] as const;
 
 /** hangul-consonant-bracket */
 const HANGUL_CONSONANT_BRACKET_MARKERS = [
-  "(ㄱ) ",
-  "(ㄴ) ",
-  "(ㄷ) ",
-  "(ㄹ) ",
-  "(ㅁ) ",
-  "(ㅂ) ",
-  "(ㅅ) ",
-  "(ㅇ) ",
-  "(ㅈ) ",
-  "(ㅊ) ",
-  "(ㅋ) ",
-  "(ㅌ) ",
-  "(ㅍ) ",
-  "(ㅎ) ",
+  "(ㄱ)",
+  "(ㄴ)",
+  "(ㄷ)",
+  "(ㄹ)",
+  "(ㅁ)",
+  "(ㅂ)",
+  "(ㅅ)",
+  "(ㅇ)",
+  "(ㅈ)",
+  "(ㅊ)",
+  "(ㅋ)",
+  "(ㅌ)",
+  "(ㅍ)",
+  "(ㅎ)",
 ] as const;
 
-/** hangul-syllable-dot (class qti-list-style-type-hangul-syllable) */
+/** hangul-syllable (class qti-list-style-type-hangul-syllable) */
 const HANGUL_SYLLABLE_MARKERS = [
-  "가 ",
-  "나 ",
-  "다 ",
-  "라 ",
-  "마 ",
-  "바 ",
-  "사 ",
-  "아 ",
-  "자 ",
-  "차 ",
-  "카 ",
-  "타 ",
-  "파 ",
-  "하 ",
+  "가",
+  "나",
+  "다",
+  "라",
+  "마",
+  "바",
+  "사",
+  "아",
+  "자",
+  "차",
+  "카",
+  "타",
+  "파",
+  "하",
 ] as const;
 
 function toSequenceAlpha(oneBased: number, baseCharCode: number): string {
@@ -151,7 +151,8 @@ function toRomanNumeral(num: number): string {
 }
 
 /**
- * choice interaction DOM 순서(1-based)에 해당하는 목록 마커.
+ * choice interaction DOM 순서(1-based)에 해당하는 정답 레이블.
+ * 본문용 마침표 구분자는 포함하지 않는다.
  * 알 수 없는 타입·범위 초과면 null → 호출부에서 일반 표시 로직으로 폴백.
  */
 function listStyleMarkerForIndex(
@@ -163,17 +164,17 @@ function listStyleMarkerForIndex(
 
   switch (listStyleType) {
     case "decimal":
-      return `${i}. `;
+      return String(i);
     case "decimal-leading-zero":
-      return `${i < 10 ? `0${i}` : String(i)} `;
+      return i < 10 ? `0${i}` : String(i);
     case "lower-alpha":
-      return `${toSequenceAlpha(i, 97)} `;
+      return toSequenceAlpha(i, 97);
     case "upper-alpha":
-      return `${toSequenceAlpha(i, 65)} `;
+      return toSequenceAlpha(i, 65);
     case "lower-roman":
-      return `${toRomanNumeral(i).toLowerCase()} `;
+      return toRomanNumeral(i).toLowerCase();
     case "upper-roman":
-      return `${toRomanNumeral(i)} `;
+      return toRomanNumeral(i);
     case "circled":
       return CIRCLED_MARKERS[i - 1] ?? null;
     case "hangul-consonant":
@@ -462,7 +463,7 @@ function responseScalarStringForCorrectAnswer(value: unknown): string {
 }
 
 /** n·d 필수. w가 있으면 대분수 `w\\frac{n}{d}`, 없으면 `\\frac{n}{d}`. */
-function buildFractionLatexFromParts(
+export function buildFractionLatexFromParts(
   w: string,
   n: string,
   d: string,

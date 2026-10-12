@@ -1176,9 +1176,12 @@
 
 /* Dropdown Menu */
 .qti-ext-dropdown-menu {
-  top: calc(100% - (var(--qti-option-border-width)));
+  top: calc(100% - var(--qti-option-border-width) + var(--qti-dropdown-menu-offset-y, 0px));
 
-  /* top: calc(100% - 2px); */
+  overflow-y: auto;
+
+  box-sizing: border-box;
+  max-height: min(80vh, var(--qti-dropdown-menu-max-height, 80vh));
 
   border-width: var(--qti-option-border-width) !important;
   border-color: var(--qti-option-border) !important;
@@ -1186,6 +1189,8 @@
     var(--qti-option-border-radius) !important;
 
   background-color: #ffffff !important;
+
+  transform: translateX(var(--qti-dropdown-menu-offset-x, 0));
 
   @apply rqti:absolute rqti:left-0 rqti:z-50 rqti:w-auto rqti:min-w-full rqti:whitespace-nowrap;
 }
@@ -1195,6 +1200,22 @@
   max-width: 100%;
 
   white-space: normal;
+}
+
+/* 옵션이 5개 이상이면 내용 너비만큼 순서대로 배치하고, 최대 폭에서 자동 줄바꿈합니다. */
+.qti-ext-dropdown-auto-width .qti-ext-dropdown-menu-wrapped {
+  display: flex;
+
+  flex-wrap: wrap;
+  gap: 0.375rem;
+
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 100%;
+  max-width: min(24rem, calc(100vw - 2rem));
+  padding: 0.375rem;
+
+  border-radius: var(--qti-option-border-radius) !important;
 }
 
 .qti-ext-dropdown-auto-width .qti-ext-dropdown-option-content {
@@ -1239,6 +1260,27 @@
 
 .qti-ext-dropdown-option-content {
   @apply rqti:flex rqti:flex-col rqti:gap-1;
+}
+
+.qti-ext-dropdown-menu-wrapped .qti-ext-dropdown-option {
+  flex: 0 1 auto;
+
+  max-width: 100%;
+
+  border: var(--qti-option-border-width) solid var(--qti-option-border) !important;
+  border-radius: calc(var(--qti-option-border-radius) * 0.75) !important;
+
+  background-color: var(--qti-option-bg) !important;
+}
+
+.qti-ext-dropdown-menu-wrapped .qti-ext-dropdown-option:last-child {
+  border-radius: calc(var(--qti-option-border-radius) * 0.75) !important;
+}
+
+.qti-ext-dropdown-menu-wrapped .qti-ext-dropdown-option-selected,
+.qti-ext-dropdown-menu-wrapped .qti-ext-dropdown-option-selected:hover,
+.qti-ext-dropdown-menu-wrapped .qti-ext-dropdown-option-selected:focus {
+  background-color: var(--qti-option-bg-selected) !important;
 }
 
 /* ========================================
@@ -1768,31 +1810,40 @@
   font-synthesis: none;
 }
 
+.qti-ext-mathfield mjx-mtext.qti-math-text-bold,
 .qti-ext-mathfield .qti-math-text-bold mjx-mtext,
 .qti-ext-mathfield mjx-container[jax="SVG"] .qti-math-text-bold text {
   font-weight: 700 !important;
 }
 
+.qti-ext-mathfield mjx-mtext.qti-math-text-medium,
 .qti-ext-mathfield .qti-math-text-medium mjx-mtext,
 .qti-ext-mathfield mjx-container[jax="SVG"] .qti-math-text-medium text {
   font-weight: 400 !important;
 }
 
+.qti-ext-mathfield mjx-mtext.qti-math-text-sans,
 .qti-ext-mathfield .qti-math-text-sans mjx-mtext,
 .qti-ext-mathfield mjx-container[jax="SVG"] .qti-math-text-sans text {
   font-family: "Noto Sans KR", Pretendard, sans-serif !important;
 }
 
+.qti-ext-mathfield mjx-mtext.qti-math-text-serif,
 .qti-ext-mathfield .qti-math-text-serif mjx-mtext,
 .qti-ext-mathfield mjx-container[jax="SVG"] .qti-math-text-serif text {
   font-family: "Noto Serif KR", serif !important;
 }
 
+.qti-ext-mathfield mjx-mtext.qti-math-text-mono,
 .qti-ext-mathfield .qti-math-text-mono mjx-mtext,
 .qti-ext-mathfield mjx-container[jax="SVG"] .qti-math-text-mono text {
   font-family: monospace !important;
 }
 
+.qti-ext-mathfield mjx-mtext.qti-math-text-italic,
+.qti-ext-mathfield mjx-mtext.qti-math-text-italic mjx-utext,
+.qti-ext-mathfield mjx-mtext.qti-math-text-oblique,
+.qti-ext-mathfield mjx-mtext.qti-math-text-oblique mjx-utext,
 .qti-ext-mathfield .qti-math-text-italic mjx-mtext,
 .qti-ext-mathfield .qti-math-text-oblique mjx-mtext,
 .qti-ext-mathfield
@@ -4122,6 +4173,14 @@
   transform: none;
 }
 
+/* 받아올림처럼 식 슬롯 옆 글자가 있는 병합 칸. 셀 inset을 슬롯에 적용하면 min-width 100%와 겹쳐 글자를 덮는다. */
+:where(.qti-ext-vcq-grid:not(.qti-ext-vcq-grid--display))
+  .qti-ext-vcq-cell--merged:not(:has(.qti-ext-math-input-blank--vcq-formula))
+  .qti-ext-mjx-blank-slot
+  .qti-ext-input-blank {
+  inset: 0;
+}
+
 .qti-ext-math-input-blank .qti-ext-input-blank:has(> .qti-ext-input-blank__field) {
   height: var(--qti-math-blank-size, 2em);
 }
@@ -4438,8 +4497,7 @@
   --vcq-ink: #1f2328;
   --vcq-div-stroke: 1px;
   --vcq-div-nudge: 5px;
-  --vcq-syn-stroke: 1.5px;
-  --vcq-syn-stack-gap: calc(var(--vcq-syn-cell) * 0.15);
+  --vcq-syn-stack-gap: 8px;
   position: relative;
 
   display: flex;
@@ -4502,12 +4560,12 @@
 .qti-ext-vcq-grid--template-synthetic,
 .qti-ext-vcq-grid--template-synthetic-2 {
   --vcq-cell: var(--vcq-syn-cell);
-  --vcq-cols: 5;
 
   display: grid;
 
+  justify-content: start;
   align-items: stretch;
-  grid-template-columns: repeat(var(--vcq-cols), minmax(var(--vcq-cell), max-content));
+  grid-template-columns: var(--vcq-col-template);
 }
 
 .qti-ext-vcq-row {
@@ -4701,7 +4759,6 @@
 
   justify-content: start;
   align-items: stretch;
-  row-gap: 0.15em;
   grid-template-columns: var(--vcq-col-template, repeat(4, minmax(var(--vcq-cell), max-content)));
 }
 
@@ -5830,6 +5887,24 @@
   text-align: center;
 }
 
+.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-left .qti-ext-math-blank-formula {
+  justify-self: start;
+
+  text-align: left;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-right .qti-ext-math-blank-formula {
+  justify-self: end;
+
+  text-align: right;
+}
+
+.qti-ext-vcq-grid .qti-ext-vcq-cell--merged.qti-align-center .qti-ext-math-blank-formula {
+  justify-self: center;
+
+  text-align: center;
+}
+
 .qti-ext-vcq-merged-fallback-content {
   display: flex;
 
@@ -5994,9 +6069,9 @@ img.qti-ext-inline-image,
 
 /* ========================================
    Image Input Blank - 이미지 빈칸 (CLOZE)
-
-   칸의 위치·크기·글자 크기는 저작 기준계로만 계산한다.
-   테마는 테두리·글꼴·글자색만 관여하고, 일반 빈칸·text-entry 규칙은 쓰지 않는다.
+   폭은 저작 px다. 이 PCI가 들어 있는 발문·보기·지문·단락·단·figure만 그 폭으로 늘어난다.
+   넘치면 테마 컨테이너·지문 패널이 가로로 스크롤된다. 다른 문항 유형은 이 규칙을 타지 않는다.
+   텍스트·분수 배경은 투명하다. 분수 테두리·선은 gray-200, 연필은 단답 입력 placeholder와 같은 gray-300 이다.
    ======================================== */
 
 .qti-ext-image-input-blank {
@@ -6004,25 +6079,100 @@ img.qti-ext-inline-image,
 
   display: block;
 
-  max-width: 100%;
-}
-
-/* 정답 영역은 문항 본문보다 작게 보여준다. 값이 이미 채워져 있어 입력 정밀도가 필요 없다. */
-.qti-ext-image-input-blank-answer {
-  --qti-image-blank-scale: 0.75;
+  max-width: none;
 }
 
 .qti-ext-image-input-blank__image {
   display: block;
 
-  width: 100%;
+  max-width: none;
   height: auto;
 }
 
-/* 이미지 content box와 좌상단·폭·높이가 같은 기준면 */
+/* 정답도 문항과 같은 저작 폭이다. 넘치면 이 영역만 가로로 스크롤한다. */
+.qti-ext-image-input-blank-answer {
+  overflow-x: auto;
+
+  max-width: 100%;
+}
+
+.qti-ext-container:has(.qti-ext-image-input-blank) {
+  overflow-x: auto;
+}
+
+.qti-ext-passage:has(.qti-ext-image-input-blank) {
+  overflow-x: auto;
+}
+
+/* 이미지가 들어 있는 영역만 저작 폭까지 늘린다. 작은 이미지는 영역 너비를 줄이지 않는다. */
+.qti-ext-prompt:has(.qti-ext-image-input-blank),
+.qti-ext-example:has(.qti-ext-image-input-blank),
+.qti-ext-stimulus:has(.qti-ext-image-input-blank),
+p:has(.qti-ext-image-input-blank) {
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+}
+
+.qti-ext-figure:has(.qti-ext-image-input-blank) {
+  width: max-content;
+  max-width: none;
+}
+
+/* 같은 영역의 문장은 이미지 폭에 맞춰 줄바꿈한다. 문장 자체가 영역을 더 넓히지 않는다. */
+.qti-ext-prompt:has(.qti-ext-image-input-blank) > p:not(:has(.qti-ext-image-input-blank)),
+.qti-ext-example:has(.qti-ext-image-input-blank) > p:not(:has(.qti-ext-image-input-blank)),
+.qti-ext-stimulus:has(.qti-ext-image-input-blank) > p:not(:has(.qti-ext-image-input-blank)) {
+  box-sizing: border-box;
+  width: 0;
+  min-width: 100%;
+}
+
+.qti-ext-column:has(.qti-ext-image-input-blank) {
+  flex: 1 0 auto !important;
+
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: none !important;
+}
+
+.qti-ext-option-base .qti-ext-image-input-blank,
+.qti-ext-match-option .qti-ext-image-input-blank,
+.qti-ext-option-base .qti-ext-image-input-blank__image,
+.qti-ext-match-option .qti-ext-image-input-blank__image {
+  max-width: 100%;
+}
+
+.qti-ext-option-base
+  :is(
+    .qti-ext-prompt,
+    .qti-ext-example,
+    .qti-ext-stimulus,
+    .qti-ext-column,
+    .qti-ext-figure,
+    p
+  ):has(.qti-ext-image-input-blank),
+.qti-ext-match-option
+  :is(
+    .qti-ext-prompt,
+    .qti-ext-example,
+    .qti-ext-stimulus,
+    .qti-ext-column,
+    .qti-ext-figure,
+    p
+  ):has(.qti-ext-image-input-blank) {
+  flex: 0 1 auto !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* 측정된 이미지와 좌상단·폭·높이가 같은 기준면 */
 .qti-ext-image-input-blank__overlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
 }
 
 .qti-ext-image-input-blank__region {
@@ -6038,7 +6188,6 @@ img.qti-ext-inline-image,
   min-width: 0;
   min-height: 0;
 
-  font-size: var(--image-blank-calculated-font-size, inherit);
   line-height: 1;
 }
 
@@ -6062,9 +6211,6 @@ img.qti-ext-inline-image,
 
   color: var(--qti-base-text-color, #1a1a1a);
   font-family: var(--qti-font-family, inherit);
-
-  /* 테마 본문 font-size가 덮으면 저작 배율과 어긋난다 */
-  font-size: var(--image-blank-calculated-font-size, inherit);
   line-height: 1;
   text-align: center;
   white-space: nowrap;
@@ -6074,18 +6220,79 @@ img.qti-ext-inline-image,
   appearance: none;
 }
 
+.qti-ext-image-input-blank__field {
+  position: relative;
+
+  min-width: 0;
+  min-height: 0;
+}
+
+.qti-ext-image-input-blank__region,
+.qti-ext-image-input-blank__input,
+.qti-ext-image-input-blank__pencil {
+  font-size: var(--qti-font-size-base, 16px);
+}
+
+.qti-ext-image-input-blank__field > .qti-ext-image-input-blank__input {
+  position: absolute;
+  inset: 0;
+}
+
+.qti-ext-image-input-blank__pencil {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: 1em;
+  height: 1em;
+
+  color: var(--color-gray-300, #d1d5db);
+
+  transform: translate(-50%, -50%);
+
+  pointer-events: none;
+}
+
+.qti-ext-image-input-blank__field:focus-within > .qti-ext-image-input-blank__pencil {
+  visibility: hidden;
+}
+
 /* 수식 값은 입력칸 대신 렌더한 수식을 같은 상자에 넣는다. 칸 크기는 저작 좌표 그대로다. */
-.qti-ext-image-input-blank__math {
+.qti-ext-image-input-blank__math,
+.qti-ext-image-input-blank__fraction-latex {
   display: flex;
   overflow: hidden;
 
   justify-content: center;
   align-items: center;
+
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
 }
 
 .qti-ext-image-input-blank__text {
   width: 100%;
   height: 100%;
+}
+
+.qti-ext-image-input-blank__text.qti-ext-image-input-blank__input,
+.qti-ext-image-input-blank__text > .qti-ext-image-input-blank__input {
+  border-width: 0;
+
+  background-color: transparent;
+}
+
+.qti-ext-image-input-blank__fraction-part.qti-ext-image-input-blank__input,
+.qti-ext-image-input-blank__fraction-whole.qti-ext-image-input-blank__input,
+.qti-ext-image-input-blank__fraction-part > .qti-ext-image-input-blank__input,
+.qti-ext-image-input-blank__fraction-whole > .qti-ext-image-input-blank__input {
+  border-width: calc(var(--image-blank-calculated-font-size, 24px) * 0.06);
+  border-color: var(--color-gray-200, #e5e7eb);
+  border-radius: calc(var(--image-blank-calculated-font-size, 24px) * 0.08);
+
+  background-color: transparent;
 }
 
 .qti-ext-image-input-blank__fraction {
@@ -6101,6 +6308,7 @@ img.qti-ext-inline-image,
   height: 100%;
   min-height: 0;
 
+  font-size: var(--image-blank-calculated-font-size, 24px);
   line-height: 1;
 }
 
