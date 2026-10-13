@@ -78,8 +78,10 @@ function slotCommand(
   measured?: SlotContentEm
 ): string {
   const widthEm = (measured?.widthEm ?? actualMinSlotEm(widthCh) * scale).toFixed(2);
-  const heightEm = (measured?.heightEm ?? CSS_MIN_SLOT_EM * scale).toFixed(2);
-  return `\\cssId{${mathBlankSlotId(instanceId, id)}}{\\class{${MATH_BLANK_SLOT_CLASS}}{\\Rule{${widthEm}em}{${heightEm}em}{0em}}}`;
+  const totalEm = measured?.heightEm ?? CSS_MIN_SLOT_EM * scale;
+  const halfEm = (totalEm / 2).toFixed(2);
+  // depth=0이면 칸 전체가 기준선 위라 옆 숫자(2.8)가 칸 밑으로 붙는다.
+  return `\\cssId{${mathBlankSlotId(instanceId, id)}}{\\class{${MATH_BLANK_SLOT_CLASS}}{\\Rule{${widthEm}em}{${halfEm}em}{${halfEm}em}}}`;
 }
 
 /** 수식 구조 없이 빈칸 토큰만 있으면 기존 상자 UI를 쓴다. */

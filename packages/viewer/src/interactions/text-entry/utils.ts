@@ -1,25 +1,23 @@
-import type React from "react";
+/** text-entry 응시 입력 상한. XML maxlength가 더 작으면 그 값을 쓴다. */
+export const TEXT_ENTRY_MAX_LENGTH = 100;
 
-const TEXT_ENTRY_MIN_WIDTH = 8;
-const TEXT_ENTRY_MAX_WIDTH = 15;
-const TEXT_ENTRY_FALLBACK_WIDTH = 10;
-
-export const getTextEntryWidth = (expectedLength?: number): number => {
-  if (typeof expectedLength !== "number" || Number.isNaN(expectedLength) || expectedLength <= 0) {
-    return TEXT_ENTRY_FALLBACK_WIDTH;
+/**
+ * XML `maxlength`가 1 이상 100 미만이면 그 값, 없거나 100 이상이면 100.
+ * 0 이하는 없는 값으로 본다.
+ */
+export function resolveTextEntryMaxLength(xmlMaxLength: number | undefined): number {
+  if (
+    xmlMaxLength !== undefined &&
+    Number.isFinite(xmlMaxLength) &&
+    xmlMaxLength >= 1 &&
+    xmlMaxLength < TEXT_ENTRY_MAX_LENGTH
+  ) {
+    return xmlMaxLength;
   }
+  return TEXT_ENTRY_MAX_LENGTH;
+}
 
-  return Math.min(TEXT_ENTRY_MAX_WIDTH, Math.max(TEXT_ENTRY_MIN_WIDTH, expectedLength));
-};
+export const isFractionPartId = (id: string): boolean => /^FRACTION_.+_[WND]$/.test(id);
 
-export const getTextEntryWidthStyle = (
-  expectedLength?: number
-): React.CSSProperties & Record<"--qti-text-entry-width", string> => ({
-  "--qti-text-entry-width": `${getTextEntryWidth(expectedLength)}ch`,
-});
-
-export const TEXT_ENTRY_WIDTH_BOUNDS = {
-  min: TEXT_ENTRY_MIN_WIDTH,
-  max: TEXT_ENTRY_MAX_WIDTH,
-  fallback: TEXT_ENTRY_FALLBACK_WIDTH,
-};
+export const getTextEntryCharCount = (value: string): number =>
+  Math.max(1, Array.from(value).length);

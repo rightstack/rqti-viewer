@@ -1,12 +1,22 @@
-import { type ReactNode, useEffect, useLayoutEffect, useRef } from "react";
+import {
+  type ReactNode,
+  type PointerEvent as ReactPointerEvent,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import clsx from "clsx";
+import { Pencil } from "lucide-react";
+import { MathKeyboard, type MathKeyboardContentSize, type MathLevel } from "../../math-keyboard";
 import {
   MATH_BLANK_DISPLAY_SCALE,
   type SlotContentEm,
   markerSlotWidthEm,
   markerSlotWidthPx,
 } from "./mathBlankLatex";
-import { measureDisplayContent, measureSizerContentWidth, readBoxExtras } from "./slotMeasure";
+import { measureDisplayContent, measureTextContentWidth, readBoxExtras } from "./slotMeasure";
 import { type BlankVariant, getBlankVariantClass } from "./utils";
 
 type FormulaSlotInputProps = {
@@ -15,10 +25,14 @@ type FormulaSlotInputProps = {
   /** `\inputblank{ID}{N}` 의 N — 최소 N글자 폭 */
   widthCh?: number;
   readOnly: boolean;
-  alignClass: string | undefined;
   onChange: (id: string, value: string) => void;
   stateClassName?: string;
   fitFormulaHost?: boolean;
+  /** 키패드 최근 기호 저장 범위. 보통 문항 키. */
+  historyScope?: string;
+  level?: MathLevel | null;
+  /** 맞춘 칸 크기를 알린다. 식 쪽 `\Rule`을 같은 크기로 다시 만들어 식과 빈칸이 겹치지 않게 한다. */
+  onContentEm?: (em: SlotContentEm) => void;
 };
 
 function applySlotBox(slot: HTMLElement, targetW: number, targetH: number) {
@@ -31,6 +45,17 @@ function applySlotBox(slot: HTMLElement, targetW: number, targetH: number) {
     slot.style.minWidth = width;
     slot.style.height = height;
     slot.style.minHeight = height;
+  }
+  const math = slot.closest<HTMLElement>("mjx-math");
+  if (math) {
+    math.style.width = "max-content";
+    math.style.maxWidth = "none";
+  }
+  const container =
+    math?.closest<HTMLElement>("mjx-container") ?? slot.closest<HTMLElement>("mjx-container");
+  if (container) {
+    container.style.width = "max-content";
+    container.style.maxWidth = "none";
   }
   return { w, h };
 }
@@ -56,70 +81,148 @@ function fitSlotToContent(
   return { widthEm: applied.w / fontSize, heightEm: applied.h / fontSize };
 }
 
-function fitInputSlotWidth(
-  box: HTMLElement,
-  blankStyle: CSSStyleDeclaration,
-  contentW: number,
-  widthCh: number | undefined
-) {
-  const { padX, borderX } = readBoxExtras(blankStyle);
-  const fontSize = parseFloat(blankStyle.fontSize) || 16;
-  applySlotBox(
-    box,
-    Math.max(markerSlotWidthPx(widthCh, fontSize), contentW + padX + borderX),
-    markerSlotWidthPx(1, fontSize)
-  );
-}
-
-/** 수식 슬롯 input. 높이는 고정, 너비는 {N} 하한에서 긴 글자만 키운다. */
 export function FormulaSlotInput({
   id,
   value,
   widthCh,
   readOnly,
-  alignClass,
   onChange,
   stateClassName,
   fitFormulaHost = false,
+  historyScope,
+  level,
+  onContentEm,
 }: FormulaSlotInputProps) {
-  const wrapperRef = useRef<HTMLLabelElement>(null);
-  const sizerRef = useRef<HTMLSpanElement>(null);
+  const wrapperRef = useRef<HTMLSpanElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const useKeypad = level === "middle" || level === "high";
+  const showPencil = !readOnly && value === "";
+  /** 현재 값의 렌더 크기. 값이 바뀌면 다시 올 때까지 null이라, 이전 값 크기를 식에 알리지 않는다. */
+  const [measured, setMeasured] = useState<MathKeyboardContentSize | null>(null);
+  const [trackedValue, setTrackedValue] = useState(value);
+  if (trackedValue !== value) {
+    setTrackedValue(value);
+    setMeasured(null);
+  }
+  const emitRef = useRef(onContentEm);
+  const focusedRef = useRef(false);
+  const lastEmRef = useRef<SlotContentEm | null>(null);
+
+  useEffect(() => {
+    emitRef.current = onContentEm;
+  }, [onContentEm]);
+
+  const handleContentSize = useCallback((size: MathKeyboardContentSize) => {
+    const next = { width: Math.round(size.width), height: Math.round(size.height) };
+    setMeasured((prev) =>
+      prev && prev.width === next.width && prev.height === next.height ? prev : next
+    );
+  }, []);
+
+  const readContentSize = (): MathKeyboardContentSize | null => {
+    if (useKeypad) {
+      if (value === "") return { width: 0, height: 0 };
+      return measured;
+    }
+    if (!inputRef.current) return value === "" ? { width: 0, height: 0 } : null;
+    return {
+      width: measureTextContentWidth(inputRef.current, value),
+      height: 0,
+    };
+  };
+
+  const isEditing = () =>
+    focusedRef.current || !!wrapperRef.current?.contains(document.activeElement);
+
+  const emitIfChanged = (em: SlotContentEm) => {
+    const prev = lastEmRef.current;
+    if (
+      prev &&
+      Math.abs(prev.widthEm - em.widthEm) < 0.01 &&
+      Math.abs(prev.heightEm - em.heightEm) < 0.01
+    ) {
+      return;
+    }
+    lastEmRef.current = em;
+    emitRef.current?.(em);
+  };
+
+  const fitCurrentSlot = () => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return null;
+    const box = wrapper.closest<HTMLElement>(".qti-ext-mjx-blank-slot") ?? wrapper;
+    const size = readContentSize();
+    if (!size) return null;
+    return fitSlotToContent(box, getComputedStyle(wrapper), size.width, size.height, widthCh);
+  };
 
   useLayoutEffect(() => {
-    const wrapper = wrapperRef.current;
-    const sizer = sizerRef.current;
-    if (!wrapper) return;
-    const box = wrapper.closest<HTMLElement>(".qti-ext-mjx-blank-slot") ?? wrapper;
-    const fit = () =>
-      fitInputSlotWidth(box, getComputedStyle(wrapper), measureSizerContentWidth(sizer), widthCh);
-    fit();
-    document.fonts?.ready.then(fit).catch(() => undefined);
-  }, [value, widthCh]);
+    const em = fitCurrentSlot();
+    if (!em) return;
+    if (isEditing()) return;
+    const frame = window.requestAnimationFrame(() => {
+      if (isEditing()) return;
+      emitIfChanged(em);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [measured, useKeypad, value, widthCh]);
+
+  const setEditing = (editing: boolean) => {
+    focusedRef.current = editing;
+    if (editing) return;
+    const em = fitCurrentSlot();
+    if (em) emitIfChanged(em);
+  };
+
+  const openKeypadFromBox = (event: ReactPointerEvent<HTMLSpanElement>) => {
+    if (event.button !== 0 || readOnly) return;
+    const valueEl = wrapperRef.current?.querySelector<HTMLElement>(".qti-ext-math-keyboard-value");
+    if (!valueEl || valueEl.contains(event.target as Node)) return;
+    event.preventDefault();
+    valueEl.click();
+  };
 
   return (
-    <label
+    <span
       ref={wrapperRef}
       className={clsx(
         "qti-ext-math-blank-field qti-ext-input-blank qti-ext-text-entry-input",
+        useKeypad && "qti-ext-math-blank-field--keypad",
         fitFormulaHost && "qti-ext-math-blank-slot-content",
         stateClassName
       )}
       style={{ minWidth: markerSlotWidthEm(widthCh) }}
+      data-response-identifier={id}
+      onPointerDown={useKeypad ? openKeypadFromBox : undefined}
     >
-      <span ref={sizerRef} className="qti-ext-input-blank__sizer" aria-hidden="true">
-        {value || "\u00a0"}
-      </span>
-      <input
-        className={clsx("qti-ext-input-blank__field", alignClass)}
-        type="text"
-        size={1}
-        value={value}
-        readOnly={readOnly}
-        data-response-identifier={id}
-        aria-label={`${id} 입력`}
-        onChange={(e) => onChange(id, e.target.value)}
-      />
-    </label>
+      {useKeypad ? (
+        <MathKeyboard
+          embedded
+          value={value}
+          onChange={(latex) => onChange(id, latex)}
+          readOnly={readOnly}
+          level={level}
+          historyScope={historyScope}
+          onContentSize={handleContentSize}
+          ariaLabel={`${id} 입력`}
+        />
+      ) : (
+        <input
+          ref={inputRef}
+          className="qti-ext-input-blank__field"
+          type="text"
+          size={1}
+          value={value}
+          readOnly={readOnly}
+          data-response-identifier={id}
+          aria-label={`${id} 입력`}
+          onFocus={() => setEditing(true)}
+          onBlur={() => setEditing(false)}
+          onChange={(event) => onChange(id, event.target.value)}
+        />
+      )}
+      {showPencil ? <Pencil className="qti-ext-text-entry-pencil" aria-hidden="true" /> : null}
+    </span>
   );
 }
 

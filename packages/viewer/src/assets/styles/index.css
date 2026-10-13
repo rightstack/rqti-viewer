@@ -26,6 +26,10 @@
 @import "./qti.css";
 @import "./qti-ext.css";
 
+/* qti-ext.css 뒤: 셸에 qti-ext-text-entry-input(width:100%)과 qti-ext-math-keyboard-shell(width:max-content)이
+   같이 붙어서, 나중 규칙이 수식 너비를 살린다. */
+@import "./math-keyboard.css";
+
 /* MathLive (LaTeX) — viewer.css에 번들됨 */
 @import "mathlive/fonts.css";
 @import "mathlive/static.css";

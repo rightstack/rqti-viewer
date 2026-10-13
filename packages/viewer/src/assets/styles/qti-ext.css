@@ -1301,19 +1301,49 @@
 }
 
 .qti-text-entry {
-  --qti-text-entry-width: 10ch;
+  --qti-text-entry-min-box: calc(3em + 16px + 2 * var(--qti-option-border-width, 1px));
 
   @apply rqti:relative;
 }
 
-.qti-text-entry--inline {
+.qti-ext-text-entry.qti-text-entry--inline {
   display: inline-block;
 
-  width: var(--qti-text-entry-width);
-  min-width: 8ch;
-  max-width: 15ch;
+  box-sizing: border-box;
+  width: fit-content;
+  min-width: var(--qti-text-entry-min-box);
+  max-width: 100%;
+  margin-top: 2px;
+  margin-bottom: 2px;
 
-  vertical-align: baseline;
+  vertical-align: middle;
+}
+
+.qti-ext-text-entry-math {
+  display: inline-block;
+
+  width: fit-content;
+  min-width: 0;
+  max-width: 100%;
+
+  vertical-align: middle;
+}
+
+.qti-ext-text-entry.qti-text-entry--inline.qti-ext-text-entry-math {
+  min-width: 0;
+}
+
+.qti-ext-text-entry-srq.qti-ext-text-entry-math {
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+}
+
+.qti-ext-text-entry-srq.qti-ext-text-entry-math > .qti-ext-math-keyboard {
+  display: flex;
+
+  margin-left: auto;
 }
 
 .qti-text-entry--block {
@@ -1323,38 +1353,72 @@
   max-width: 100%;
 }
 
-.qti-ext-text-entry-cloze {
-  /* CLOZE(빈칸 채우기): 본문 문장 안에 인라인으로 들어가는 입력칸 */
-  @apply rqti:relative rqti:m-1;
-}
-
 .qti-text-entry__label {
   @apply rqti:sr-only;
 }
 
 .qti-ext-text-entry-input {
-  overflow-x: auto;
+  --qti-text-entry-pad-x: 1rem;
+  overflow: hidden;
 
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
+  height: auto;
   min-height: 2em;
+  padding-inline: 8px;
 
   border-width: var(--qti-option-border-width);
-
-  /* border-style은 상위에서 상속 (solid) */
+  border-style: solid;
   border-color: var(--qti-option-border);
   border-radius: var(--qti-option-border-radius);
 
   background-color: var(--qti-option-bg);
 
   color: inherit;
-  font-size: var(--qti-option-font-size, var(--qti-font-size-base, inherit)) !important;
+  font-family: inherit;
+  font-size: var(--qti-font-size-base, inherit) !important;
   font-weight: var(--qti-option-font-weight, inherit);
-  line-height: 1.5;
-  white-space: nowrap;
+  line-height: var(--qti-line-height-base, 1.5);
+  text-align: inherit;
 
-  @apply rqti:px-2 rqti:transition-all rqti:duration-200 rqti:placeholder:text-gray-300;
+  /* text-align: left;ㅇ */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+
+  transition:
+    color 0.2s,
+    background-color 0.2s,
+    border-color 0.2s;
+
+  @apply rqti:placeholder:text-gray-300;
+}
+
+textarea.qti-ext-text-entry-input {
+  display: block;
+
+  margin: 0;
+  padding-block: calc((2em - 1lh - 2 * var(--qti-option-border-width, 1px)) / 2);
+
+  outline: none;
+
+  line-height: inherit;
+
+  resize: none;
+  appearance: none;
+  field-sizing: content;
+}
+
+textarea.qti-ext-text-entry-input:placeholder-shown {
+  overflow: hidden;
+
+  width: var(--qti-text-entry-min-box);
+  min-width: var(--qti-text-entry-min-box);
+  max-width: var(--qti-text-entry-min-box);
+  height: 2em;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 수식/세로셈 입력 빈칸 — TextEntry 테마, 크기는 math·VCQ */
@@ -1366,7 +1430,6 @@
   min-height: 1.2em;
   padding: 0.1em 0.2em;
 
-  border-style: solid;
   background-color: transparent;
 
   color: inherit;
@@ -1380,12 +1443,69 @@
 }
 
 .qti-ext-text-entry-input-cloze {
-  /* CLOZE(빈칸 채우기): inline-choice 드롭다운과 유사한 높이/패딩 */
-  @apply rqti:px-3;
+  --qti-text-entry-pad-x: 1.5rem;
 }
 
 .qti-ext-text-entry-input-math {
   overflow: visible;
+}
+
+.qti-ext-text-entry-content {
+  display: block;
+
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.qti-ext-text-entry-pencil {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  width: min(1em, 100%);
+  height: min(1em, 100%);
+
+  color: var(--color-gray-300, #d1d5db);
+
+  transform: translate(-50%, -50%);
+
+  pointer-events: none;
+}
+
+.qti-ext-input-blank > .qti-ext-text-entry-pencil {
+  z-index: 1;
+
+  grid-area: 1 / 1;
+}
+
+.qti-ext-vcq-grid .qti-ext-input-blank > .qti-ext-text-entry-pencil {
+  box-sizing: border-box;
+  width: 0.75em;
+  max-width: 80%;
+  height: 0.75em;
+  max-height: 80%;
+}
+
+.qti-text-entry__control:focus-within > .qti-ext-text-entry-pencil,
+.qti-ext-input-blank:focus-within > .qti-ext-text-entry-pencil,
+.qti-ext-vcq-cell--blank:focus-within .qti-ext-text-entry-pencil,
+.qti-ext-vcq-cell--merged:focus-within .qti-ext-text-entry-pencil {
+  visibility: hidden;
+}
+
+.qti-text-entry__control {
+  position: relative;
+
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+}
+
+.qti-ext-fraction .qti-text-entry__control {
+  width: max-content;
+  max-width: none;
 }
 
 .qti-text-entry__field {
@@ -1393,27 +1513,40 @@
   max-width: 100%;
 }
 
-.qti-text-entry__counter {
-  font-size: calc(var(--qti-font-size-base) * 0.8);
-
-  @apply rqti:mt-1 rqti:block rqti:text-right rqti:text-gray-500;
-}
-
 .qti-ext-text-entry-srq {
-  /* SRQ(단답형): 지문/예시 아래 하단 답안 입력 UI */
-  @apply rqti:mx-0 rqti:mt-10 rqti:mb-2 rqti:block rqti:w-full;
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+  margin: 2.5rem 0 0.5rem;
 }
 
-.qti-ext-text-entry-input-srq {
-  /* SRQ(단답형): 더 넓고 명확한 입력칸 */
-  @apply rqti:mx-auto rqti:block rqti:w-full rqti:px-4 rqti:font-medium;
+.qti-ext-text-entry-srq .qti-text-entry__control {
+  width: fit-content;
+  min-width: var(--qti-text-entry-min-box);
+  max-width: 100%;
+  margin-left: auto;
 }
 
 .qti-ext-text-entry-input:disabled {
   cursor: not-allowed;
 }
 
-.qti-ext-text-entry-input:hover:not(:disabled) {
+.qti-ext-text-entry-input-focus,
+.qti-ext-text-entry-input:has(.qti-ext-math-keyboard-shell--open) {
+  border-color: var(--qti-option-border-selected);
+
+  background-color: var(--qti-option-bg-selected);
+}
+
+.qti-ext-text-entry-input:not(
+    :disabled,
+    :focus,
+    .qti-ext-text-entry-input-focus,
+    .qti-ext-text-entry-input-correct,
+    .qti-ext-text-entry-input-incorrect,
+    :has(.qti-ext-math-keyboard-shell--open)
+  ):hover {
   border-color: var(--qti-option-border-hover);
 
   background-color: var(--qti-option-bg-hover);
@@ -1426,26 +1559,16 @@
   background-color: var(--qti-option-bg-selected);
 }
 
-.qti-ext-text-entry-input-focus {
-  border-color: var(--qti-option-border-selected);
-
-  background-color: var(--qti-option-bg-selected);
-}
-
 .qti-ext-text-entry-input-correct {
   border-color: var(--qti-option-border-correct);
 
   background-color: var(--qti-option-bg-correct);
-
-  @apply rqti:text-center rqti:text-lg;
 }
 
 .qti-ext-text-entry-input-incorrect {
   border-color: var(--qti-option-border-incorrect);
 
   background-color: var(--qti-option-bg-incorrect);
-
-  @apply rqti:text-center rqti:text-lg;
 }
 
 /* 수식/세로셈 빈칸은 text-lg 정오답 스타일 제외 (칸 크기 유지) */
@@ -1479,8 +1602,9 @@
   @apply rqti:flex rqti:items-center;
 }
 
+/* 분수 열은 분자·분모 중 긴 칸 너비를 따르고, 두 칸은 그 너비로 늘어난다. 분수선(분자 border-bottom)도 같이 길어진다. */
 .qti-ext-fraction .qti-ext-fraction-frac {
-  @apply rqti:flex rqti:flex-col rqti:items-center;
+  @apply rqti:flex rqti:flex-col rqti:items-stretch;
 }
 
 .qti-ext-fraction .qti-text-entry {
@@ -1488,13 +1612,37 @@
 }
 
 .qti-ext-fraction .qti-text-entry.qti-text-entry--inline {
-  width: calc(var(--qti-text-entry-width) / 3);
+  display: flex;
+
+  justify-content: center;
+
+  width: auto;
+  min-width: 0;
+  max-width: none;
 }
 
-.qti-ext-fraction
-  .qti-text-entry.qti-text-entry--inline
-  .qti-ext-text-entry-input {
+.qti-ext-fraction .qti-text-entry.qti-text-entry--inline .qti-ext-text-entry-input {
+  --qti-text-entry-glyph-width: calc(
+    var(--qti-text-entry-chars, 1) * 1ch + var(--qti-text-entry-pad-x, 1rem) + 2 *
+      var(--qti-option-border-width, 1px)
+  );
+  overflow-x: hidden;
+
+  flex: 1 1 auto;
+
+  width: var(--qti-text-entry-glyph-width);
+  min-width: var(--qti-text-entry-glyph-width);
+  max-width: none;
+  padding-inline: calc(var(--qti-text-entry-pad-x, 1rem) / 2);
+
+  white-space: nowrap;
+
   @apply rqti:text-center;
+}
+
+/* 1ch 칸에는 "답 입력" 플레이스홀더가 잘려 보이므로 숨긴다. */
+.qti-ext-fraction .qti-text-entry.qti-text-entry--inline .qti-ext-text-entry-input::placeholder {
+  color: transparent;
 }
 
 .qti-ext-fraction .qti-ext-fraction-frac .qti-text-entry:first-of-type {
@@ -1502,18 +1650,14 @@
 }
 
 /* 폴백: :has() 미지원 브라우저 */
-.qti-ext-fraction:focus-within
-  .qti-ext-fraction-frac
-  .qti-text-entry:first-of-type {
+.qti-ext-fraction:focus-within .qti-ext-fraction-frac .qti-text-entry:first-of-type {
   border-color: var(--qti-base-text-color);
 }
 
 /* :has() 지원 브라우저에서 덮어쓰기 */
 @supports selector(:has(a)) {
   .qti-ext-fraction .qti-ext-fraction-frac .qti-text-entry:first-of-type,
-  .qti-ext-fraction:focus-within
-    .qti-ext-fraction-frac
-    .qti-text-entry:first-of-type {
+  .qti-ext-fraction:focus-within .qti-ext-fraction-frac .qti-text-entry:first-of-type {
     border-color: var(--qti-option-border);
   }
 
@@ -3719,11 +3863,7 @@
   @apply rqti:space-y-2 rqti:p-2;
 }
 
-/* 컬럼 내부: width 100% 시 .qti-ext-text-entry m-1 가로 마진이 더해져 넘치므로 가로 마진 제거 */
 .qti-ext-column .qti-text-entry--inline {
-  display: block;
-
-  width: 100%;
   min-width: 0;
   max-width: 100%;
   margin-right: 0;
@@ -4210,11 +4350,15 @@
 }
 
 .qti-ext-math-input-blank .qti-ext-input-blank__label {
-  display: inline-block;
+  display: flex;
 
+  justify-content: center;
+  align-items: center;
   grid-area: 1 / 1;
 
   width: max-content;
+
+  line-height: 1;
 }
 
 .qti-ext-math-input-blank .qti-ext-input-blank__field {
@@ -4255,8 +4399,8 @@
 
   background-color: transparent !important;
 
-  /* 분수·근호·mjx-box 포함. 고정 em 오프셋은 문맥마다 어긋남 */
-  vertical-align: -0.85em;
+  /* MathJax가 Rule depth로 valign을 인라인으로 넣는다. 숫자는 기준선 위라 칸 위로 붙음 */
+  vertical-align: -0.5em !important;
 }
 
 .qti-ext-mjx-blank-slot:has(.qti-ext-input-blank--latex-content) {
@@ -4273,6 +4417,12 @@
 .qti-ext-math-input-blank--display
   .qti-ext-mjx-blank-slot:has(.qti-ext-input-blank--latex-content) {
   height: auto;
+}
+
+/* 빈칸 안 \text 조판. MathJax가 mjx-utext에 기준선용 padding을 인라인으로 넣는다. */
+.qti-ext-input-blank mjx-utext,
+.qti-ext-mjx-blank-slot mjx-utext {
+  padding: 0 !important;
 }
 
 /* 빈칸 상자 안 분수·근호만 테두리와 간격을 둔다. 해설/지문 바깥 식은 padding: 0 1px 유지 */
@@ -4294,6 +4444,35 @@
   padding: 4px;
 }
 
+.qti-ext-math-input-blank
+  .qti-ext-input-blank
+  .qti-ext-mathfield:has(mjx-mfrac, mjx-msqrt, mjx-mroot, .mfrac, .sqrt),
+.qti-ext-math-input-blank
+  .qti-ext-input-blank__label
+  .qti-ext-mathfield:has(mjx-mfrac, mjx-msqrt, mjx-mroot, .mfrac, .sqrt) {
+  padding: 0;
+}
+
+.qti-ext-math-input-blank .qti-ext-input-blank .qti-ext-mathfield {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  line-height: 0;
+}
+
+.qti-ext-math-input-blank .qti-ext-input-blank .qti-ext-mathfield mjx-container {
+  display: flex !important;
+
+  justify-content: center;
+  align-items: center;
+
+  margin: 0 !important;
+
+  vertical-align: 0 !important;
+}
+
 /* PCI 슬롯은 빈칸 padding으로 이미 테두리와 떨어진다.
    mathfield 4px는 측정(mjx-math)에 없어서 칸 아래로 넘치고, overflow에 잘리면 분수가 밑변에 붙는다. */
 .qti-ext-mjx-blank-slot
@@ -4303,7 +4482,8 @@
 }
 
 /* 분수·근호 칸은 내용만큼 커진다.
-   overflow가 visible이 아니면 inline-block 기준선이 칸의 밑변이다. */
+   overflow가 visible이 아니면 inline-block 기준선이 칸의 밑변이다.
+   \Rule depth가 0이므로 칸 전체가 기준선 위에 놓이고, -0.85em처럼 아래로 내려가지 않는다. */
 .qti-ext-math-input-blank:not(.qti-ext-math-input-blank--vcq-formula)
   .qti-ext-mjx-blank-slot:has(mjx-mfrac, mjx-msqrt, mjx-mroot) {
   overflow: hidden;
@@ -4889,7 +5069,7 @@
   line-height: 1;
   text-align: center;
 
-  caret-color: currentcolor;
+  caret-color: var(--vcq-ink, #1f2328);
   -webkit-text-fill-color: transparent;
 }
 
@@ -5125,6 +5305,15 @@
   line-height: 1;
 }
 
+.qti-ext-vcq-grid--display
+  .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
+  .qti-ext-input-blank--display
+  .qti-ext-input-blank__label {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+}
+
 .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-col--narrow)
   .qti-ext-input-blank--display
   .qti-ext-mathfield
@@ -5172,10 +5361,19 @@
 .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged):has(
     .qti-ext-math-input-blank--vcq-formula
   ) {
-  overflow: hidden;
+  overflow: visible;
 
   height: auto;
   min-height: calc(var(--vcq-cell) + 2 * var(--vcq-pad));
+}
+
+.qti-ext-vcq-grid--shared-cols
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell--blank:has(.qti-ext-math-blank-formula),
+.qti-ext-vcq-grid--overlay-grid
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell--blank:has(.qti-ext-math-blank-formula) {
+  max-width: none;
 }
 
 .qti-ext-vcq-cell--blank .qti-ext-math-input-blank--vcq-formula {
@@ -5195,7 +5393,18 @@
 }
 
 .qti-ext-vcq-cell--blank .qti-ext-math-input-blank--vcq-formula .qti-ext-mjx-blank-slot {
-  overflow: hidden;
+  overflow: clip;
+
+  vertical-align: middle !important;
+
+  overflow-clip-margin: 1px;
+}
+
+.qti-ext-vcq-cell--blank
+  .qti-ext-math-input-blank--vcq-formula
+  :is(mjx-math, mjx-mstyle, mjx-mrow)
+  > :is(mjx-texatom, mjx-mn, mjx-mi, mjx-mo, mjx-mtext) {
+  vertical-align: middle;
 }
 
 .qti-ext-vcq-cell--blank
@@ -5212,6 +5421,7 @@
   box-sizing: border-box;
   width: auto;
   min-width: 100%;
+  max-width: 100%;
   height: auto;
   min-height: 100%;
   padding: var(--qti-math-blank-pad, 0.2em);
@@ -5340,6 +5550,49 @@
   grid-area: 1 / 1;
 
   width: max-content;
+}
+
+/* VCQ 칸 임베디드 키패드. overlay 상자(z 0, pointer-events none) 위에 흐름으로 놓여 렌더 크기만큼 셀을 키운다.
+   단독형은 intrinsic 폭 측정 대상 안(grid-area 1/1)에 두어 같은 열이 같이 넓어진다. */
+.qti-ext-vcq-grid
+  .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
+  .qti-ext-math-blank-inline--vcq-standalone
+  > .qti-ext-math-keyboard--embedded {
+  position: relative;
+  z-index: 1;
+
+  grid-area: 1 / 1;
+
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
+  .qti-ext-math-blank-inline--keypad:not(.qti-ext-math-blank-inline--vcq-standalone)
+  > .qti-ext-math-keyboard--embedded {
+  position: relative;
+  z-index: 1;
+
+  flex: 1 1 auto;
+  align-self: stretch;
+
+  width: auto;
+  min-width: max-content;
+  height: auto;
+}
+
+.qti-ext-vcq-row--carry .qti-ext-math-keyboard--embedded,
+.qti-ext-vcq-cell--carry .qti-ext-math-keyboard--embedded {
+  font-size: 0.75em;
+}
+
+/* 슬롯 칸은 justify-content:center라 auto 트랙이 내용(0)으로 줄어든다. 1fr로 키패드가 칸을 채우게 한다. */
+.qti-ext-math-blank-field--keypad {
+  grid-template-columns: minmax(0, 1fr);
+
+  cursor: pointer;
 }
 
 /* narrow 상자: 정사각, 점 잉크 중심에 맞춤 (점은 셀 자리 유지) */
@@ -5695,23 +5948,19 @@
   white-space: normal;
 }
 
-.qti-ext-vcq-merged-fallback-sizer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 0;
+/* 병합 칸 키패드: 열마다 나눈 글자(slots)가 보일 때는 칸 안의 수식 렌더를 숨긴다. fallback은 렌더를 보여준다. */
+.qti-ext-math-input-blank .qti-ext-vcq-merged-input--keypad {
+  display: grid;
 
+  place-items: center stretch;
+  grid-template-columns: minmax(0, 1fr);
+
+  cursor: pointer;
+}
+
+.qti-ext-vcq-merged-input--keypad:not(.qti-ext-vcq-merged-input--fallback)
+  .qti-ext-math-keyboard-mathjax {
   visibility: hidden;
-  overflow: visible;
-
-  width: max-content;
-  height: auto;
-
-  font: inherit;
-  line-height: inherit;
-  white-space: pre;
-
-  pointer-events: none;
 }
 
 .qti-ext-vcq-cell--merged .qti-ext-vcq-merged-input.qti-ext-vcq-merged-input--fallback {
@@ -6255,6 +6504,25 @@ p:has(.qti-ext-image-input-blank) {
 
 .qti-ext-image-input-blank__field:focus-within > .qti-ext-image-input-blank__pencil {
   visibility: hidden;
+}
+
+/* 수식 정답인 텍스트 칸의 임베디드 키패드. 영역은 저작 좌표 그대로이고, 넘치는 식은 영역 안에서 잘린다. */
+.qti-ext-image-input-blank__field--keypad {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+}
+
+/* stylelint-disable-next-line no-descending-specificity -- VCQ 칸 전용 규칙과 범위가 겹치지 않는 이미지 영역 규칙 */
+.qti-ext-image-input-blank__field--keypad > .qti-ext-math-keyboard--embedded {
+  position: absolute;
+  inset: 0;
+
+  width: auto;
+  height: auto;
+
+  cursor: pointer;
 }
 
 /* 수식 값은 입력칸 대신 렌더한 수식을 같은 상자에 넣는다. 칸 크기는 저작 좌표 그대로다. */

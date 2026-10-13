@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./assets/styles/index.css";
 import { FixedScaleContainer } from "./components/FixedScaleContainer";
 import { PassageLayout } from "./components/PassageLayout";
@@ -130,6 +130,30 @@ export interface QuestionProps {
   annotationOverlay?: React.ReactNode;
 }
 
+function textEntryResponseIds(xml: string | undefined): string[] {
+  if (!xml) return [];
+  return [
+    ...xml.matchAll(/<qti-text-entry-interaction\b[^>]*\bresponse-identifier="([^"]+)"/g),
+  ].map((match) => match[1]);
+}
+
+function responsesForQuestionParse(
+  source: ResponseValueMap,
+  ids: readonly string[],
+  baseline: ResponseValueMap | undefined
+): ResponseValueMap {
+  if (ids.length === 0) return source;
+  const next: ResponseValueMap = { ...source };
+  for (const id of ids) {
+    if (baseline && Object.prototype.hasOwnProperty.call(baseline, id)) {
+      next[id] = baseline[id];
+    } else {
+      delete next[id];
+    }
+  }
+  return next;
+}
+
 function Question({
   data,
   type,
@@ -195,14 +219,19 @@ function Question({
     if (responsesProp !== undefined) setResponses(responsesProp);
   }, [responsesProp]);
 
-  const handleResponseChange = (identifier: string, value: ResponseValue) => {
-    const newResponses = {
-      ...responses,
-      [identifier]: value,
-    } as ResponseValueMap;
-    setResponses(newResponses);
-    onResponse?.(newResponses);
-  };
+  const skipResponseNotifyRef = useRef(true);
+
+  const handleResponseChange = useCallback((identifier: string, value: ResponseValue) => {
+    setResponses((prev) => ({ ...prev, [identifier]: value }) as ResponseValueMap);
+  }, []);
+
+  useEffect(() => {
+    if (skipResponseNotifyRef.current) {
+      skipResponseNotifyRef.current = false;
+      return;
+    }
+    onResponse?.(responses);
+  }, [responses, onResponse]);
 
   const handleSubmit = useCallback(() => {
     const submitted =
@@ -291,21 +320,51 @@ function Question({
   const inlineCorrectAnswer =
     correctAnswers ?? effectiveSubmitResponse?.correctAnswer;
 
-  const parserOptions: QTIParserOptions = {
-    token,
-    baseUrl,
-    questionType: type,
-    placeholder,
-    theme,
-    mode,
-    correct,
-    submitResponse: effectiveSubmitResponse,
-    responses: responsesProp ?? responses,
-    correctAnswers: correctAnswers ?? effectiveSubmitResponse?.correctAnswer,
-    isSubmit: internalIsSubmit,
-    itemKey: itemKeyProp,
-    onResponseChange: mode === "practice" ? handleResponseChange : undefined,
-  };
+  const textEntryIds = useMemo(() => textEntryResponseIds(data), [data]);
+  const responsesForParseKey = JSON.stringify(
+    internalIsSubmit
+      ? responses
+      : responsesForQuestionParse(responsesProp ?? responses, textEntryIds, responsesProp)
+  );
+  const responsesForParse = useMemo(
+    () =>
+      internalIsSubmit
+        ? responses
+        : responsesForQuestionParse(responsesProp ?? responses, textEntryIds, responsesProp),
+    [responsesForParseKey, internalIsSubmit, textEntryIds, responsesProp]
+  );
+  const parserOptions = useMemo<QTIParserOptions>(
+    () => ({
+      token,
+      baseUrl,
+      questionType: type,
+      placeholder,
+      theme,
+      mode,
+      correct,
+      submitResponse: effectiveSubmitResponse,
+      responses: responsesForParse,
+      correctAnswers: correctAnswers ?? effectiveSubmitResponse?.correctAnswer,
+      isSubmit: internalIsSubmit,
+      itemKey: itemKeyProp,
+      onResponseChange: mode === "practice" ? handleResponseChange : undefined,
+    }),
+    [
+      token,
+      baseUrl,
+      type,
+      placeholder,
+      theme,
+      mode,
+      correct,
+      effectiveSubmitResponse,
+      responsesForParse,
+      correctAnswers,
+      internalIsSubmit,
+      itemKeyProp,
+      handleResponseChange,
+    ]
+  );
 
   // 문항 번호: questionNumberConfig가 있을 때만 표시
   const qnConfig = theme?.questionNumberConfig;
@@ -337,7 +396,10 @@ function Question({
   const correctIconUrl = theme?.feedbackConfig?.common?.correctIconUrl;
   const incorrectIconUrl = theme?.feedbackConfig?.common?.incorrectIconUrl;
 
-  const parsedContent = data ? parseQTIToReact(data, parserOptions) : null;
+  const parsedContent = useMemo(
+    () => (data ? parseQTIToReact(data, parserOptions) : null),
+    [data, parserOptions]
+  );
 
   const renderFeedbackBadge = () => (
     <span className="qti-ext-feedback-badge" aria-hidden>

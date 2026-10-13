@@ -1,9 +1,18 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import {
+  type PointerEvent as ReactPointerEvent,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import clsx from "clsx";
+import { Pencil } from "lucide-react";
+import { MathKeyboard, type MathKeyboardContentSize, type MathLevel } from "../../math-keyboard";
 import { renderLaTeX } from "../../parser/parseLatexToReact";
 import { isVcqFlowMerge } from "../../parser/vcqDomProps";
 import { markerSlotWidthEm } from "./mathBlankLatex";
-import { measureDisplayContent, readBoxExtras } from "./slotMeasure";
+import { measureDisplayContent, measureTextContentWidth, readBoxExtras } from "./slotMeasure";
 import { type BlankVariant, getBlankVariantClass } from "./utils";
 import { alignMergedColumnContent } from "./vcqMergedAlign";
 
@@ -20,6 +29,9 @@ type MergedBlankSlotProps = {
   onChange: (id: string, value: string) => void;
   stateClassName?: string;
   displayVariant?: BlankVariant;
+  /** 키패드 최근 기호 저장 범위. 보통 문항 키. */
+  historyScope?: string;
+  level?: MathLevel | null;
 };
 
 function applyMergedFallbackWidth(box: HTMLElement, contentW: number, flowMinWidth?: string) {
@@ -49,9 +61,12 @@ export function MergedBlankSlot({
   onChange,
   stateClassName,
   displayVariant = "blank-box",
+  historyScope,
+  level,
 }: MergedBlankSlotProps) {
-  const sizerRef = useRef<HTMLSpanElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const useKeypad = level === "middle" || level === "high";
+  const showPencil = !displayOnly && !isReadOnly && value === "";
+  const inputRef = useRef<HTMLSpanElement>(null);
   const displayRef = useRef<HTMLSpanElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
   const text = displayOnly ? (displayLabel ?? "") : value;
@@ -59,6 +74,11 @@ export function MergedBlankSlot({
   const slots = alignMergedColumnContent(text, contextElement, mergedColSpan, alignClass);
   const isFallback = !slots;
   const flowMinWidth = flowMerge ? markerSlotWidthEm(widthCh) : undefined;
+  /** 임베디드 키패드가 알린 렌더 너비. 열에 못 나누는 값(fallback)일 때 칸 너비로 쓴다. */
+  const [inputContentWidth, setInputContentWidth] = useState(0);
+  const handleInputContentSize = useCallback((size: MathKeyboardContentSize) => {
+    setInputContentWidth((prev) => (prev === size.width ? prev : size.width));
+  }, []);
 
   useLayoutEffect(() => {
     const input = inputRef.current;
@@ -68,8 +88,14 @@ export function MergedBlankSlot({
       input.style.minWidth = "";
       return;
     }
-    applyMergedFallbackWidth(input, sizerRef.current?.scrollWidth ?? 0, flowMinWidth);
-  }, [displayOnly, flowMinWidth, isFallback, isReadOnly, value]);
+    const field = useKeypad ? null : input.querySelector<HTMLInputElement>("input");
+    const contentWidth = useKeypad
+      ? value === ""
+        ? 0
+        : inputContentWidth
+      : measureTextContentWidth(field, value);
+    applyMergedFallbackWidth(input, contentWidth, flowMinWidth);
+  }, [displayOnly, flowMinWidth, inputContentWidth, isFallback, isReadOnly, useKeypad, value]);
 
   useEffect(() => {
     if (displayOnly || !isReadOnly) return;
@@ -167,28 +193,53 @@ export function MergedBlankSlot({
           ) : null}
         </span>
       ) : (
-        <>
-          {isFallback && (
-            <span ref={sizerRef} className="qti-ext-vcq-merged-fallback-sizer" aria-hidden="true">
-              {value || "\u00a0"}
-            </span>
+        <span
+          ref={inputRef}
+          className={clsx(
+            "qti-ext-input-blank qti-ext-text-entry-input qti-ext-vcq-merged-input",
+            useKeypad && "qti-ext-vcq-merged-input--keypad",
+            isFallback && "qti-ext-vcq-merged-input--fallback",
+            stateClassName,
+            isFallback && alignClass
           )}
-          <input
-            ref={inputRef}
-            className={clsx(
-              "qti-ext-input-blank qti-ext-text-entry-input qti-ext-vcq-merged-input",
-              isFallback && "qti-ext-vcq-merged-input--fallback",
-              stateClassName,
-              isFallback && alignClass
-            )}
-            type="text"
-            size={1}
-            value={value}
-            data-response-identifier={id}
-            aria-label={`${id} 입력`}
-            onChange={(e) => onChange(id, e.target.value)}
-          />
-        </>
+          data-response-identifier={id}
+          onPointerDown={
+            useKeypad
+              ? (event: ReactPointerEvent<HTMLSpanElement>) => {
+                  if (event.button !== 0) return;
+                  const valueEl = inputRef.current?.querySelector<HTMLElement>(
+                    ".qti-ext-math-keyboard-value"
+                  );
+                  if (!valueEl || valueEl.contains(event.target as Node)) return;
+                  event.preventDefault();
+                  valueEl.click();
+                }
+              : undefined
+          }
+        >
+          {useKeypad ? (
+            <MathKeyboard
+              embedded
+              value={value}
+              onChange={(latex) => onChange(id, latex)}
+              level={level}
+              historyScope={historyScope}
+              onContentSize={handleInputContentSize}
+              ariaLabel={`${id} 입력`}
+            />
+          ) : (
+            <input
+              className="qti-ext-input-blank__field"
+              type="text"
+              size={1}
+              value={value}
+              data-response-identifier={id}
+              aria-label={`${id} 입력`}
+              onChange={(event) => onChange(id, event.target.value)}
+            />
+          )}
+          {showPencil ? <Pencil className="qti-ext-text-entry-pencil" aria-hidden="true" /> : null}
+        </span>
       )}
     </>
   );

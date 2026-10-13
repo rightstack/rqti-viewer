@@ -1,14 +1,18 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { ITEM_TYPE } from "../../constants/itemType";
+import { cn } from "../../lib/utils";
+import { MathKeyboard } from "../../math-keyboard";
+import { renderLaTeX } from "../../parser";
 import type {
   FeedbackSubmitResponse,
   QTIParserOptions,
   ResponseValue,
   ResponseValueMap,
 } from "../../types";
+import { isMathLatexAnswer, isMathResponseId, resolveMathKeyboardLevel } from "../../utils";
 import { TextEntryInput } from "./components";
+import { isFractionPartId, resolveTextEntryMaxLength } from "./utils";
 
-/** API/맵에 문자열 또는 string[]로 올 수 있는 응답에서 표시용 문자열 추출 */
 function getTextEntryResponseString(
   map: ResponseValueMap | undefined,
   id: string,
@@ -47,10 +51,8 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
   const responseIdentifier = element.getAttribute("response-identifier") || "";
   const patternMask = element.getAttribute("pattern-mask");
   const placeholderText = element.getAttribute("placeholder-text");
-  const expectedLengthAttr = element.getAttribute("expected-length");
-  const maxLengthAttr = element.getAttribute("maxlength");
+  const maxLengthAttr = element.getAttribute("maxlength") || element.getAttribute("max-length");
 
-  // pattern-mask 속성 처리
   const getPattern = (mask: string | null): string | undefined => {
     if (!mask) return undefined;
     if (mask in PATTERNS) {
@@ -60,18 +62,27 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
   };
 
   const pattern = getPattern(patternMask);
-  const expectedLength = expectedLengthAttr ? Number.parseInt(expectedLengthAttr, 10) : undefined;
-  const maxLength = maxLengthAttr ? Number.parseInt(maxLengthAttr, 10) : undefined;
+  const parsedMaxLength = maxLengthAttr ? Number.parseInt(maxLengthAttr, 10) : undefined;
+  const maxLength = resolveTextEntryMaxLength(
+    Number.isFinite(parsedMaxLength) ? parsedMaxLength : undefined
+  );
 
   const isPreview = options.mode === "preview";
-  const isReadOnly = options.mode !== "practice";
-  const isThumbnail = options.mode === "thumbnail";
+  const mathKeyboardLevel = resolveMathKeyboardLevel(element);
+  const mode = options.mode as string | undefined;
+  const isReadOnly = mode === "preview" || mode === "paper" || mode === "thumbnail";
 
   const initialValue = useMemo(
-    () => getTextEntryResponseString(options.responses, responseIdentifier, ""),
+    () =>
+      getTextEntryResponseString(options.responses, responseIdentifier, "").replace(/[\r\n]/g, ""),
     [options.responses, responseIdentifier]
   );
-  const [value, setValue] = useState<string>("");
+  const [value, setValue] = useState(initialValue);
+  const [seenInitial, setSeenInitial] = useState(initialValue);
+  if (initialValue !== seenInitial) {
+    setSeenInitial(initialValue);
+    setValue(initialValue);
+  }
 
   const effectiveSubmitResponse = useMemo((): FeedbackSubmitResponse | undefined => {
     if (isPreview) {
@@ -92,40 +103,63 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
 
   const isSRQ = options.questionType === ITEM_TYPE.SRQ;
   const isCLOZE = options.questionType === ITEM_TYPE.CLOZE;
-  const layout = isSRQ ? "rqti:block" : "rqti:inline";
-
-  /**
-   * CLOZE 타입은 input 영역 피드백 로직 미적용
-   * 무순일 때 정오답여부만 확인 가능한데 오답일 때 일괄 오답처럼 input 스타일이 적용되는 문제가 있음
-   */
+  const layout = isSRQ ? "block" : "inline";
 
   const isCorrect = useMemo(() => {
-    // if (isCLOZE) return undefined;
-
     const sr = effectiveSubmitResponse;
     if (!sr) return undefined;
-
     return sr.correct;
-  }, [effectiveSubmitResponse, options.responses, responseIdentifier, value]);
+  }, [effectiveSubmitResponse]);
 
-  const defaultPlaceholder = isThumbnail
-    ? ""
-    : placeholderText || (isSRQ ? "답을 입력하세요" : "답 입력");
-
-  // SRQ 타입은 최대 50자로 제한
+  const placeholder = placeholderText || undefined;
 
   const handleAnswerChange = (id: string, val: string) => {
-    if (isSRQ && val.length > 50) {
-      return;
-    }
-
     setValue(val);
     options.onResponseChange?.(id, val);
   };
 
-  useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
+  if (mathKeyboardLevel && !isFractionPartId(responseIdentifier)) {
+    const variant = isSRQ ? "srq" : isCLOZE ? "cloze" : "default";
+    return (
+      <span
+        className={cn(
+          "qti-ext-text-entry",
+          "qti-text-entry",
+          variant !== "srq" && "qti-text-entry--inline",
+          "qti-ext-text-entry-math",
+          isCLOZE && "qti-ext-text-entry-cloze",
+          isSRQ && "qti-ext-text-entry-srq",
+          isReadOnly && "rqti:pointer-events-none"
+        )}
+      >
+        <MathKeyboard
+          key={`math-${responseIdentifier}-${index}`}
+          value={value}
+          onChange={(latex) => {
+            setValue(latex);
+            options.onResponseChange?.(responseIdentifier, latex);
+          }}
+          readOnly={isReadOnly}
+          level={mathKeyboardLevel}
+          historyScope={options.itemKey}
+          isCorrect={isCorrect}
+          isSubmit={options.isSubmit}
+          variant={variant}
+          placeholder={placeholder}
+          maxLength={maxLength}
+        />
+      </span>
+    );
+  }
+
+  const content =
+    (isPreview || options.isSubmit) &&
+    value.trim() !== "" &&
+    (isMathLatexAnswer(value) || isMathResponseId(responseIdentifier)) ? (
+      <span className="qti-ext-mathfield">
+        {renderLaTeX(value, `text-entry-${responseIdentifier}`, false)}
+      </span>
+    ) : undefined;
 
   return (
     <TextEntryInput
@@ -133,18 +167,16 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
       inputId={responseIdentifier}
       index={index}
       value={value}
-      showCorrectAnswer={false}
+      content={content}
       isSubmit={options.isSubmit}
       isPreview={isReadOnly}
       isCorrect={isCorrect}
       onAnswerChange={handleAnswerChange}
       pattern={pattern}
-      placeholder={defaultPlaceholder}
-      expectedLength={Number.isFinite(expectedLength) ? expectedLength : undefined}
+      placeholder={placeholder}
       layout={layout}
-      maxLength={Number.isFinite(maxLength) ? maxLength : undefined}
+      maxLength={maxLength}
       ariaLabel={`${responseIdentifier} 입력`}
-      // showCharacterCounter={layout === "rqti:block" && Number.isFinite(effectiveMaxLength)}
       variant={isSRQ ? "srq" : isCLOZE ? "cloze" : "default"}
     />
   );

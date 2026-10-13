@@ -1,9 +1,19 @@
 import clsx from "clsx";
 import { Pencil } from "lucide-react";
+import { stripOuterMathDelimiters } from "../../utils/latex";
+import { MathKeyboard, type MathLevel } from "../../math-keyboard";
 import { renderLaTeX } from "../../parser/parseLatexToReact";
 import { isMathLatexAnswer } from "../../utils";
 import { buildFractionLatexFromParts } from "../../utils/choiceAnswerDisplayFromQti";
-import { IMAGE_BLANK_INPUT_MAX_LENGTH, type ImageBlankRegion } from "./utils";
+import { type ImageBlankRegion } from "./utils";
+
+const DOLLAR_WRAPPED_RE = /^\$\$[\s\S]*\$\$$/;
+
+/** 정답이 `$$...$$`이면 저장값도 같은 형태로 감싼다. 빈 값은 빈 문자열. */
+function wrapLikeAnswer(latex: string, correctAnswer: string): string {
+  if (latex.trim() === "") return "";
+  return DOLLAR_WRAPPED_RE.test(correctAnswer.trim()) ? `$$${latex}$$` : latex;
+}
 
 interface ImageBlankInputProps {
   responseIdentifier: string;
@@ -16,6 +26,10 @@ interface ImageBlankInputProps {
   readOnly: boolean;
   /** 값을 보여주기만 하는 화면(미리보기·채점)인지 */
   showMath: boolean;
+  /** 이 칸의 정답 문자열. `$$...$$` 정답이면 저장값도 같은 형태로 감싼다. */
+  correctAnswer?: string;
+  historyScope?: string;
+  mathKeyboardLevel?: MathLevel | null;
   onChange: (responseIdentifier: string, value: string) => void;
 }
 
@@ -32,6 +46,9 @@ function ImageBlankInput({
   stateClassName,
   readOnly,
   showMath,
+  correctAnswer,
+  historyScope,
+  mathKeyboardLevel,
   onChange,
 }: ImageBlankInputProps) {
   // 수식은 `$$...$$`로 감싸여 들어온다. renderLaTeX가 바깥 구분자를 벗긴다.
@@ -54,6 +71,36 @@ function ImageBlankInput({
 
   const showPencil = !readOnly && value === "";
 
+  // 텍스트 칸은 CLOZE와 같이 수식 키패드. 분수·대분수 파트(numeric)는 일반 입력.
+  // 영역 크기는 저작 좌표 그대로다. 넘치는 내용은 영역(overflow: hidden) 안에서 잘린다.
+  if (!numeric && mathKeyboardLevel) {
+    return (
+      <span
+        className={clsx(
+          "qti-ext-image-input-blank__field",
+          "qti-ext-image-input-blank__field--keypad",
+          partClassName
+        )}
+        data-response-identifier={responseIdentifier}
+      >
+        <MathKeyboard
+          embedded
+          value={stripOuterMathDelimiters(value)}
+          onChange={(latex) =>
+            onChange(responseIdentifier, wrapLikeAnswer(latex, correctAnswer ?? ""))
+          }
+          readOnly={readOnly}
+          level={mathKeyboardLevel}
+          historyScope={historyScope}
+          ariaLabel={label}
+        />
+        {showPencil ? (
+          <Pencil className="qti-ext-image-input-blank__pencil" aria-hidden="true" />
+        ) : null}
+      </span>
+    );
+  }
+
   return (
     <span className={clsx("qti-ext-image-input-blank__field", partClassName)}>
       <input
@@ -63,7 +110,6 @@ function ImageBlankInput({
         data-response-identifier={responseIdentifier}
         aria-label={label}
         value={value}
-        maxLength={IMAGE_BLANK_INPUT_MAX_LENGTH}
         readOnly={readOnly}
         onChange={(event) => onChange(responseIdentifier, event.target.value)}
       />
@@ -84,6 +130,10 @@ interface ImageBlankRegionContentProps {
   showFractionAsLatex: boolean;
   valueOf: (responseIdentifier: string) => string;
   stateClassOf: (responseIdentifier: string) => string;
+  /** 칸의 정답 문자열. `$$...$$` 정답이면 저장값도 같은 형태로 감싼다. */
+  correctAnswerOf?: (responseIdentifier: string) => string;
+  historyScope?: string;
+  mathKeyboardLevel?: MathLevel | null;
   onChange: (responseIdentifier: string, value: string) => void;
 }
 
@@ -163,6 +213,9 @@ export function ImageBlankRegionContent({
   showFractionAsLatex,
   valueOf,
   stateClassOf,
+  correctAnswerOf,
+  historyScope,
+  mathKeyboardLevel,
   onChange,
 }: ImageBlankRegionContentProps) {
   const shared = { displayIndex, readOnly, showMath, valueOf, stateClassOf, onChange };
@@ -195,6 +248,9 @@ export function ImageBlankRegionContent({
         stateClassName={stateClassOf(region.responseIdentifier)}
         readOnly={readOnly}
         showMath={showMath}
+        correctAnswer={correctAnswerOf?.(region.responseIdentifier)}
+        historyScope={historyScope}
+        mathKeyboardLevel={mathKeyboardLevel}
         onChange={onChange}
       />
     );

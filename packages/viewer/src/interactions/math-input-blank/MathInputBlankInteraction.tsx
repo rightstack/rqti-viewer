@@ -8,10 +8,12 @@ import {
   useState,
 } from "react";
 import clsx from "clsx";
+import { Pencil } from "lucide-react";
+import { MathKeyboard } from "../../math-keyboard";
 import { renderLaTeX } from "../../parser/parseLatexToReact";
 import { isVcqFlowMerge } from "../../parser/vcqDomProps";
 import type { QTIParserOptions, ResponseValue, ResponseValueMap } from "../../types";
-import { isMathLatexAnswer } from "../../utils";
+import { isMathLatexAnswer, resolveMathKeyboardLevel } from "../../utils";
 import { FormulaSlotInput, FormulaSlotLatexDisplay } from "./FormulaSlotInput";
 import { MathBlankFormula } from "./MathBlankFormula";
 import { MergedBlankSlot } from "./MergedBlankSlot";
@@ -130,7 +132,21 @@ function cellContentWidth(cell: HTMLElement, content: HTMLElement): number {
   const style = getComputedStyle(cell);
   const padding =
     (Number.parseFloat(style.paddingLeft) || 0) + (Number.parseFloat(style.paddingRight) || 0);
-  return Math.ceil(content.getBoundingClientRect().width + padding);
+  const math = content.querySelector<HTMLElement>("mjx-math");
+  if (math) {
+    const box = math.getBoundingClientRect();
+    let left = box.left;
+    let right = box.right;
+    content
+      .querySelectorAll<HTMLElement>(".qti-ext-mjx-blank-slot, .qti-ext-input-blank")
+      .forEach((slot) => {
+        const rect = slot.getBoundingClientRect();
+        left = Math.min(left, rect.left);
+        right = Math.max(right, rect.right);
+      });
+    return Math.ceil(Math.max(0, right - left) + padding);
+  }
+  return Math.ceil((content.scrollWidth || content.getBoundingClientRect().width) + padding);
 }
 
 /** 빈칸이 없는 일반 셀의 수식도 같은 열 폭에 넣는다. 빈칸만 재면 짧은 빈칸 폭으로 열이 줄고 수식이 칸 밖으로 넘친다. */
@@ -223,35 +239,43 @@ function useVcqIntrinsicColumn(
     const releasePlainMathWatch = retainPlainMathColumnWatch(grid);
 
     let active = true;
-    const measure = () => {
+    const measure = (allowShrink = !cell.contains(document.activeElement)) => {
       if (!active) return;
       const content =
         root.querySelector<HTMLElement>(
           ".qti-ext-math-blank-inline--vcq-standalone, .qti-ext-math-blank-formula"
         ) ?? root;
       const width = cellContentWidth(cell, content);
-      if (width > 0 && cell.dataset.vcqIntrinsicWidth !== String(width)) {
-        cell.dataset.vcqIntrinsicColumn = String(column);
-        cell.dataset.vcqIntrinsicWidth = String(width);
-        recomputeVcqColumnWidth(grid, column);
-      }
+      if (width <= 0) return;
+      const prev = Number.parseFloat(cell.dataset.vcqIntrinsicWidth ?? "0") || 0;
+      const next = allowShrink ? width : Math.max(prev, width);
+      if (cell.dataset.vcqIntrinsicWidth === String(next)) return;
+      cell.dataset.vcqIntrinsicColumn = String(column);
+      cell.dataset.vcqIntrinsicWidth = String(next);
+      recomputeVcqColumnWidth(grid, column);
     };
 
-    const resizeObserver = new ResizeObserver(measure);
+    const onFocusOut = (event: FocusEvent) => {
+      const from = event.target;
+      if (!(from instanceof Node) || !cell.contains(from)) return;
+      if (cell.contains(event.relatedTarget as Node)) return;
+      window.requestAnimationFrame(() => measure(true));
+    };
+
+    const resizeObserver = new ResizeObserver(() => measure());
     resizeObserver.observe(
       root.querySelector<HTMLElement>(
         ".qti-ext-math-blank-inline--vcq-standalone, .qti-ext-math-blank-formula"
       ) ?? root
     );
-    const mutationObserver = new MutationObserver(measure);
-    mutationObserver.observe(root, { childList: true, subtree: true, characterData: true });
-    document.fonts?.ready.then(measure).catch(() => undefined);
-    measure();
+    document.addEventListener("focusout", onFocusOut, true);
+    document.fonts?.ready.then(() => measure(true)).catch(() => undefined);
+    measure(true);
 
     return () => {
       active = false;
       resizeObserver.disconnect();
-      mutationObserver.disconnect();
+      document.removeEventListener("focusout", onFocusOut, true);
       releasePlainMathWatch();
       delete cell.dataset.vcqIntrinsicColumn;
       delete cell.dataset.vcqIntrinsicWidth;
@@ -343,8 +367,13 @@ function MathInputBlankView({
 
   const isPreview = options.mode === "preview";
   const isThumbnail = options.mode === "thumbnail";
-  const isReadOnly = displayOnly || isPreview || isThumbnail;
+  const isReadOnly =
+    displayOnly ||
+    isPreview ||
+    isThumbnail ||
+    (options.mode as string | undefined) === "paper";
   const isMathContext = isMathResponseId(responseId ?? "") || inVcqBlankCell || mergedColSpan >= 2;
+  const mathKeyboardLevel = resolveMathKeyboardLevel(contextElement);
 
   const answerSource = useMemo(
     () =>
@@ -365,20 +394,26 @@ function MathInputBlankView({
     [blankIds, displayLabels, displayOnly]
   );
 
-  /**
-   * 조판된 칸 크기를 실측해 Rule에 되돌린다. LaTeX 원문 길이는 화면 폭과 다르다.
-   * 값마다 한 번만 받는다. Rule을 바꾸면 재조판·재측정이 도는데 지수·분수 안에서는
-   * em 기준 글자 크기가 미세하게 달라져 값이 계속 흔들린다.
-   */
-  const measureSlots = isReadOnly && formulaContext;
+  const measureSlots = formulaContext && isReadOnly;
+  const holdUntilMeasured = isReadOnly && formulaContext;
   const [slotContentEm, setSlotContentEm] = useState<
     Record<string, { value: string; em: SlotContentEm }>
   >({});
 
   const handleSlotContentEm = (id: string, value: string, em: SlotContentEm) => {
-    setSlotContentEm((prev) =>
-      prev[id]?.value === value ? prev : { ...prev, [id]: { value, em } }
-    );
+    setSlotContentEm((prev) => {
+      const prevSlot = prev[id];
+      if (prevSlot?.value === value) return prev;
+      if (!value && prevSlot === undefined) return prev;
+      if (
+        prevSlot &&
+        Math.abs(prevSlot.em.widthEm - em.widthEm) < 0.01 &&
+        Math.abs(prevSlot.em.heightEm - em.heightEm) < 0.01
+      ) {
+        return { ...prev, [id]: { value, em: prevSlot.em } };
+      }
+      return { ...prev, [id]: { value, em } };
+    });
   };
 
   const slotRuleEm = useMemo(() => {
@@ -389,7 +424,7 @@ function MathInputBlankView({
 
   /** 실측이 덜 온 칸이 있으면 조판을 감춘다. 첫 조판은 Rule이 글자 수 기준이라 틀린 폭이다. */
   const awaitingMeasure =
-    Boolean(measureSlots) &&
+    holdUntilMeasured &&
     !displayOnly &&
     blankIds.some((id) => slotContentEm[id]?.value !== getResponseString(answerSource, id));
 
@@ -412,7 +447,7 @@ function MathInputBlankView({
     const hasCorrect = !!correctMap && Object.prototype.hasOwnProperty.call(correctMap, id);
     return getInputBlankStateClass({
       value: getResponseString(answerSource, id),
-      isSubmit: isThumbnail ? false : options.isSubmit,
+      isSubmit: options.isSubmit,
       correctAnswer: hasCorrect ? getResponseString(correctMap, id) : undefined,
       answerKey: options.answerKeyPreview === true,
       allowEmptySelected: isPreview && !options.answerKeyPreview && inVcqBlankCell,
@@ -434,7 +469,7 @@ function MathInputBlankView({
             fillSlot={!label || fillDisplaySlot}
             fitFormulaHost={useVcqFormulaFlow}
           >
-            {label ? renderLabelContent(label, `label-${id}`, id, treatAsMath) : null}
+            {label ? renderLabelContent(label, `label-${id}`, id, false) : null}
           </FormulaSlotLatexDisplay>
         </span>
       );
@@ -465,10 +500,12 @@ function MathInputBlankView({
           value={value}
           widthCh={widthCh}
           readOnly={isReadOnly}
-          alignClass={alignClass}
           onChange={handleChange}
           stateClassName={stateClass}
           fitFormulaHost={useVcqFormulaFlow}
+          historyScope={options.itemKey}
+          level={mathKeyboardLevel}
+          onContentEm={measureSlots ? (em) => handleSlotContentEm(id, value, em) : undefined}
         />
       </span>
     );
@@ -494,6 +531,8 @@ function MathInputBlankView({
           onChange={handleChange}
           stateClassName={stateClass}
           displayVariant={slotVariant}
+          historyScope={options.itemKey}
+          level={mathKeyboardLevel}
         />
       );
     }
@@ -505,27 +544,49 @@ function MathInputBlankView({
         isReadOnly ? displayVariantClass : "qti-ext-text-entry-input",
         stateClass
       );
+      // 좁은 칸(소수점 자리)은 글자 하나라 일반 입력을 둔다. 그 외 VCQ 칸은 임베디드 키패드.
+      // 키패드 칸은 셀 안에 흐름으로 놓여 렌더 크기만큼 셀을 키우고, 열 폭(useVcqIntrinsicColumn)에 반영된다.
+      const useKeypad = !isReadOnly && !inVcqNarrowCell && mathKeyboardLevel !== null;
+      const showPencil = !isReadOnly && value === "";
 
       return (
         <span
           key={key}
           className={clsx(
             "qti-ext-math-blank-inline",
-            useVcqStandaloneFlow && "qti-ext-math-blank-inline--vcq-standalone"
+            useVcqStandaloneFlow && "qti-ext-math-blank-inline--vcq-standalone",
+            useKeypad && "qti-ext-math-blank-inline--keypad"
           )}
         >
-          <span className={overlayClass} aria-hidden="true" />
-          {value ? renderCellText(value, `vcq-text-${id}`, id, true) : null}
-          {!isReadOnly && (
-            <input
-              className={clsx("qti-ext-input-blank__field", alignClass)}
-              type="text"
-              size={1}
+          <span className={overlayClass} aria-hidden="true">
+            {showPencil ? (
+              <Pencil className="qti-ext-text-entry-pencil" aria-hidden="true" />
+            ) : null}
+          </span>
+          {useKeypad ? (
+            <MathKeyboard
+              embedded
               value={value}
-              data-response-identifier={id}
-              aria-label={`${id} 입력`}
-              onChange={(e) => handleChange(id, e.target.value)}
+              onChange={(next) => handleChange(id, next)}
+              level={mathKeyboardLevel}
+              historyScope={options.itemKey}
+              ariaLabel={`${id} 입력`}
             />
+          ) : (
+            <>
+              {value ? renderCellText(value, `vcq-text-${id}`, id, true) : null}
+              {!isReadOnly && (
+                <input
+                  className="qti-ext-input-blank__field"
+                  type="text"
+                  size={1}
+                  value={value}
+                  data-response-identifier={id}
+                  aria-label={`${id} 입력`}
+                  onChange={(e) => handleChange(id, e.target.value)}
+                />
+              )}
+            </>
           )}
         </span>
       );

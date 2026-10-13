@@ -1,0 +1,985 @@
+.qti-ext-math-keyboard {
+  display: inline-flex;
+
+  align-items: center;
+
+  width: fit-content;
+  max-width: 100%;
+
+  /* 문장 안에서는 박스 중심에 맞춘다. baseline이면 빈 칸/수식 조판의 기준선이 달라 바깥 글자가 오르내린다. */
+  vertical-align: middle;
+}
+
+/* 칸은 렌더 크기만큼 커지다가 문항 너비(100%)에서 멈춘다.
+   min-content: 분수처럼 줄을 못 나누는 식은 그 너비만큼 칸이 남고 잘리지 않는다. 가로 스크롤은 두지 않는다.
+   여백은 텍스트 칸(px-2/px-3/px-4)과 분리한다. 빈 칸과 한 줄 수식의 바깥 높이는 같다. */
+.qti-ext-math-keyboard-shell {
+  --qti-ext-math-keyboard-pad-x: 0.5em;
+  --qti-ext-math-keyboard-pad-y: 0.25em;
+
+  position: relative;
+
+  display: inline-flex;
+  overflow: visible;
+
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+
+  box-sizing: border-box;
+  width: max-content;
+  min-width: min-content;
+  max-width: 100%;
+  min-height: 2em;
+  padding: var(--qti-ext-math-keyboard-pad-y) var(--qti-ext-math-keyboard-pad-x);
+
+  line-height: normal;
+  white-space: normal;
+  vertical-align: middle;
+
+  cursor: pointer;
+}
+
+/* 정오 표시는 테두리·배경만. text-lg로 칸 높이가 바뀌지 않게 한다. */
+.qti-ext-math-keyboard-shell.qti-ext-text-entry-input-correct,
+.qti-ext-math-keyboard-shell.qti-ext-text-entry-input-incorrect,
+.qti-ext-math-keyboard-display.qti-ext-text-entry-input-correct,
+.qti-ext-math-keyboard-display.qti-ext-text-entry-input-incorrect {
+  font-size: var(--qti-font-size-base, inherit) !important;
+  line-height: normal;
+  text-align: start;
+}
+
+/* 텍스트 칸의 px-2/px-3/px-4를 덮는다. 수식 칸 여백은 위 변수만 따른다. */
+.qti-ext-math-keyboard-shell.qti-ext-text-entry-input,
+.qti-ext-math-keyboard-display.qti-ext-text-entry-input,
+.qti-ext-math-keyboard-shell.qti-ext-text-entry-input-cloze,
+.qti-ext-math-keyboard-display.qti-ext-text-entry-input-cloze,
+.qti-ext-math-keyboard-shell.qti-ext-text-entry-input-srq,
+.qti-ext-math-keyboard-display.qti-ext-text-entry-input-srq {
+  --qti-ext-math-keyboard-pad-x: 8px;
+
+  padding: var(--qti-ext-math-keyboard-pad-y) var(--qti-ext-math-keyboard-pad-x);
+}
+
+/* MathLive math-field (키패드 열림). 셸 안에서 테두리 없이 값만 그린다. */
+.qti-ext-math-keyboard-field {
+  --caret-color: var(--qti-base-text-color, currentColor);
+
+  /* 포털이라 테마 변수가 안 붙는다. 그룹/선택 하이라이트는 indigo-100 고정.
+     --selection-color: inherit는 커스텀 속성이라 글자색이 안 넘어가고 MathLive 기본 흰색이 남는다. */
+  --selection-color: #1e293b;
+  --selection-background-color: rgb(224 231 255);
+  --contains-highlight-background-color: rgb(224 231 255);
+
+  display: block;
+  overflow: visible;
+
+  flex: 1 1 auto;
+
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 1ch;
+  max-width: none;
+  height: max-content;
+  min-height: 1.5em;
+  padding: 0;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: var(--qti-base-text-color, inherit);
+  font-size: inherit !important;
+  font-weight: inherit;
+  line-height: 1.5;
+}
+
+.qti-ext-math-keyboard-shell--empty .qti-ext-math-keyboard-field {
+  overflow: hidden;
+
+  width: 1ch;
+  min-width: 1ch;
+  max-width: 1ch;
+}
+
+.qti-ext-math-keyboard-value {
+  display: inline-flex;
+
+  flex: 1 1 auto;
+  justify-content: center;
+  align-items: center;
+  align-self: stretch;
+
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  padding: 0;
+
+  outline: none;
+
+  cursor: pointer;
+}
+
+/* 칸이 문항 너비에 닿으면 식은 MathJax가 나눌 수 있는 지점에서만 칸 안으로 줄바꿈된다. */
+.qti-ext-math-keyboard-value .qti-ext-math-keyboard-mathjax,
+.qti-ext-math-keyboard-display .qti-ext-math-keyboard-mathjax {
+  display: inline-flex;
+  overflow: visible;
+
+  justify-content: center;
+  align-items: center;
+
+  /* auto: 셸의 min-content가 조판 전체 폭이 아니라 가장 긴 항이 된다. max-content면 칸이 줄을 못 나눈다. */
+  width: auto;
+  max-width: 100%;
+  height: max-content;
+
+  /* text-entry line-height:1.5가 안쪽 span 줄 상자를 키워 짧은 수식(10)이 칸 아래로 내려간다. */
+  line-height: 0;
+  white-space: normal;
+}
+
+.qti-ext-math-keyboard-mathjax mjx-container {
+  display: inline-block;
+  overflow: visible;
+
+  width: auto;
+  max-width: 100%;
+  height: max-content;
+  margin: 0 !important;
+
+  /* MathJax 인라인 valign(기준선)을 끄고, 칸 flex 중앙만 쓴다. */
+  vertical-align: 0 !important;
+}
+
+/* better-react-mathjax 래퍼. flex item의 min-width:auto가 조판 전체 폭을 고정하지 않게 한다. */
+.qti-ext-math-keyboard-mathjax > span {
+  min-width: 0;
+
+  line-height: 0;
+}
+
+.qti-ext-math-keyboard-mathjax mjx-utext {
+  width: auto !important;
+  padding: 0 !important;
+}
+
+/* MathJax 3은 자동 줄바꿈이 없다. 칸이 문항 너비에 닿으면 최상위 항(mn·mo…) 사이에서만 줄을 나눈다.
+   분수·근호·괄호 묶음 같은 하위 덩어리는 inline-block 그대로라 한가운데서 잘리지 않고, 그 너비만큼 칸이 남는다. */
+.qti-ext-math-keyboard-shell .qti-ext-math-keyboard-mathjax mjx-math,
+.qti-ext-math-keyboard-display .qti-ext-math-keyboard-mathjax mjx-math {
+  line-height: normal;
+  white-space: normal;
+}
+
+.qti-ext-math-keyboard-shell mjx-math > :is(mjx-mstyle, mjx-mrow),
+.qti-ext-math-keyboard-shell mjx-math > mjx-mstyle > mjx-mrow,
+.qti-ext-math-keyboard-display mjx-math > :is(mjx-mstyle, mjx-mrow),
+.qti-ext-math-keyboard-display mjx-math > mjx-mstyle > mjx-mrow {
+  display: inline;
+}
+
+.qti-ext-math-keyboard-field-empty {
+  display: block;
+
+  min-width: 1ch;
+  min-height: 1em;
+}
+
+.qti-ext-math-keyboard-placeholder {
+  overflow: hidden;
+
+  max-width: 100%;
+
+  color: var(--color-gray-300, #d1d5db);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qti-ext-math-keyboard-value:has(.qti-ext-math-keyboard-placeholder) {
+  justify-content: flex-start;
+}
+
+.qti-ext-math-keyboard-shell--open .qti-ext-text-entry-pencil,
+.qti-ext-math-keyboard-shell:focus-within .qti-ext-text-entry-pencil {
+  visibility: hidden;
+}
+
+.qti-ext-math-keyboard-display {
+  --qti-ext-math-keyboard-pad-x: 0.5em;
+  --qti-ext-math-keyboard-pad-y: 0.25em;
+
+  display: inline-flex;
+  overflow: visible;
+
+  justify-content: center;
+  align-items: center;
+
+  box-sizing: border-box;
+  width: max-content;
+  min-width: min-content;
+  max-width: 100%;
+  min-height: 2em;
+  padding: var(--qti-ext-math-keyboard-pad-y) var(--qti-ext-math-keyboard-pad-x);
+
+  line-height: normal;
+  white-space: normal;
+  vertical-align: middle;
+}
+
+/* 임베디드: 셸 크롬 없이 호스트 칸을 채운다. 최소 너비로 부모를 밀지 않고, 크기는 호스트가 정한다. */
+.qti-ext-math-keyboard--embedded {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 100%;
+  min-height: 0;
+}
+
+.qti-ext-math-keyboard-embed {
+  display: flex;
+
+  flex: 1 1 auto;
+  justify-content: center;
+  align-items: center;
+  align-self: stretch;
+
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+
+  white-space: nowrap;
+}
+
+.qti-ext-math-keyboard--embedded .qti-ext-math-keyboard-value {
+  width: 100%;
+  min-width: 100%;
+  max-width: none;
+  height: 100%;
+  min-height: 100%;
+  padding: 0;
+}
+
+.qti-ext-math-keyboard--embedded .qti-ext-math-keyboard-mathjax,
+.qti-ext-math-keyboard--embedded .qti-ext-math-keyboard-mathjax mjx-container {
+  max-width: none;
+
+  transform: none;
+}
+
+.qti-ext-math-keyboard--embedded .qti-ext-math-keyboard-field-empty {
+  min-width: 0;
+  min-height: 0;
+}
+
+.qti-ext-math-keyboard-shell > .qti-ext-math-keyboard-value,
+.qti-ext-math-keyboard-display > .qti-ext-math-keyboard-mathjax,
+.qti-ext-math-keyboard-display > .qti-ext-math-keyboard-field-empty {
+  min-width: 1em;
+}
+
+.qti-ext-math-keyboard-shell.qti-ext-text-entry-input > .qti-ext-math-keyboard-value,
+.qti-ext-math-keyboard-display.qti-ext-text-entry-input > .qti-ext-math-keyboard-mathjax,
+.qti-ext-math-keyboard-display.qti-ext-text-entry-input > .qti-ext-math-keyboard-field-empty {
+  min-width: 3em;
+}
+
+/* 플로팅 팝업: 뷰포트 기준 고정. 위치는 인라인 left/top. */
+.qti-ext-math-keyboard-float {
+  --qti-ext-mlk-key-size: 48px;
+  --qti-ext-mlk-key-gap: 4px;
+  --qti-ext-mlk-key-font: 20px;
+  --qti-ext-mlk-grid-cols: 4;
+  --qti-ext-mlk-right-rows: 6;
+  --qti-ext-mlk-pad-x: 8px;
+  --qti-ext-mlk-toggle-size: 1rem;
+  --qti-ext-mlk-toggle-gap: 8px;
+  --qti-ext-mlk-body-gap: 8px;
+  --qti-ext-mlk-pad-width: calc(
+    var(--qti-ext-mlk-grid-cols) * var(--qti-ext-mlk-key-size) +
+      (var(--qti-ext-mlk-grid-cols) - 1) * var(--qti-ext-mlk-key-gap)
+  );
+  --qti-ext-mlk-edge: 2px;
+  --qti-ext-mlk-scrollbar: 12px;
+  --qti-ext-mlk-width: calc(
+    var(--qti-ext-mlk-pad-width) + var(--qti-ext-mlk-edge) + var(--qti-ext-mlk-scrollbar)
+  );
+  --qti-ext-mlk-height: calc(
+    var(--qti-ext-mlk-right-rows) * var(--qti-ext-mlk-key-size) +
+      (var(--qti-ext-mlk-right-rows) - 1) * var(--qti-ext-mlk-key-gap)
+  );
+  --qti-ext-mlk-closed-width: calc(
+    2 * var(--qti-ext-mlk-pad-x) + var(--qti-ext-mlk-toggle-size) + var(--qti-ext-mlk-toggle-gap) +
+      var(--qti-ext-mlk-pad-width)
+  );
+  --qti-ext-mlk-open-width: calc(
+    2 * var(--qti-ext-mlk-pad-x) + var(--qti-ext-mlk-width) + var(--qti-ext-mlk-body-gap) +
+      var(--qti-ext-mlk-toggle-size) + var(--qti-ext-mlk-body-gap) + var(--qti-ext-mlk-pad-width)
+  );
+  position: fixed;
+  z-index: 10050;
+
+  display: flex;
+
+  flex-direction: column;
+  gap: 4px;
+
+  box-sizing: border-box;
+  width: var(--qti-ext-mlk-closed-width);
+  min-width: var(--qti-ext-mlk-closed-width);
+  max-width: var(--qti-ext-mlk-closed-width);
+  padding: 8px var(--qti-ext-mlk-pad-x) 12px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  background: #ffffff;
+  box-shadow:
+    0 8px 24px rgb(15 23 42 / 0.12),
+    0 2px 6px rgb(15 23 42 / 0.06);
+
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease,
+    max-width 0.2s ease;
+}
+
+.qti-ext-math-keyboard-float:has(.qti-ext-math-keyboard-drawer--open) {
+  width: var(--qti-ext-mlk-open-width);
+  min-width: var(--qti-ext-mlk-open-width);
+  max-width: var(--qti-ext-mlk-open-width);
+}
+
+.qti-ext-math-keyboard-float-handle {
+  position: relative;
+
+  display: flex;
+
+  flex: 0 0 auto;
+  justify-content: center;
+  align-items: center;
+
+  height: 20px;
+
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.qti-ext-math-keyboard-float-handle:active {
+  cursor: grabbing;
+}
+
+.qti-ext-math-keyboard-float-handle-bar {
+  width: 36px;
+  height: 4px;
+
+  border-radius: 999px;
+
+  background: #cbd5e1;
+}
+
+.qti-ext-math-keyboard-float-close {
+  position: absolute;
+  top: 50%;
+  right: 0;
+
+  display: inline-flex;
+
+  justify-content: center;
+  align-items: center;
+
+  width: 20px;
+  height: 20px;
+  padding: 0;
+
+  border: 0;
+  border-radius: 4px;
+
+  background: transparent;
+
+  color: #64748b;
+
+  transform: translateY(-50%);
+
+  cursor: pointer;
+}
+
+.qti-ext-math-keyboard-float-close:hover {
+  background: #f1f5f9;
+
+  color: #0f172a;
+}
+
+.qti-ext-math-keyboard-float-body {
+  display: flex;
+
+  gap: var(--qti-ext-mlk-body-gap);
+}
+
+/* 닫힌 서랍은 폭 0이어도 gap이 펼침 버튼 왼쪽에 남는다. */
+.qti-ext-math-keyboard-float-body:not(:has(.qti-ext-math-keyboard-drawer--open)) {
+  gap: 0;
+}
+
+.qti-ext-math-keyboard-drawer-toggle {
+  display: inline-flex;
+
+  flex: 0 0 auto;
+  justify-content: center;
+  align-items: center;
+
+  width: var(--qti-ext-mlk-toggle-size);
+  margin: 0;
+  padding: 0;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
+  background: #f8fafc;
+
+  color: #334155;
+  font-size: 0.75rem;
+  line-height: 1;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+.qti-ext-math-keyboard-drawer-toggle:hover {
+  border-color: #bfdbfe;
+
+  background: #eff6ff;
+
+  color: #0c75d8;
+}
+
+/* 우측 고정 패드: 4×6. */
+.qti-ext-math-keyboard-right {
+  display: grid;
+
+  flex: 0 0 auto;
+  gap: var(--qti-ext-mlk-key-gap);
+  grid-template-rows: repeat(6, var(--qti-ext-mlk-key-size));
+  grid-template-columns: repeat(4, var(--qti-ext-mlk-key-size));
+}
+
+.qti-ext-math-keyboard-float-body:not(:has(.qti-ext-math-keyboard-drawer--open))
+  .qti-ext-math-keyboard-drawer-toggle {
+  margin-right: var(--qti-ext-mlk-toggle-gap);
+}
+
+/* 좌측 서랍: 닫힘 시 폭 0, 열림 시 고정 폭으로 슬라이드 */
+.qti-ext-math-keyboard-drawer {
+  overflow: clip;
+
+  width: 0;
+  min-width: 0;
+
+  transition: width 0.2s ease;
+}
+
+.qti-ext-math-keyboard-drawer--open {
+  width: var(--qti-ext-mlk-width);
+}
+
+.qti-ext-math-keyboard-drawer-inner {
+  display: flex;
+  overflow: clip;
+
+  flex-direction: column;
+
+  box-sizing: border-box;
+  width: var(--qti-ext-mlk-width);
+  min-width: var(--qti-ext-mlk-width);
+  height: var(--qti-ext-mlk-height);
+}
+
+.qti-ext-math-keyboard-right-key {
+  display: inline-flex;
+  overflow: hidden;
+
+  justify-content: center;
+  align-items: center;
+
+  box-sizing: border-box;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #334155;
+  font-size: var(--qti-ext-mlk-key-font);
+  line-height: 1;
+
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+.qti-ext-math-keyboard-right-key--empty {
+  border: none;
+
+  background: transparent;
+
+  pointer-events: none;
+}
+
+.qti-ext-math-keyboard-right-key:active {
+  border-color: #0c75d8;
+
+  background: #0c75d8;
+
+  color: #ffffff;
+}
+
+.qti-ext-math-keyboard-right-key:hover:not(:active) {
+  border-color: #bfdbfe;
+
+  background: #eff6ff;
+}
+
+.qti-ext-math-keyboard-right-key-math {
+  display: inline-flex;
+
+  justify-content: center;
+  align-items: center;
+
+  font-size: var(--qti-ext-mlk-key-font);
+  line-height: 1;
+}
+
+.qti-ext-math-keyboard-right-key-math--frac {
+  transform: scale(1.25);
+  transform-origin: center;
+}
+
+.qti-ext-math-keyboard-right-key-math--sup {
+  transform: scale(1);
+  transform-origin: center;
+}
+
+.qti-ext-math-keyboard-field::part(container) {
+  overflow: visible;
+
+  width: max-content;
+  height: max-content;
+  padding: 0;
+
+  outline: none;
+
+  background: transparent;
+
+  color: inherit;
+}
+
+.qti-ext-math-keyboard-field::part(content) {
+  width: max-content;
+  height: max-content;
+  padding: 2px 0;
+
+  background: transparent;
+
+  color: inherit;
+}
+
+.qti-ext-math-keyboard math-field::part(virtual-keyboard-toggle),
+.qti-ext-math-keyboard math-field::part(menu-toggle),
+.qti-ext-math-keyboard-float math-field::part(virtual-keyboard-toggle),
+.qti-ext-math-keyboard-float math-field::part(menu-toggle) {
+  display: none;
+}
+
+/* 좌측 수식 키보드: 고정 폭·높이. 탭은 가로, 심볼은 세로 스크롤만. */
+.qti-ext-math-keyboard-keyboard {
+  display: flex;
+  overflow: clip;
+
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+
+  box-sizing: border-box;
+  width: var(--qti-ext-mlk-width);
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  padding-right: var(--qti-ext-mlk-edge);
+}
+
+/* 탭은 한 줄로 가로 나열. 넘치면 가로 스크롤, 스크롤바는 숨긴다. */
+.qti-ext-mlk-tabs {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+
+  flex: 0 0 auto;
+  gap: 4px;
+
+  width: 100%;
+
+  border-bottom: 1px solid #e5e7eb;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.qti-ext-mlk-tabs::-webkit-scrollbar {
+  display: none;
+
+  width: 0;
+  height: 0;
+}
+
+.qti-ext-mlk-tab {
+  flex: 0 0 auto;
+
+  margin-bottom: -1px;
+  padding: 3px 4px 4px;
+
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+
+  background: transparent;
+
+  color: #2c2e2f;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  white-space: nowrap;
+
+  cursor: pointer;
+}
+
+.qti-ext-mlk-tab:hover {
+  color: #0c75d8;
+}
+
+.qti-ext-mlk-tab--active {
+  border-bottom-color: #0c75d8;
+
+  color: #0c75d8;
+  font-weight: 500;
+}
+
+.qti-ext-mlk-recent-empty {
+  margin: 0;
+  padding: 0.75rem 0.25rem;
+
+  color: #64748b;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.qti-ext-mlk-keys-scroll {
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  flex: 1 1 auto;
+
+  min-width: 0;
+  min-height: 0;
+  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-width: thin;
+}
+
+/* 심볼: 그룹 없이 4열. 넓은 키(행렬)는 2열을 쓴다. */
+.qti-ext-mlk-keys {
+  display: grid;
+
+  gap: var(--qti-ext-mlk-key-gap);
+  grid-template-columns: repeat(4, var(--qti-ext-mlk-key-size));
+
+  /* auto: 넓은 키 min-height가 행을 키운다. minmax(key-size, auto)는 행이 48px에 묶여 겹친다. */
+  grid-auto-rows: auto;
+
+  box-sizing: border-box;
+  width: max-content;
+  margin-inline: auto;
+}
+
+.qti-ext-mlk-key {
+  display: inline-flex;
+  overflow: clip;
+
+  justify-content: center;
+  align-items: center;
+
+  box-sizing: border-box;
+  width: 100%;
+  min-width: var(--qti-ext-mlk-key-size);
+  height: 100%;
+  min-height: var(--qti-ext-mlk-key-size);
+  padding: 0.25rem;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #1e293b;
+
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+.qti-ext-mlk-key--wide {
+  grid-column: span 2;
+
+  height: auto;
+  min-height: calc(var(--qti-ext-mlk-key-size) + 0.5rem);
+}
+
+.qti-ext-mlk-key:active {
+  border-color: #0c75d8;
+
+  background: #0c75d8;
+
+  color: #ffffff;
+}
+
+.qti-ext-mlk-key:hover:not(:active) {
+  border-color: #bfdbfe;
+
+  background: #eff6ff;
+}
+
+.qti-ext-mlk-key-text,
+.qti-ext-mlk-key-math {
+  font-size: var(--qti-ext-mlk-key-font);
+  line-height: 1;
+}
+
+.qti-ext-mlk-key-math {
+  display: inline-flex;
+
+  justify-content: center;
+  align-items: center;
+
+  max-width: 100%;
+  max-height: 100%;
+
+  transform: scale(0.8);
+  transform-origin: center;
+}
+
+.qti-ext-math-keyboard-float .qti-ext-mlk-keys:not(.qti-ext-mlk-keys--abc) {
+  margin-inline: 0;
+}
+
+.qti-ext-math-keyboard-float .qti-ext-mlk-keys:not(.qti-ext-mlk-keys--abc) .qti-ext-mlk-key {
+  min-width: 0;
+  aspect-ratio: 1;
+}
+
+.qti-ext-math-keyboard-preview {
+  position: relative;
+
+  /* overlay: 가로 막대가 내용 위에 겹치고 칸 높이를 밀지 않는다. */
+  overflow: auto;
+
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.5rem;
+  max-height: 40vh;
+  padding: 6px 8px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+
+  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-width: thin;
+}
+
+.qti-ext-math-keyboard-float .qti-ext-math-keyboard-float-body,
+.qti-ext-math-keyboard-float .qti-ext-math-keyboard-preview {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.qti-ext-math-keyboard-preview-render {
+  display: inline-flex;
+
+  align-items: center;
+
+  width: max-content;
+  max-width: 100%;
+  min-height: 1.5em;
+}
+
+.qti-ext-math-keyboard-preview-render--hidden {
+  display: none;
+}
+
+.qti-ext-math-keyboard-preview-caret {
+  display: inline-block;
+
+  width: 1px;
+  height: 1.1em;
+  margin-left: 1px;
+
+  background: currentcolor;
+
+  vertical-align: middle;
+
+  animation: qti-ext-mlk-caret 1s steps(1) infinite;
+}
+
+@keyframes qti-ext-mlk-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.qti-ext-math-keyboard-preview-field {
+  --selection-color: #1e293b;
+  --selection-background-color: rgb(224 231 255);
+  --contains-highlight-background-color: rgb(224 231 255);
+
+  max-width: 100%;
+}
+
+.qti-ext-math-keyboard-preview-field--ghost {
+  position: absolute;
+
+  overflow: hidden;
+
+  width: 1px;
+  min-width: 0;
+  height: 1px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+
+  opacity: 0;
+
+  pointer-events: none;
+}
+
+/* abc / αβγ 는 탭이 아니라 한 덩어리 전환. a/A 는 오른쪽. */
+.qti-ext-mlk-script-row {
+  display: flex;
+
+  flex: 0 0 auto;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.qti-ext-mlk-script-switch {
+  display: inline-flex;
+
+  align-items: center;
+
+  padding: 2px;
+
+  border-radius: 8px;
+
+  background: #e8edf2;
+}
+
+.qti-ext-mlk-script {
+  display: inline-flex;
+
+  flex: 0 0 auto;
+  justify-content: center;
+  align-items: center;
+
+  box-sizing: border-box;
+  min-width: 1.85rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+
+  border: none;
+  border-radius: 6px;
+
+  background: transparent;
+
+  color: #64748b;
+  font-family: "STIX Two Math", "Times New Roman", serif;
+  font-size: 0.85rem;
+  font-style: italic;
+  line-height: 1;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+.qti-ext-mlk-script--case {
+  min-width: 2.55rem;
+  margin-left: auto;
+  padding: 0 0.35rem;
+
+  border: 1px solid #e5e7eb;
+
+  background: #ffffff;
+
+  color: #1e293b;
+}
+
+.qti-ext-mlk-script--active {
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.12);
+
+  color: #0f172a;
+}
+
+.qti-ext-mlk-script--shift {
+  border-color: #d4d4d4;
+
+  background: #efefef;
+
+  color: #1e293b;
+}
+
+.qti-ext-mlk-script--caps {
+  border-color: #a3a3a3;
+
+  background: #e4e4e4;
+
+  color: #1e293b;
+}
+
+.qti-ext-mlk-keys--abc {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+
+  width: 100%;
+}
+
+.qti-ext-mlk-key--abc {
+  min-width: 0;
+  min-height: 1.55rem;
+  padding: 0;
+
+  font-family: "STIX Two Math", "Times New Roman", serif;
+  font-size: 16px;
+  font-style: italic;
+}
+
+.qti-ext-mlk-key--abc .qti-ext-mlk-key-text {
+  font-size: inherit;
+}
+
+.qti-ext-math-keyboard-float .qti-ext-mlk-key mjx-container,
+.qti-ext-math-keyboard-float .qti-ext-math-keyboard-right-key mjx-container {
+  margin: 0 !important;
+
+  font-size: 1em;
+}

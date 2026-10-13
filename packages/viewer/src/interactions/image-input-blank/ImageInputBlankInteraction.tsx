@@ -1,9 +1,12 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { MathLevel } from "../../math-keyboard";
 import type { QTIParserOptions, ResponseValue, ResponseValueMap } from "../../types";
+import { resolveMathKeyboardLevel } from "../../utils";
 import { appendMediaToken, resolveMediaUrl } from "../../utils/urlUtils";
 import { ImageBlankRegionContent } from "./ImageBlankRegionContent";
 import {
   type ImageBlankConfig,
+  getImageBlankRegionFontSize,
   getImageBlankRegionResponseIds,
   imageBlankPercent,
   parseImageBlankConfig,
@@ -60,6 +63,7 @@ interface ImageInputBlankViewProps {
   rootResponseIdentifier: string;
   options: ImageBlankOptions;
   index: number;
+  mathKeyboardLevel: MathLevel | null;
 }
 
 function ImageInputBlankView({
@@ -67,6 +71,7 @@ function ImageInputBlankView({
   rootResponseIdentifier,
   options,
   index,
+  mathKeyboardLevel,
 }: ImageInputBlankViewProps) {
   const imageRef = useRef<HTMLImageElement>(null);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
@@ -95,7 +100,9 @@ function ImageInputBlankView({
   }, []);
 
   const isPreview = options.mode === "preview";
-  const isReadOnly = isPreview || options.mode === "thumbnail" || !options.onResponseChange;
+  const mode = options.mode as string | undefined;
+  const isReadOnly =
+    isPreview || mode === "thumbnail" || mode === "paper" || !options.onResponseChange;
 
   const responses = options.responses as Record<string, unknown> | undefined;
   const correctAnswers = options.correctAnswers as Record<string, unknown> | undefined;
@@ -129,6 +136,7 @@ function ImageInputBlankView({
     }
     return valueOf(cellId) !== "" ? "qti-ext-image-input-blank__input--selected" : "";
   };
+  const correctAnswerOf = (cellId: string) => readCell(correctAnswers, cellId);
 
   const handleChange = (cellId: string, value: string) => {
     if (isReadOnly) return;
@@ -137,6 +145,7 @@ function ImageInputBlankView({
   };
 
   const src = buildImageSrc(config.src, options.token, options.baseUrl);
+  const scale = imageSize.width > 0 ? imageSize.width / config.baseWidth : 0;
 
   return (
     <div className="qti-ext-image-input-blank" data-index={index}>
@@ -149,35 +158,44 @@ function ImageInputBlankView({
           width: `${config.displayWidth ?? config.baseWidth}px`,
         }}
       />
-      {imageSize.width > 0 && (
+      {scale > 0 && (
         <div
           className="qti-ext-image-input-blank__overlay"
           style={{ width: imageSize.width, height: imageSize.height }}
         >
-          {config.regions.map((region, regionIndex) => (
-            <div
-              key={region.id}
-              className="qti-ext-image-input-blank__region"
-              data-input-type={region.inputType}
-              style={{
-                left: imageBlankPercent(region.x, config.baseWidth),
-                top: imageBlankPercent(region.y, config.baseHeight),
-                width: imageBlankPercent(region.width, config.baseWidth),
-                height: imageBlankPercent(region.height, config.baseHeight),
-              }}
-            >
-              <ImageBlankRegionContent
-                region={region}
-                displayIndex={regionIndex + 1}
-                readOnly={isReadOnly}
-                showMath={isPreview || options.isSubmit === true}
-                showFractionAsLatex={showFractionAsLatex}
-                valueOf={valueOf}
-                stateClassOf={stateClassOf}
-                onChange={handleChange}
-              />
-            </div>
-          ))}
+          {config.regions.map((region, regionIndex) => {
+            const screenFontSize = getImageBlankRegionFontSize(region, config.fontSize) * scale;
+            return (
+              <div
+                key={region.id}
+                className="qti-ext-image-input-blank__region"
+                data-input-type={region.inputType}
+                style={
+                  {
+                    left: imageBlankPercent(region.x, config.baseWidth),
+                    top: imageBlankPercent(region.y, config.baseHeight),
+                    width: imageBlankPercent(region.width, config.baseWidth),
+                    height: imageBlankPercent(region.height, config.baseHeight),
+                    "--image-blank-calculated-font-size": `${screenFontSize}px`,
+                  } as CSSProperties
+                }
+              >
+                <ImageBlankRegionContent
+                  region={region}
+                  displayIndex={regionIndex + 1}
+                  readOnly={isReadOnly}
+                  showMath={isPreview || options.isSubmit === true}
+                  showFractionAsLatex={showFractionAsLatex}
+                  valueOf={valueOf}
+                  correctAnswerOf={correctAnswerOf}
+                  historyScope={options.itemKey}
+                  mathKeyboardLevel={mathKeyboardLevel}
+                  stateClassOf={stateClassOf}
+                  onChange={handleChange}
+                />
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -198,6 +216,7 @@ export function ImageInputBlankInteraction({
       rootResponseIdentifier={element.getAttribute("response-identifier")?.trim() ?? ""}
       options={options}
       index={index}
+      mathKeyboardLevel={resolveMathKeyboardLevel(element)}
     />
   );
 }
