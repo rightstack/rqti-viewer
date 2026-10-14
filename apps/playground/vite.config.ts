@@ -1,7 +1,7 @@
 import react from "@vitejs/plugin-react-swc";
 import { defineConfig } from "vite";
 
-const QMS_API_TOKEN = "1790780399~f2ly4i70";
+const QMS_API_TOKEN = "ra_jxpo7UZ3UEweSQel2PL1B";
 
 export default defineConfig({
   plugins: [react()],

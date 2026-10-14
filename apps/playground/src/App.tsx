@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_THEME,
+  ITEM_TYPE,
   MathJaxProviderWrapper,
   Question,
   SAMPLE_ITEMS,
   getThemeCSSVariables,
   parseFeedbackContentToReact,
   toQuestionProps,
+  type ItemsType,
   type SampleItem,
   type QuestionItem,
   type QuestionItemProps,
@@ -61,13 +63,21 @@ function resolveHints(
   return fromApi.length > 0 ? fromApi : SAMPLE_HINTS;
 }
 
+/** 스테이징 외부 문항 API로 확인할 문항. 프록시가 `/qms-api`를 떼고 target으로 넘긴다. */
+const FOCUS_ITEM: SampleItem = {
+  type: ITEM_TYPE.TFQ,
+  label: "외부 문항 (TFQ)",
+  qtiIdentifier: "i_r21wkr77ye2sqcuf",
+};
+
 /** API 문항 + 로컬(XML 직접 주입) 문항 통합 목록 */
 const NAV_ITEMS: readonly SampleItem[] = [
+  FOCUS_ITEM,
   ...SAMPLE_ITEMS,
   ...LOCAL_SAMPLE_ITEMS,
 ];
 
-const QMS_API_TOKEN = "1790780399~f2ly4i70";
+const QMS_API_TOKEN = "ra_jxpo7UZ3UEweSQel2PL1B";
 const DESIGN_WIDTH = 1000;
 
 const DEMO_PASSAGE_HTML = `
@@ -93,8 +103,66 @@ const FULL_WIDTH_THEME: Theme = {
   },
 };
 
+type ExternalDetail = {
+  id: string;
+  display_no?: number;
+  title?: string;
+  item_type?: { code?: string };
+  interactions?: Array<{ code?: string }>;
+  qti_xml?: string;
+  hints?: Array<{ title?: string; content?: string; display_order?: number }>;
+  shared_stimulus?: { content?: string | null } | null;
+};
+
+const KNOWN_ITEM_TYPES = new Set<string>(Object.values(ITEM_TYPE));
+
 function detailUrl(qtiIdentifier: string) {
-  return `/qms-api/api/v3/viewer/preview/${qtiIdentifier}`;
+  return `/qms-api/api/external/v1/items/${encodeURIComponent(
+    qtiIdentifier,
+  )}?include=qti_xml`;
+}
+
+function resolveViewerType(raw: ExternalDetail): ItemsType {
+  const interaction = raw.interactions?.find((item) =>
+    item.code ? KNOWN_ITEM_TYPES.has(item.code) : false,
+  )?.code;
+  if (interaction && KNOWN_ITEM_TYPES.has(interaction)) {
+    return interaction as ItemsType;
+  }
+  const itemType = raw.item_type?.code;
+  if (itemType && KNOWN_ITEM_TYPES.has(itemType)) return itemType as ItemsType;
+  return ITEM_TYPE.SCQ;
+}
+
+function toExternalQuestionItem(raw: ExternalDetail): QuestionItem {
+  return {
+    id: raw.display_no ?? 0,
+    qtiIdentifier: raw.id,
+    title: raw.title?.trim() || raw.id,
+    type: resolveViewerType(raw),
+    qtiXml: raw.qti_xml?.trim() ?? "",
+    correctAnswer: null,
+    settings: null,
+    feedbacks: (raw.hints ?? []).map((hint, index) => ({
+      id: index + 1,
+      assessmentId: raw.display_no ?? 0,
+      feedbackType: "HINT",
+      feedbackTypeLabel: "힌트",
+      title: hint.title || `힌트 ${index + 1}`,
+      editorJson: [],
+      content: hint.content ?? "",
+      conditionPresetId: null,
+      conditionPresetName: null,
+      customCondition: null,
+      effectiveCondition: "HINT",
+      displayOrder: hint.display_order ?? index + 1,
+      createdAt: "",
+      updatedAt: "",
+    })),
+    ...(raw.shared_stimulus?.content
+      ? { passage: { content: raw.shared_stimulus.content } }
+      : {}),
+  };
 }
 
 type Status = "idle" | "loading" | "error" | "ready";
@@ -175,7 +243,7 @@ function Whiteboard({
 const STORAGE_KEY = "rqti-playground-annotations";
 
 export default function App() {
-  const [selected, setSelected] = useState<SampleItem>(SAMPLE_ITEMS[0]);
+  const [selected, setSelected] = useState<SampleItem>(FOCUS_ITEM);
   const [item, setItem] = useState<QuestionItem | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -246,7 +314,7 @@ export default function App() {
         if (!res.ok) {
           throw new Error(`detail API ${res.status}: ${await res.text()}`);
         }
-        return res.json() as Promise<QuestionItem>;
+        return toExternalQuestionItem((await res.json()) as ExternalDetail);
       })
       .then((data) => {
         setItem(data);

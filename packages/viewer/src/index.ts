@@ -15,6 +15,16 @@ export {
   type FixedScaleContainerProps,
 } from "./components/FixedScaleContainer";
 
+// 연결지문 — Question 밖에 지문을 둘 때 조합한다
+export {
+  PassageLayout,
+  type PassageLayoutProps,
+} from "./components/PassageLayout";
+export {
+  parsePassageHtmlToReact,
+  type PassageParseOptions,
+} from "./parser/parsePassageHtmlToReact";
+
 // 문항 유형
 export { ITEM_TYPE, type ItemsType } from "./constants/itemType";
 export {

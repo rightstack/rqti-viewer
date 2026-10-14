@@ -187,6 +187,9 @@ export function ItemPage({ qtiId, token }: { qtiId: string; token: string }) {
 | `toQuestionProps` | API → Question props |
 | `SAMPLE_ITEMS` | 유형별 대표 문항 `{ type, label, qtiIdentifier }[]` |
 | `SAMPLE_IDS` | `ItemsType` → `qtiIdentifier` 맵 |
+| `PassageLayout` | 연결지문과 문항의 가로 분할 |
+| `parsePassageHtmlToReact` | 연결지문 HTML → React |
+| `PassageParseOptions` | 지문 파서 옵션. `token`·`baseUrl`은 선택 |
 
 ```tsx
 import {
@@ -203,13 +206,13 @@ const item = (await res.json()) as QuestionItem;
 <Question theme="default" {...toQuestionProps(item)} />;
 ```
 
-## practice / preview / thumbnail
+## practice / preview
 
-| | practice | preview | thumbnail |
-| --- | --- | --- | --- |
-| `mode` | `"practice"` | `"preview"` (기본값) | `"thumbnail"` |
-| 동작 | 풀이 가능, 제출 버튼 표시 | 읽기 전용 | 읽기 전용. 인쇄형 크롬 제거 |
-| 추가 prop | `onSubmit` — 제출 시 응답 수신 | `responses` — 저장 응답을 선택·입력으로 표시 | `responses` — 있으면 답안만 표시 |
+| | practice | preview |
+| --- | --- | --- |
+| `mode` | `"practice"` | `"preview"` (기본값) |
+| 동작 | 풀이 가능, 제출 버튼 표시 | 읽기 전용 |
+| 추가 prop | `onSubmit` — 제출 시 응답 수신 | `responses` — 저장 응답을 선택·입력으로 표시 |
 
 ```tsx
 <Question
@@ -229,7 +232,7 @@ const item = (await res.json()) as QuestionItem;
 />
 ```
 
-`onSubmit`으로 받은 값을 preview·thumbnail의 `responses`에 그대로 넣으면 됩니다. 실제 형태는 `onSubmit`에서 확인하면 됩니다. 유형별 크롬 차이는 `USER_GUIDE.md`를 참고하세요.
+`onSubmit`으로 받은 값을 preview의 `responses`에 그대로 넣으면 됩니다. 실제 형태는 `onSubmit`에서 확인하면 됩니다.
 
 ```ts
 { RESPONSE: "C" }
@@ -239,6 +242,29 @@ const item = (await res.json()) as QuestionItem;
 
 ```tsx
 <Question {...props} passage={passageHtml} />
+```
+
+지문을 문항 밖에 두려면 `parsePassageHtmlToReact`와 `PassageLayout`을 조합합니다. 이미지 주소가 이미 완전하면 `token`과 `baseUrl`은 생략합니다. 상대 경로에 토큰을 붙여야 할 때만 넘깁니다.
+
+지문 스타일은 `.rqti-viewer`와 `--qti-*` 변수 아래에서만 맞습니다. 수식은 `MathJaxProviderWrapper`가 필요합니다. `designWidth`로 지문과 문항을 같이 줄이려면 `FixedScaleContainer` 하나가 분할 전체를 감싸고, 안의 `Question`에는 `designWidth`를 넘기지 않습니다. `toQuestionProps`가 채운 `passage`는 비워서 지문이 두 번 그려지지 않게 합니다. 패널이 따로 스크롤되려면 조상 높이가 정해져 있어야 합니다.
+
+```tsx
+const passage = parsePassageHtmlToReact(passageHtml, {
+  theme: DEFAULT_THEME,
+  mode: "preview",
+});
+
+<div style={{ height: "100%" }}>
+  <MathJaxProviderWrapper>
+    <FixedScaleContainer designWidth={1000}>
+      <div className="rqti-viewer" style={getThemeCSSVariables(DEFAULT_THEME)}>
+        <PassageLayout passage={passage}>
+          <Question {...props} passage={undefined} theme={DEFAULT_THEME} />
+        </PassageLayout>
+      </div>
+    </FixedScaleContainer>
+  </MathJaxProviderWrapper>
+</div>
 ```
 
 ### 미디어 / 인증
@@ -357,6 +383,10 @@ import {
   getThemeCSSVariables,
   ITEM_TYPE,
   MathJaxProviderWrapper,
+  PassageLayout,
+  parsePassageHtmlToReact,
+  type PassageParseOptions,
+  type PassageLayoutProps,
   parseFeedbackContentToReact,
   type Theme,
   type FeedbackItem,

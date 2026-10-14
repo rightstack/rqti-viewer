@@ -12,7 +12,7 @@
     "dev": "turbo run dev",
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean && rm -rf node_modules",
-    "dev:web": "turbo run dev --filter=playground",
+    "dev:web": "turbo run dev --filter=playground --filter=@rightstack/rqti-viewer",
     "build:viewer": "turbo run build --filter=@rightstack/rqti-viewer",
     "publish:viewer": "pnpm --filter @rightstack/rqti-viewer publish --no-git-checks"
   },

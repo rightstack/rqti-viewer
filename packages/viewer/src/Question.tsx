@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import "./assets/styles/index.css";
 import { FixedScaleContainer } from "./components/FixedScaleContainer";
 import { PassageLayout } from "./components/PassageLayout";
@@ -107,6 +113,7 @@ export interface QuestionProps {
   /**
    * 연결지문 HTML. 값이 있으면 문항 왼쪽에 지문을 가로로 같이 렌더한다.
    * 파싱·배치는 Question 내부에서 처리한다.
+   * 지문을 문항 밖에 두려면 PassageLayout과 parsePassageHtmlToReact를 쓴다.
    */
   passage?: string | null;
   /** preview(리뷰) 모드에서 표시할 지문 해설 HTML */
@@ -133,14 +140,16 @@ export interface QuestionProps {
 function textEntryResponseIds(xml: string | undefined): string[] {
   if (!xml) return [];
   return [
-    ...xml.matchAll(/<qti-text-entry-interaction\b[^>]*\bresponse-identifier="([^"]+)"/g),
+    ...xml.matchAll(
+      /<qti-text-entry-interaction\b[^>]*\bresponse-identifier="([^"]+)"/g,
+    ),
   ].map((match) => match[1]);
 }
 
 function responsesForQuestionParse(
   source: ResponseValueMap,
   ids: readonly string[],
-  baseline: ResponseValueMap | undefined
+  baseline: ResponseValueMap | undefined,
 ): ResponseValueMap {
   if (ids.length === 0) return source;
   const next: ResponseValueMap = { ...source };
@@ -221,9 +230,14 @@ function Question({
 
   const skipResponseNotifyRef = useRef(true);
 
-  const handleResponseChange = useCallback((identifier: string, value: ResponseValue) => {
-    setResponses((prev) => ({ ...prev, [identifier]: value }) as ResponseValueMap);
-  }, []);
+  const handleResponseChange = useCallback(
+    (identifier: string, value: ResponseValue) => {
+      setResponses(
+        (prev) => ({ ...prev, [identifier]: value } as ResponseValueMap),
+      );
+    },
+    [],
+  );
 
   useEffect(() => {
     if (skipResponseNotifyRef.current) {
@@ -236,7 +250,10 @@ function Question({
   const handleSubmit = useCallback(() => {
     const submitted =
       type === ITEM_TYPE.VCQ
-        ? (buildVcqSubmitResponse(data, responses as Record<string, unknown>) as unknown as ResponseValueMap)
+        ? (buildVcqSubmitResponse(
+            data,
+            responses as Record<string, unknown>,
+          ) as unknown as ResponseValueMap)
         : responses;
     onSubmit?.(submitted);
     // 외부에서 채점 결과를 주입하지 않는 경우 자체 채점
@@ -244,7 +261,15 @@ function Question({
       const isCorrect = checkAnswerUtil(submitted, correctAnswers);
       setInternalSubmitResponse({ correct: isCorrect, response: submitted });
     }
-  }, [data, onSubmit, responses, showFeedback, submitResponse, correctAnswers, type]);
+  }, [
+    data,
+    onSubmit,
+    responses,
+    showFeedback,
+    submitResponse,
+    correctAnswers,
+    type,
+  ]);
 
   // 정오답을 가릴 수 없는 유형(서술형/업로드 등 또는 정답 정보 부재)은 "제출 완료"만 표시
   const hasGrading =
@@ -284,10 +309,13 @@ function Question({
     }
 
     if (type === ITEM_TYPE.CLOZE) {
-      const textEntryCount = (data.match(/<qti-text-entry-interaction\b/g) ?? []).length;
+      const textEntryCount = (
+        data.match(/<qti-text-entry-interaction\b/g) ?? []
+      ).length;
       const mathBlankCount = extractMathBlankIdsFromItemXml(data).length;
       const imageBlankCount = countImageBlankCellsInItemXml(data);
-      expectedResponseCount = textEntryCount + mathBlankCount + imageBlankCount || undefined;
+      expectedResponseCount =
+        textEntryCount + mathBlankCount + imageBlankCount || undefined;
     } else if (type === ITEM_TYPE.DDQ) {
       expectedResponseCount =
         (data.match(/<qti-inline-choice-interaction\b/g) ?? []).length ||
@@ -324,14 +352,22 @@ function Question({
   const responsesForParseKey = JSON.stringify(
     internalIsSubmit
       ? responses
-      : responsesForQuestionParse(responsesProp ?? responses, textEntryIds, responsesProp)
+      : responsesForQuestionParse(
+          responsesProp ?? responses,
+          textEntryIds,
+          responsesProp,
+        ),
   );
   const responsesForParse = useMemo(
     () =>
       internalIsSubmit
         ? responses
-        : responsesForQuestionParse(responsesProp ?? responses, textEntryIds, responsesProp),
-    [responsesForParseKey, internalIsSubmit, textEntryIds, responsesProp]
+        : responsesForQuestionParse(
+            responsesProp ?? responses,
+            textEntryIds,
+            responsesProp,
+          ),
+    [responsesForParseKey, internalIsSubmit, textEntryIds, responsesProp],
   );
   const parserOptions = useMemo<QTIParserOptions>(
     () => ({
@@ -363,7 +399,7 @@ function Question({
       internalIsSubmit,
       itemKeyProp,
       handleResponseChange,
-    ]
+    ],
   );
 
   // 문항 번호: questionNumberConfig가 있을 때만 표시
@@ -398,7 +434,7 @@ function Question({
 
   const parsedContent = useMemo(
     () => (data ? parseQTIToReact(data, parserOptions) : null),
-    [data, parserOptions]
+    [data, parserOptions],
   );
 
   const renderFeedbackBadge = () => (
@@ -508,10 +544,7 @@ function Question({
     ) : null;
 
   const viewer = (
-    <div
-      className={cn("rqti-viewer", className)}
-      style={rootStyle}
-    >
+    <div className={cn("rqti-viewer", className)} style={rootStyle}>
       {passageNode ? (
         <PassageLayout passage={passageNode}>{questionBody}</PassageLayout>
       ) : (
