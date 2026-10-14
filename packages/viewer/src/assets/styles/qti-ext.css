@@ -856,7 +856,7 @@
     var(--qti-font-weight-base, inherit)
   );
 
-  @apply rqti:my-3 rqti:space-y-2 rqti:rounded-md rqti:p-3;
+  @apply rqti:space-y-2 rqti:rounded-md rqti:p-3;
 }
 
 .qti-ext-stimulus-dialogue {

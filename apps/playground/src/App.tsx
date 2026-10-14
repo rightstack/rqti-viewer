@@ -67,7 +67,7 @@ function resolveHints(
 const FOCUS_ITEM: SampleItem = {
   type: ITEM_TYPE.TFQ,
   label: "외부 문항 (TFQ)",
-  qtiIdentifier: "i_r21wkr77ye2sqcuf",
+  qtiIdentifier: "i_i3morb62n4sgu5rz",
 };
 
 /** API 문항 + 로컬(XML 직접 주입) 문항 통합 목록 */
