@@ -19,4 +19,4 @@ export {
 export { resolveMediaUrl } from "./urlUtils";
 export { getNodeKey } from "./getNodeKey";
 export { isMathLatexAnswer, isMathResponseId } from "./isMathLatexAnswer";
-export { resolveMathKeyboardLevel } from "./resolveMathKeyboardLevel";
+export { resolveMathKeyboardLevel, resolveSchoolLevel } from "./resolveMathKeyboardLevel";

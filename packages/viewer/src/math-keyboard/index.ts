@@ -32,7 +32,6 @@ export {
   mathKeyboardHistoryKey,
   pushRecentKeyId,
   readMathKeyboardHistory,
-  resolveStoredTab,
   writeMathKeyboardHistory,
   type MathKeyboardHistory,
   type MathKeyboardPosition,

@@ -1457,6 +1457,10 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   overflow: visible;
 }
 
+.qti-ext-text-entry-input.qti-ext-text-entry-input-math {
+  padding-block: 0.25em;
+}
+
 .qti-ext-text-entry-content {
   display: block;
 

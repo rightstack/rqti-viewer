@@ -22,7 +22,6 @@ import {
   RECENT_TAB,
   pushRecentKeyId,
   readMathKeyboardHistory,
-  resolveStoredTab,
   writeMathKeyboardHistory,
 } from "./mathKeyboardHistory";
 import { MATH_LEVEL_CONFIG, type MathLevel } from "./mathLevels";
@@ -74,6 +73,15 @@ function isEmptyMathLatex(latex: string): boolean {
 /** MathLive는 근호 안이 숫자 하나면 `\sqrt3`처럼 중괄호를 뺀다. 에디터 정답은 `\sqrt{3}`이라 제출 직전에만 맞춘다. */
 function braceSingleDigitSqrt(latex: string): string {
   return latex.replace(/\\sqrt\s*([0-9])/g, "\\sqrt{$1}");
+}
+
+/**
+ * MathLive는 분자·분모가 숫자 하나면 `\frac23`처럼 중괄호를 뺀다.
+ * 에디터 정답은 `\frac{2}{3}`이라 제출 직전에만 맞춘다.
+ * `\frac{12}{3}`처럼 이미 중괄호가 있는 값은 그대로 둔다.
+ */
+function braceSingleDigitFrac(latex: string): string {
+  return latex.replace(/\\(dfrac|tfrac|dbinom|tbinom|binom|frac)([0-9])([0-9])/g, "\\$1{$2}{$3}");
 }
 
 function eventPathContains(event: Event, ...nodes: Array<EventTarget | null | undefined>): boolean {
@@ -142,10 +150,9 @@ function clampPosition(x: number, y: number, width: number, height: number): Mat
 function historyToState(level: MathLevel, historyScope?: string) {
   const history = readMathKeyboardHistory(level, historyScope);
   return {
-    drawerOpen: history.drawerOpen === true,
-    activeTab: resolveStoredTab(history.lastTab, MATH_LEVEL_CONFIG.middle.tabs),
+    activeTab: "basic" as const,
     recentKeyIds: (history.recentKeyIds ?? []).slice(0, MAX_RECENT_KEY_IDS),
-    position: history.position ?? null,
+    position: null,
   };
 }
 
@@ -220,7 +227,7 @@ export function MathKeyboard({
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [localLatex, setLocalLatex] = useState(value);
   const [initialHistory] = useState(() => historyToState(level, historyScope));
-  const [drawerOpen, setDrawerOpen] = useState(initialHistory.drawerOpen);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<MathKeyboardTab>(initialHistory.activeTab);
   const [recentKeyIds, setRecentKeyIds] = useState<string[]>(initialHistory.recentKeyIds);
   const [position, setPosition] = useState<MathKeyboardPosition | null>(initialHistory.position);
@@ -230,21 +237,16 @@ export function MathKeyboard({
   const persistRef = useRef({
     level,
     historyScope,
-    activeTab,
     recentKeyIds,
-    drawerOpen,
-    position,
   });
 
   const persist = (patch: Partial<MathKeyboardHistory>) => {
+    if (patch.recentKeyIds === undefined) return;
     const current = persistRef.current;
     writeMathKeyboardHistory(
       current.level,
       {
-        lastTab: current.activeTab,
         recentKeyIds: current.recentKeyIds,
-        drawerOpen: current.drawerOpen,
-        position: current.position ?? undefined,
         ...patch,
       },
       current.historyScope
@@ -258,7 +260,7 @@ export function MathKeyboard({
     const next = historyToState(level, historyScope);
     setActiveTab(next.activeTab);
     setRecentKeyIds(next.recentKeyIds);
-    setDrawerOpen(next.drawerOpen);
+    setDrawerOpen(false);
     setPosition(next.position);
   }
 
@@ -305,10 +307,7 @@ export function MathKeyboard({
     persistRef.current = {
       level,
       historyScope,
-      activeTab,
       recentKeyIds,
-      drawerOpen,
-      position,
     };
     valueRef.current = value;
     editingRef.current = editing;
@@ -392,6 +391,7 @@ export function MathKeyboard({
       if (!keyboardOpenRef.current) {
         setCaseMode("lower");
         setLetterMode("abc");
+        setDrawerOpen(false);
       }
       startEditing(insertLatex);
       keyboardOpenRef.current = true;
@@ -411,7 +411,7 @@ export function MathKeyboard({
       endEditing();
       return;
     }
-    const latest = braceSingleDigitSqrt(field.value);
+    const latest = braceSingleDigitFrac(braceSingleDigitSqrt(field.value));
     valueRef.current = latest;
     commitLatex(latest);
     // MathLive가 같은 keydown에서 언마운트되면 오류가 난다. 이벤트 끝난 뒤에 닫는다.
@@ -536,7 +536,8 @@ export function MathKeyboard({
       const base = prev ?? placeNearField();
       const next = clampPosition(base.x, base.y, width, height);
       if (prev && prev.x === next.x && prev.y === next.y) return prev;
-      if (!prev) persist({ position: next });
+      // 좌표는 저장하지 않는다. 이 호출을 빼면 React Compiler가 수동 useCallback을 유지하지 못한다.
+      if (!prev) persist({});
       return next;
     });
   }, [keyboardOpen, drawerOpen]);
@@ -632,13 +633,10 @@ export function MathKeyboard({
 
   const handleTabClick = (tab: MathKeyboardTab) => {
     setActiveTab(tab);
-    persist({ lastTab: tab });
   };
 
   const handleDrawerToggle = () => {
-    const next = !drawerOpen;
-    setDrawerOpen(next);
-    persist({ drawerOpen: next });
+    setDrawerOpen((open) => !open);
   };
 
   const placeDraggedPanel = (
@@ -684,7 +682,6 @@ export function MathKeyboard({
     dragRef.current = null;
     if (!next) return;
     setPosition(next);
-    persist({ position: next });
   };
 
   const detachKeysScrollRef = useRef<(() => void) | null>(null);
@@ -756,11 +753,10 @@ export function MathKeyboard({
         "qti-ext-text-entry-input",
         "qti-text-entry__field",
         variant === "cloze" && "qti-ext-text-entry-input-cloze",
-        variant === "cloze" && isCorrect && "qti-ext-text-entry-input-correct",
         variant === "srq" && "qti-ext-text-entry-input-srq",
-        (hasValue || editing) && "qti-ext-text-entry-input-focus",
-        variant === "srq" && isAnswerCorrect && "qti-ext-text-entry-input-correct",
-        variant === "srq" && isAnswerIncorrect && "qti-ext-text-entry-input-incorrect"
+        isAnswerCorrect && "qti-ext-text-entry-input-correct",
+        isAnswerIncorrect && "qti-ext-text-entry-input-incorrect",
+        !isSubmit && (hasValue || editing) && "qti-ext-text-entry-input-focus"
       );
   const rootClass = cn(
     "qti-ext-math-keyboard",

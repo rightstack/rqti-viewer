@@ -11,7 +11,7 @@ import type {
 } from "../../types";
 import { isMathLatexAnswer, isMathResponseId, resolveMathKeyboardLevel } from "../../utils";
 import { TextEntryInput } from "./components";
-import { isFractionPartId, resolveTextEntryMaxLength } from "./utils";
+import { isFractionPartId, resolveTextEntryMaxLength, textEntryValueMatches } from "./utils";
 
 function getTextEntryResponseString(
   map: ResponseValueMap | undefined,
@@ -106,10 +106,19 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
   const layout = isSRQ ? "block" : "inline";
 
   const isCorrect = useMemo(() => {
-    const sr = effectiveSubmitResponse;
-    if (!sr) return undefined;
-    return sr.correct;
-  }, [effectiveSubmitResponse]);
+    if (!options.isSubmit) return undefined;
+    const perBlank =
+      effectiveSubmitResponse?.correctAnswer?.[responseIdentifier] ??
+      options.correctAnswers?.[responseIdentifier];
+    if (perBlank !== undefined) return textEntryValueMatches(value, perBlank);
+    return effectiveSubmitResponse?.correct;
+  }, [
+    effectiveSubmitResponse,
+    options.correctAnswers,
+    options.isSubmit,
+    responseIdentifier,
+    value,
+  ]);
 
   const placeholder = placeholderText || undefined;
 

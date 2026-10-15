@@ -15,10 +15,7 @@ export interface MathKeyboardPosition {
 }
 
 export interface MathKeyboardHistory {
-  lastTab?: string;
   recentKeyIds?: string[];
-  drawerOpen?: boolean;
-  position?: MathKeyboardPosition;
 }
 
 export function mathKeyboardHistoryKey(level: MathLevel, historyScope?: string): string {
@@ -34,30 +31,14 @@ function getLocalStorage(): Storage | null {
   }
 }
 
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
 function sanitizeHistory(raw: unknown): MathKeyboardHistory {
   if (!raw || typeof raw !== "object") return {};
   const value = raw as Record<string, unknown>;
   const history: MathKeyboardHistory = {};
-  if (typeof value.lastTab === "string" && value.lastTab) {
-    history.lastTab = value.lastTab;
-  }
   if (Array.isArray(value.recentKeyIds)) {
     history.recentKeyIds = value.recentKeyIds
       .filter((id): id is string => typeof id === "string" && id.length > 0)
       .slice(0, MAX_RECENT_KEY_IDS);
-  }
-  if (typeof value.drawerOpen === "boolean") {
-    history.drawerOpen = value.drawerOpen;
-  }
-  if (value.position && typeof value.position === "object") {
-    const position = value.position as Record<string, unknown>;
-    if (isFiniteNumber(position.x) && isFiniteNumber(position.y)) {
-      history.position = { x: position.x, y: position.y };
-    }
   }
   return history;
 }
@@ -101,15 +82,4 @@ export function pushRecentKeyId(
 ): string[] {
   if (!id) return [...ids].slice(0, max);
   return [id, ...ids.filter((item) => item !== id)].slice(0, max);
-}
-
-export function resolveStoredTab(
-  lastTab: string | undefined,
-  tabs: readonly MathTab[]
-): MathKeyboardTab {
-  if (lastTab === RECENT_TAB) return RECENT_TAB;
-  if (lastTab && (tabs as readonly string[]).includes(lastTab)) {
-    return lastTab as MathTab;
-  }
-  return "basic";
 }

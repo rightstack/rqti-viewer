@@ -1,7 +1,7 @@
 import { type CSSProperties, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { MathLevel } from "../../math-keyboard";
 import type { QTIParserOptions, ResponseValue, ResponseValueMap } from "../../types";
-import { resolveMathKeyboardLevel } from "../../utils";
+import { resolveSchoolLevel } from "../../utils";
 import { appendMediaToken, resolveMediaUrl } from "../../utils/urlUtils";
 import { ImageBlankRegionContent } from "./ImageBlankRegionContent";
 import {
@@ -63,7 +63,8 @@ interface ImageInputBlankViewProps {
   rootResponseIdentifier: string;
   options: ImageBlankOptions;
   index: number;
-  mathKeyboardLevel: MathLevel | null;
+  /** PCI `data-school-level`. `isMath` 칸에만 넘긴다. */
+  schoolLevel: MathLevel | null;
 }
 
 function ImageInputBlankView({
@@ -71,7 +72,7 @@ function ImageInputBlankView({
   rootResponseIdentifier,
   options,
   index,
-  mathKeyboardLevel,
+  schoolLevel,
 }: ImageInputBlankViewProps) {
   const imageRef = useRef<HTMLImageElement>(null);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
@@ -189,7 +190,7 @@ function ImageInputBlankView({
                   valueOf={valueOf}
                   correctAnswerOf={correctAnswerOf}
                   historyScope={options.itemKey}
-                  mathKeyboardLevel={mathKeyboardLevel}
+                  mathKeyboardLevel={region.isMath ? schoolLevel : null}
                   stateClassOf={stateClassOf}
                   onChange={handleChange}
                 />
@@ -216,7 +217,7 @@ export function ImageInputBlankInteraction({
       rootResponseIdentifier={element.getAttribute("response-identifier")?.trim() ?? ""}
       options={options}
       index={index}
-      mathKeyboardLevel={resolveMathKeyboardLevel(element)}
+      schoolLevel={resolveSchoolLevel(element)}
     />
   );
 }

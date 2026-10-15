@@ -26,6 +26,8 @@ interface ImageBlankRegionBase {
   height: number;
   /** 있으면 이 영역의 폰트 상한. 없으면 루트 fontSize */
   fontSize?: number;
+  /** 영역 span의 `data-is-math="true"`일 때만 수식 키보드를 연다. */
+  isMath: boolean;
 }
 
 export type ImageBlankRegion =
@@ -143,6 +145,7 @@ function parseImageBlankRegion(element: Element, fallbackId: string): ImageBlank
     width,
     height,
     ...(fontSize === undefined ? {} : { fontSize }),
+    isMath: element.getAttribute("data-is-math") === "true",
   };
   const inputType = readInputType(element);
 

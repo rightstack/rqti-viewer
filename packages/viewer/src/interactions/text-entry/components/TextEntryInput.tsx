@@ -60,11 +60,10 @@ export const TextEntryInput = ({
     "qti-ext-text-entry-input",
     "qti-text-entry__field",
     variant === "cloze" && "qti-ext-text-entry-input-cloze",
-    variant === "cloze" && isCorrect && "qti-ext-text-entry-input-correct",
     variant === "srq" && "qti-ext-text-entry-input-srq",
-    value !== "" && "qti-ext-text-entry-input-focus",
-    variant === "srq" && isAnswerCorrect && "qti-ext-text-entry-input-correct",
-    variant === "srq" && isAnswerIncorrect && "qti-ext-text-entry-input-incorrect"
+    isAnswerCorrect && "qti-ext-text-entry-input-correct",
+    isAnswerIncorrect && "qti-ext-text-entry-input-incorrect",
+    !isSubmit && value !== "" && "qti-ext-text-entry-input-focus"
   );
 
   const applyChange = (raw: string) => {
