@@ -67,7 +67,10 @@ export interface QuestionProps {
   /** 기본 테마 `"default"` 또는 커스텀 테마 객체(JSON) */
   theme?: Theme | "default";
   itemKey?: string;
-  /** 응답 변경 콜백 */
+  /**
+   * practice. 사용자 입력이 답을 바꿀 때만 호출한다.
+   * `responses` 복원·부모 리렌더·콜백 함수 재생성만으로는 호출하지 않는다.
+   */
   onResponse?: (responses: ResponseValueMap) => void;
   /**
    * 문항 단독 Submit Callback. 응답값만 전달한다.
@@ -82,8 +85,8 @@ export interface QuestionProps {
   mode?: QuestionMode;
   correctAnswers?: Record<string, ResponseValue>;
   /**
-   * 제어형 응답. preview·thumbnail에서 값이 있으면 선택·입력을 복원해 표시한다.
-   * practice의 `onSubmit` 페이로드를 그대로 넣으면 된다.
+   * 저장해 둔 응답. preview·thumbnail에서는 읽기 전용으로 표시한다.
+   * practice에서는 이어 풀기 복원에 쓴다. `onSubmit` / `onResponse` 페이로드를 그대로 넣으면 된다.
    */
   responses?: ResponseValueMap;
   /** 채점 결과 (도착 시 피드백 시그널 발생) */

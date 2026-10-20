@@ -6,6 +6,9 @@
 
 ### Fixed
 
+- practice에서 `responses`와 `onResponse`를 같이 쓸 때, 답 복원·부모 리렌더만으로
+  `onResponse`가 반복 호출되던 오류를 수정했다. 사용자 입력이 답을 바꿀 때만 호출한다.
+  (0.4.21에서 `useEffect`로 옮기며 생긴 회귀. 0.4.6 동작과 같다.)
 - MathJax 수식 중첩 재조판으로 인한 브라우저 크래시(`STATUS_STACK_OVERFLOW`) 수정.
   - `MathJaxContext`에 `src`가 지정되지 않아 기본 번들 `tex-mml-chtml.js`(MathML 입력 처리기 포함)가
     로드되던 문제. `dynamic` 재조판 시 이전 출력의 `<mjx-assistive-mml>` 안 MathML을 새 입력으로
@@ -15,6 +18,11 @@
     기능 손실은 없으며, 스크린리더용 보조 MathML 출력(assistive-mml)은 그대로 유지된다.
   - 재발 방지: `MATHJAX_SRC` 상수를 검증하는 가드 단위 테스트(vitest)와 리렌더 반복 시 DOM 깊이가
     증가하지 않는지 확인하는 E2E 크래시 회귀 테스트(Playwright)를 추가.
+- 수식 키보드가 `document.body`로 포탈될 때 호스트 화면 밖에 가려지던 문제를 수정했다.
+
+### Changed
+
+- 빈칸 채점(`ignoreAnswerOrder`), 선택형 정오답, 수식 키보드·이미지 빈칸을 mqti `dev` 기준으로 맞췄다.
 
 ### Note
 
