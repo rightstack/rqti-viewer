@@ -938,9 +938,21 @@ export function MathKeyboard({
       </>
     ) : null;
 
+  const viewerScope = rootRef.current?.closest(".rqti-viewer");
   const floatingPanel =
     keyboardOpen && typeof document !== "undefined"
       ? createPortal(
+          <div
+            className={cn("rqti-viewer", viewerScope?.classList.contains("dark") && "dark")}
+            style={{
+              position: "fixed",
+              inset: 0,
+              width: 0,
+              height: 0,
+              overflow: "visible",
+              pointerEvents: "none",
+            }}
+          >
           <div
             ref={panelRef}
             className="qti-ext-math-keyboard-float"
@@ -1087,6 +1099,7 @@ export function MathKeyboard({
                 )}
               </div>
             </div>
+          </div>
           </div>,
           document.body
         )

@@ -409,6 +409,10 @@ const VCQ_CANCEL_BLANK_FEEDBACK = {
   content: "<p>취소선이 그어진 칸에 3, 옆 칸에 2를 적습니다.</p>",
 };
 
+/** 운영 문항 i_hi3zlxp01bpqpkpl — 단답 + data-is-math / data-school-level=m */
+const HEX_PYRAMID_SRQ_XML = String.raw`<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-item xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="i_hi3zlxp01bpqpkpl" title="리피트개념중등수학1-2(개념책)_1_028p_01" time-dependent="false" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqtiasi_v3p0 /assessment/xml-catalog/purl.imsglobal.org/spec/qti/v3p0/schema/xsd/imsqti_asiv3p0_v1p0.xsd"><qti-response-declaration identifier="RESPONSE" cardinality="single" base-type="string"><qti-correct-response><qti-value>$84$</qti-value></qti-correct-response><qti-mapping lower-bound="0.0" upper-bound="1.0" default-value="0.0"><qti-map-entry map-key="84" mapped-value="1.0" case-sensitive="true"/></qti-mapping></qti-response-declaration><qti-outcome-declaration identifier="SCORE" cardinality="single" base-type="float"><qti-default-value><qti-value>0.0</qti-value></qti-default-value></qti-outcome-declaration><qti-outcome-declaration identifier="MAXSCORE" cardinality="single" base-type="float"><qti-default-value><qti-value>1.0</qti-value></qti-default-value></qti-outcome-declaration><qti-item-body><div class="qti-ext-question"><div class="qti-ext-prompt"><p>그림과 같은 육각뿔에서 교점의 개수를 <span class="qti-ext-mathfield" data-latex="a">a</span>, 교선의 개수를 <span class="qti-ext-mathfield" data-latex="b">b</span>라 할 때, <span class="qti-ext-mathfield" data-latex="ab">ab</span>의 값을 구하시오.</p></div><p>맞춤온 뷰어 확인</p><p>sum_{n=1}^{infty} a_n <span class="qti-ext-mathfield" data-latex="sum_{n=1}^{infty} a_n">sum_{n=1}^{infty} a_n</span></p><p>sumlimits_{n=1}^{infty} a_n <span class="qti-ext-mathfield" data-latex="sumlimits_{n=1}^{infty} a_n">sumlimits_{n=1}^{infty} a_n</span></p><figure class="qti-ext-figure qti-align-center"><img src="/api/v3/assessment-resource/object/8516" alt="/api/v3/assessment-resource/object/8516" width="150"/></figure><p><qti-text-entry-interaction response-identifier="RESPONSE" expected-length="50" data-is-math="true" data-school-level="m"/></p></div></qti-item-body><qti-response-processing><qti-set-outcome-value identifier="SCORE"><qti-sum><qti-variable identifier="SCORE"/><qti-map-response identifier="RESPONSE"/></qti-sum></qti-set-outcome-value></qti-response-processing></qti-assessment-item>`;
+
 export const LOCAL_ITEMS: Record<string, QuestionItem> = {
   ORDER_CLICK_HANSEL: {
     id: -1,
@@ -524,6 +528,16 @@ export const LOCAL_ITEMS: Record<string, QuestionItem> = {
     settings: null,
     feedbacks: [VCQ_CANCEL_BLANK_FEEDBACK, HINT_FEEDBACK],
   },
+  i_hi3zlxp01bpqpkpl: {
+    id: -12,
+    qtiIdentifier: "i_hi3zlxp01bpqpkpl",
+    title: "리피트개념중등수학1-2(개념책)_1_028p_01",
+    type: ITEM_TYPE.SRQ,
+    qtiXml: HEX_PYRAMID_SRQ_XML,
+    correctAnswer: { RESPONSE: ["$84$"] },
+    settings: null,
+    feedbacks: [],
+  },
 };
 
 export const LOCAL_SAMPLE_ITEMS: SampleItem[] = [
@@ -581,5 +595,10 @@ export const LOCAL_SAMPLE_ITEMS: SampleItem[] = [
     type: ITEM_TYPE.VCQ,
     label: "세로셈형 · 취소선 빈칸 (VCQ)",
     qtiIdentifier: "VCQ_CANCEL_BLANK",
+  },
+  {
+    type: ITEM_TYPE.SRQ,
+    label: "육각뿔 단답 · 수식입력 (SRQ)",
+    qtiIdentifier: "i_hi3zlxp01bpqpkpl",
   },
 ];
