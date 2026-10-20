@@ -228,24 +228,23 @@ function Question({
     if (responsesProp !== undefined) setResponses(responsesProp);
   }, [responsesProp]);
 
-  const skipResponseNotifyRef = useRef(true);
+  const onResponseRef = useRef(onResponse);
+  onResponseRef.current = onResponse;
+  const responsesRef = useRef(responses);
+  responsesRef.current = responses;
 
   const handleResponseChange = useCallback(
     (identifier: string, value: ResponseValue) => {
-      setResponses(
-        (prev) => ({ ...prev, [identifier]: value } as ResponseValueMap),
-      );
+      const next = {
+        ...responsesRef.current,
+        [identifier]: value,
+      } as ResponseValueMap;
+      responsesRef.current = next;
+      setResponses(next);
+      onResponseRef.current?.(next);
     },
     [],
   );
-
-  useEffect(() => {
-    if (skipResponseNotifyRef.current) {
-      skipResponseNotifyRef.current = false;
-      return;
-    }
-    onResponse?.(responses);
-  }, [responses, onResponse]);
 
   const handleSubmit = useCallback(() => {
     const submitted =
