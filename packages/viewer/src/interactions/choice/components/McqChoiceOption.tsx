@@ -23,47 +23,21 @@ export const McqChoiceOption = ({
   isSubmit,
   isPreview = false,
   isThumbnail = false,
-  submitResponse,
-  responseIdentifier,
   correctIdList,
   onSelect,
 }: McqChoiceOptionProps) => {
   const disabled = isSubmit || isPreview;
+  // 화면에 표시된 선택 상태를 사용한다. 서버 response의 누락 여부로 선택을 재판정하지 않는다.
+  // 전체 오답 여부로 개별 선지를 판정하지 않는다. 정답 목록이 없으면 색상 판정을 보류한다.
+  const isCorrectChoice = correctIdList.includes(choice.identifier);
+  const showChoiceFeedback = isSubmit && isSelected && correctIdList.length > 0;
+  const isCorrect = showChoiceFeedback && isCorrectChoice;
+  const isIncorrect = showChoiceFeedback && !isCorrectChoice;
+
   const handleClick = useCallback(() => {
     if (disabled) return;
     onSelect(choice.identifier);
   }, [onSelect, choice.identifier, disabled]);
-
-  const selectedIds = submitResponse?.response?.[responseIdentifier];
-  const selectedArray = Array.isArray(selectedIds)
-    ? selectedIds
-    : selectedIds !== undefined && selectedIds !== null
-      ? [selectedIds]
-      : [];
-  const chosen = selectedArray.includes(choice.identifier);
-  /** 만점 또는(오답 제출이어도) 선택+정답 ID면 correct — answer-reveal보다 우선 */
-  const isCorrect =
-    isSubmit &&
-    !!submitResponse &&
-    chosen &&
-    (submitResponse.correct ||
-      (correctIdList.length > 0 && correctIdList.includes(choice.identifier)));
-
-  const hasCorrectIds = correctIdList.length > 0;
-  const isIncorrect =
-    isSubmit &&
-    !!submitResponse &&
-    !submitResponse.correct &&
-    selectedArray.includes(choice.identifier) &&
-    (hasCorrectIds ? !correctIdList.includes(choice.identifier) : true);
-
-  const isAnswerReveal =
-    isSubmit &&
-    !!submitResponse &&
-    !submitResponse.correct &&
-    correctIdList.length > 0 &&
-    correctIdList.includes(choice.identifier) &&
-    !isCorrect;
 
   return (
     <div className="rqti:relative">
@@ -74,10 +48,9 @@ export const McqChoiceOption = ({
           "qti-ext-option-base",
           "qti-ext-choice-option",
           "rqti:focus-visible:ring-ring rqti:flex rqti:w-full rqti:cursor-pointer rqti:items-center rqti:gap-2 rqti:rounded-md rqti:text-left rqti:outline-none rqti:focus-visible:ring-2 rqti:focus-visible:ring-offset-2",
-          isSelected && "qti-ext-choice-option-selected",
+          isSelected && !showChoiceFeedback && "qti-ext-choice-option-selected",
           isCorrect && "qti-ext-choice-option-correct",
           isIncorrect && "qti-ext-choice-option-incorrect",
-          isAnswerReveal && "qti-ext-choice-option-answer-reveal",
           isSubmit && "qti-ext-option-disabled",
           isPreview && "rqti:pointer-events-none",
           disabled && "rqti:pointer-events-none"
@@ -99,10 +72,9 @@ export const McqChoiceOption = ({
           <div
             className={cn(
               "qti-ext-choice-option-checkbox",
-              isSelected && "qti-ext-choice-option-checkbox-selected",
+              isSelected && !showChoiceFeedback && "qti-ext-choice-option-checkbox-selected",
               isCorrect && "qti-ext-choice-option-checkbox-correct",
-              isIncorrect && "qti-ext-choice-option-checkbox-incorrect",
-              isAnswerReveal && "qti-ext-choice-option-checkbox-answer-reveal"
+              isIncorrect && "qti-ext-choice-option-checkbox-incorrect"
             )}
             role="checkbox"
             aria-checked={isSelected}

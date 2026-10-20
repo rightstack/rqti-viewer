@@ -135,9 +135,27 @@ export const HIGH_SCHOOL_BASIC_KEYS: readonly MathKey[] = takeKeys(
 
 export const HIGH_SCHOOL_ALGEBRA_KEYS: readonly MathKey[] = takeKeys(
   MIDDLE_SCHOOL_ALGEBRA_KEYS,
-  "sin",
-  "cos",
-  "tan",
+  key({
+    id: "sin",
+    tab: "algebra",
+    group: "삼각비",
+    insert: "\\sin{#?}",
+    label: "\\sin",
+  }),
+  key({
+    id: "cos",
+    tab: "algebra",
+    group: "삼각비",
+    insert: "\\cos{#?}",
+    label: "\\cos",
+  }),
+  key({
+    id: "tan",
+    tab: "algebra",
+    group: "삼각비",
+    insert: "\\tan{#?}",
+    label: "\\tan",
+  }),
   key({
     id: "sec",
     tab: "algebra",

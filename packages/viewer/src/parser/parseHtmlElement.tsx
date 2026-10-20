@@ -34,6 +34,36 @@ function isVcqLayoutClass(className: string): boolean {
   return className.includes("qti-ext-vcq-");
 }
 
+function onlyElementChild(element: Element): Element | null {
+  let only: Element | null = null;
+  for (const node of element.childNodes) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if ((node.textContent ?? "").trim() !== "") return null;
+      continue;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) continue;
+    if (only) return null;
+    only = node as Element;
+  }
+  return only;
+}
+
+/** 오른쪽 정답 줄의 빈 밑줄. 바로 다음 문단의 입력칸이 그 자리를 쓴다. */
+function isEmptyRightBlankParagraph(element: Element): boolean {
+  if (element.tagName.toLowerCase() !== "p") return false;
+  const className = element.getAttribute("class") ?? "";
+  if (!className.split(/\s+/).includes("qti-align-right")) return false;
+  const only = onlyElementChild(element);
+  const onlyClass = only?.getAttribute("class") ?? "";
+  if (!onlyClass.split(/\s+/).includes("qti-ext-blank")) return false;
+  return (only?.textContent ?? "").trim() === "";
+}
+
+function isTextEntryOnlyParagraph(element: Element): boolean {
+  if (element.tagName.toLowerCase() !== "p") return false;
+  return onlyElementChild(element)?.tagName.toLowerCase() === "qti-text-entry-interaction";
+}
+
 function isVcqSyntheticOverlay(className: string): boolean {
   return (
     className.includes("qti-ext-vcq-synthetic-bracket") ||
@@ -382,12 +412,29 @@ export const parseHTMLElement = (
         </span>
       );
     }
-    case "p":
+    case "p": {
+      if (
+        isEmptyRightBlankParagraph(element) &&
+        element.nextElementSibling !== null &&
+        isTextEntryOnlyParagraph(element.nextElementSibling)
+      ) {
+        return null;
+      }
+
+      const previousElement = element.previousElementSibling;
+      const alignedClassName =
+        previousElement !== null &&
+        isEmptyRightBlankParagraph(previousElement) &&
+        isTextEntryOnlyParagraph(element) &&
+        !className.split(/\s+/).includes("qti-align-right")
+          ? `${className} qti-align-right`.trim()
+          : className;
+
       // p 태그 안에 p 태그가 들어가는 것을 방지
       // 부모가 p 태그이고 자식도 p 태그인 경우 span으로 감싸기
       if (parentTagName === "p") {
         return (
-          <span key={`span-${index}`} className={className}>
+          <span key={`span-${index}`} className={alignedClassName}>
             {processedChildren}
           </span>
         );
@@ -398,17 +445,17 @@ export const parseHTMLElement = (
 
       if (hasOnlyDropdown) {
         return (
-          <div key={`p-${index}`} className={`${className} has-block-inline-choice`.trim()}>
+          <div key={`p-${index}`} className={`${alignedClassName} has-block-inline-choice`.trim()}>
             {processedChildren}
           </div>
         );
       }
 
       // qti-text-indent / indent-first(행잉) / outdent-first(첫줄 양수 ti) → 인라인 style
-      const textIndent = parseTextIndent(className);
+      const textIndent = parseTextIndent(alignedClassName);
       const finalPClassName = textIndent.className
-        ? `${className} ${textIndent.className}`.trim()
-        : className;
+        ? `${alignedClassName} ${textIndent.className}`.trim()
+        : alignedClassName;
 
       const dataListStart = element.getAttribute("data-list-start");
 
@@ -422,6 +469,7 @@ export const parseHTMLElement = (
           {processedChildren.length === 0 ? "\u00A0" : processedChildren}
         </p>
       );
+    }
     case "b":
       return <b key={`b-${index}`}>{processedChildren}</b>;
     case "u":

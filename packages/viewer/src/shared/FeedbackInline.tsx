@@ -19,6 +19,7 @@ import {
   buildCorrectAnswerFeedbackSegments,
   extractMatchRowColIdentifiersFromQtiXml,
   formatCorrectAnswerValueForDisplay,
+  buildOrderCorrectAnswerItems,
   getMatchCorrectResponseStrings,
 } from "../utils/choiceAnswerDisplayFromQti";
 import { isMathLatexAnswer, isMathResponseId } from "../utils/isMathLatexAnswer";
@@ -27,6 +28,7 @@ import { MatchAnswerView } from "./MatchAnswerView";
 import { ImageInputBlankCorrectAnswerPreview } from "./ImageInputBlankCorrectAnswerPreview";
 import { MathInputBlankCorrectAnswerPreview } from "./MathInputBlankCorrectAnswerPreview";
 import { VcqCorrectAnswerPreview } from "./VcqCorrectAnswerPreview";
+import { OrderCorrectAnswerPreview } from "./OrderCorrectAnswerPreview";
 
 const SECTION_ICONS: Record<FeedbackType, React.ComponentType<{ className?: string }>> = {
   CORRECT: CheckCircle,
@@ -210,6 +212,10 @@ export const FeedbackInline = ({
                   segment.kind === "default"
                     ? getMatchCorrectResponseStrings(qtiXml, segment.key, segment.value)
                     : null;
+                const orderAnswerItems =
+                  segment.kind === "default" && matchStrings === null
+                    ? buildOrderCorrectAnswerItems(qtiXml, segment.key, segment.value)
+                    : null;
                 const isBlockAnswer =
                   matchStrings !== null ||
                   segment.kind === "vcqGrid" ||
@@ -218,11 +224,15 @@ export const FeedbackInline = ({
                 const isMultiMath =
                   segment.kind === "default" &&
                   matchStrings === null &&
+                  orderAnswerItems === null &&
                   isMathResponseId(segment.key) &&
                   Array.isArray(segment.value) &&
                   segment.value.length > 1;
                 const defaultDisplay =
-                  segment.kind === "default" && matchStrings === null && !isMultiMath
+                  segment.kind === "default" &&
+                  matchStrings === null &&
+                  orderAnswerItems === null &&
+                  !isMultiMath
                     ? formatCorrectAnswerValueForDisplay(
                         segment.key,
                         segment.value,
@@ -271,6 +281,8 @@ export const FeedbackInline = ({
                           items={resolvedMatchItems}
                           correctResponse={matchStrings}
                         />
+                      ) : orderAnswerItems !== null ? (
+                        <OrderCorrectAnswerPreview items={orderAnswerItems} token={token} />
                       ) : isMultiMath ? (
                         (Array.isArray(segment.value) ? segment.value : [segment.value]).map(
                           (text, vi, values) => {

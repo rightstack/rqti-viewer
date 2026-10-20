@@ -24,30 +24,16 @@ export const ChoiceOption = ({
   isSubmit,
   isPreview = false,
   isThumbnail = false,
-  submitResponse,
-  responseIdentifier,
   correctIdList,
   onSelect,
 }: ChoiceOptionProps) => {
   const disabled = isSubmit || isPreview;
-  const isCorrect =
-    isSubmit &&
-    !!submitResponse &&
-    submitResponse.correct &&
-    submitResponse.response?.[responseIdentifier]?.includes(choice.identifier);
-
-  const isIncorrect =
-    isSubmit &&
-    !!submitResponse &&
-    !submitResponse.correct &&
-    submitResponse.response?.[responseIdentifier]?.includes(choice.identifier);
-
-  const isAnswerReveal =
-    isSubmit &&
-    !!submitResponse &&
-    !submitResponse.correct &&
-    correctIdList.length > 0 &&
-    correctIdList.includes(choice.identifier);
+  // 화면에 표시된 선택 상태를 사용한다. 서버 response의 누락 여부로 선택을 재판정하지 않는다.
+  // 전체 오답 여부로 개별 선지를 판정하지 않는다. 정답 목록이 없으면 색상 판정을 보류한다.
+  const isCorrectChoice = correctIdList.includes(choice.identifier);
+  const showChoiceFeedback = isSubmit && isSelected && correctIdList.length > 0;
+  const isCorrect = showChoiceFeedback && isCorrectChoice;
+  const isIncorrect = showChoiceFeedback && !isCorrectChoice;
 
   const handleClick = useCallback(() => {
     if (disabled) return;
@@ -63,10 +49,9 @@ export const ChoiceOption = ({
           "qti-ext-option-base",
           "qti-ext-choice-option",
           "rqti:focus-visible:ring-ring rqti:flex rqti:w-full rqti:cursor-pointer rqti:items-center rqti:gap-2 rqti:rounded-md rqti:text-left rqti:outline-none rqti:focus-visible:ring-2 rqti:focus-visible:ring-offset-2",
-          isSelected && "qti-ext-choice-option-selected",
+          isSelected && !showChoiceFeedback && "qti-ext-choice-option-selected",
           isCorrect && "qti-ext-choice-option-correct",
           isIncorrect && "qti-ext-choice-option-incorrect",
-          isAnswerReveal && "qti-ext-choice-option-answer-reveal",
           isSubmit && "qti-ext-option-disabled",
           isPreview && "rqti:pointer-events-none",
           disabled && "rqti:pointer-events-none"
@@ -88,10 +73,9 @@ export const ChoiceOption = ({
           <div
             className={cn(
               "qti-ext-choice-option-radio",
-              isSelected && "qti-ext-choice-option-radio-selected",
-              isCorrect && "qti-ext-choice-option-radio-correct",
-              isIncorrect && "qti-ext-choice-option-radio-incorrect",
-              isAnswerReveal && "qti-ext-choice-option-radio-answer-reveal"
+            isSelected && !showChoiceFeedback && "qti-ext-choice-option-radio-selected",
+            isCorrect && "qti-ext-choice-option-radio-correct",
+            isIncorrect && "qti-ext-choice-option-radio-incorrect"
             )}
             role="radio"
             aria-checked={isSelected}

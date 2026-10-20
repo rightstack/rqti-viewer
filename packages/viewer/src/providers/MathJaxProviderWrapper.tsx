@@ -46,6 +46,8 @@ const mathJaxConfig = {
     macros: {
       sim: "\\mathrel{\\unicode{x223D}}",
       neg: "\\unicode{xFF5E}",
+      // MathLive 키와 같은 평행 기호. ams에는 \sslash가 없어 키 라벨이 명령 그대로 남는다.
+      sslash: "\\mathord{\\mkern0mu\\raise{0.1em}\\hbox{$/\\mkern-6mu/$}\\mkern0mu}",
     },
   },
   chtml: {

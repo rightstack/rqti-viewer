@@ -250,6 +250,7 @@ export function getInputBlankStateClass(options: {
   allowEmptySelected?: boolean;
 }): string {
   if (options.answerKey) return "qti-ext-text-entry-input-correct";
+  if (options.isSubmit && options.value.trim() === "") return "";
 
   if (options.isSubmit && options.correctAnswer !== undefined) {
     const ok = options.value === options.correctAnswer;

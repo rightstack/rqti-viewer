@@ -2,6 +2,8 @@ import React, { type ReactNode } from "react";
 import { Pencil } from "lucide-react";
 import { Input } from "../../../components/ui";
 import { cn } from "../../../lib/utils";
+import { renderLaTeX } from "../../../parser";
+import { isMathLatexAnswer, isMathResponseId } from "../../../utils";
 import { getTextEntryCharCount, isFractionPartId } from "../utils";
 
 const NEWLINE_RE = /[\r\n]/g;
@@ -22,6 +24,8 @@ interface TextEntryInputProps {
   label?: string;
   ariaLabel?: string;
   variant?: "default" | "srq" | "cloze";
+  /** 썸네일 빈 칸의 크기만 잡는 정답. 보이는 값에는 넣지 않는다. */
+  measureValue?: string;
 }
 
 export const TextEntryInput = ({
@@ -31,7 +35,7 @@ export const TextEntryInput = ({
   content,
   isSubmit = false,
   isPreview = false,
-  isCorrect = false,
+  isCorrect,
   onAnswerChange,
   placeholder,
   pattern,
@@ -40,8 +44,14 @@ export const TextEntryInput = ({
   label,
   ariaLabel,
   variant = "default",
+  measureValue = "",
 }: TextEntryInputProps) => {
   const isFraction = isFractionPartId(inputId);
+  const sizeText = value === "" ? measureValue.replace(NEWLINE_RE, "") : "";
+  const showSizer = sizeText !== "" && !isFraction;
+  const measureAsMath = showSizer && (isMathResponseId(inputId) || isMathLatexAnswer(sizeText));
+  const charCount =
+    isFraction && sizeText !== "" ? getTextEntryCharCount(sizeText) : getTextEntryCharCount(value);
   const isAnswerIncorrect = isSubmit && isCorrect === false;
   const isAnswerCorrect = isSubmit && isCorrect === true;
   const showPencil = !isPreview && !isSubmit && value === "" && (isFraction || !placeholder);
@@ -53,16 +63,21 @@ export const TextEntryInput = ({
     layout === "inline" ? "qti-text-entry--inline" : "qti-text-entry--block",
     variant === "cloze" && "qti-ext-text-entry-cloze",
     variant === "srq" && "qti-ext-text-entry-srq",
+    showSizer && "qti-ext-text-entry--measured",
     isPreview && "rqti:pointer-events-none"
   );
+  const showClozeFeedback = variant === "cloze" && value.trim() !== "";
 
   const inputClassName = cn(
     "qti-ext-text-entry-input",
     "qti-text-entry__field",
-    variant === "cloze" && "qti-ext-text-entry-input-cloze",
     variant === "srq" && "qti-ext-text-entry-input-srq",
-    isAnswerCorrect && "qti-ext-text-entry-input-correct",
-    isAnswerIncorrect && "qti-ext-text-entry-input-incorrect",
+    variant === "cloze" && "qti-ext-text-entry-input-cloze",
+    (variant === "cloze" ? value.trim() !== "" : value !== "") && "qti-ext-text-entry-input-focus",
+    variant === "srq" && isAnswerCorrect && "qti-ext-text-entry-input-correct",
+    variant === "srq" && isAnswerIncorrect && "qti-ext-text-entry-input-incorrect",
+    showClozeFeedback && isAnswerCorrect && "qti-ext-text-entry-input-correct",
+    showClozeFeedback && isAnswerIncorrect && "qti-ext-text-entry-input-incorrect",
     !isSubmit && value !== "" && "qti-ext-text-entry-input-focus"
   );
 
@@ -135,9 +150,7 @@ export const TextEntryInput = ({
   return (
     <span
       className={containerClassName}
-      style={
-        { "--qti-text-entry-chars": String(getTextEntryCharCount(value)) } as React.CSSProperties
-      }
+      style={{ "--qti-text-entry-chars": String(charCount) } as React.CSSProperties}
     >
       {label ? (
         <label htmlFor={`${inputId}-${index}`} className="qti-text-entry__label">
@@ -145,6 +158,17 @@ export const TextEntryInput = ({
         </label>
       ) : null}
       <span className="qti-text-entry__control">
+        {showSizer ? (
+          <span className="qti-ext-text-entry-sizer" aria-hidden="true">
+            {measureAsMath ? (
+              <span className="qti-ext-text-entry-content">
+                {renderLaTeX(sizeText, `text-entry-size-${inputId}`, false)}
+              </span>
+            ) : (
+              sizeText
+            )}
+          </span>
+        ) : null}
         {field}
         {showPencil ? <Pencil className="qti-ext-text-entry-pencil" aria-hidden="true" /> : null}
       </span>

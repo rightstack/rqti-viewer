@@ -10,7 +10,13 @@ import type { QuestionFeedback, QuestionItem } from "../types/questionItem";
  */
 export type QuestionItemProps = Pick<
   QuestionProps,
-  "data" | "type" | "itemKey" | "correctAnswers" | "feedbacks" | "passage"
+  | "data"
+  | "type"
+  | "itemKey"
+  | "correctAnswers"
+  | "feedbacks"
+  | "passage"
+  | "ignoreAnswerOrder"
 >;
 
 function mapFeedbacks(feedbacks: QuestionFeedback[]): FeedbackItem[] {
@@ -35,8 +41,23 @@ function mapFeedbacks(feedbacks: QuestionFeedback[]): FeedbackItem[] {
  * <Question theme="default" {...toQuestionProps(item)} showInlineFeedback />
  * ```
  */
+function readIgnoreAnswerOrder(item: QuestionItem): boolean | undefined {
+  if (typeof item.ignoreAnswerOrder === "boolean") return item.ignoreAnswerOrder;
+  const settings = item.settings;
+  if (
+    settings !== null &&
+    typeof settings === "object" &&
+    "ignoreAnswerOrder" in settings &&
+    typeof settings.ignoreAnswerOrder === "boolean"
+  ) {
+    return settings.ignoreAnswerOrder;
+  }
+  return undefined;
+}
+
 export function toQuestionProps(item: QuestionItem): QuestionItemProps {
   const passage = item.passage?.content?.trim();
+  const ignoreAnswerOrder = readIgnoreAnswerOrder(item);
   return {
     data: item.qtiXml,
     type: item.type,
@@ -44,5 +65,6 @@ export function toQuestionProps(item: QuestionItem): QuestionItemProps {
     correctAnswers: item.correctAnswer ?? undefined,
     feedbacks: mapFeedbacks(item.feedbacks ?? []),
     ...(passage ? { passage } : {}),
+    ...(ignoreAnswerOrder !== undefined ? { ignoreAnswerOrder } : {}),
   };
 }

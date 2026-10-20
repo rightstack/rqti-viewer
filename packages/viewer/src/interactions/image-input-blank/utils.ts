@@ -12,9 +12,6 @@ export const IMAGE_INPUT_BLANK_TYPE = "image-input-blank";
 /** 저작 `ImageBlankConfigType.fontSize` 기본값 */
 const DEFAULT_IMAGE_BLANK_FONT_SIZE = 24;
 
-/** 저작 정답 입력과 같은 상한 */
-export const IMAGE_BLANK_INPUT_MAX_LENGTH = 50;
-
 type ImageBlankInputType = "text" | "fraction" | "mixedFraction";
 
 interface ImageBlankRegionBase {

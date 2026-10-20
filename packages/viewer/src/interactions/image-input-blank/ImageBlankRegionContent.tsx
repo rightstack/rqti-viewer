@@ -5,6 +5,7 @@ import { MathKeyboard, type MathLevel } from "../../math-keyboard";
 import { renderLaTeX } from "../../parser/parseLatexToReact";
 import { isMathLatexAnswer } from "../../utils";
 import { buildFractionLatexFromParts } from "../../utils/choiceAnswerDisplayFromQti";
+import { textEntryValueMatches } from "../text-entry/utils";
 import { type ImageBlankRegion } from "./utils";
 
 const DOLLAR_WRAPPED_RE = /^\$\$[\s\S]*\$\$$/;
@@ -28,6 +29,8 @@ interface ImageBlankInputProps {
   showMath: boolean;
   /** 이 칸의 정답 문자열. `$$...$$` 정답이면 저장값도 같은 형태로 감싼다. */
   correctAnswer?: string;
+  /** 제출(채점)일 때만 칸 글자색으로 정오답을 표시한다. */
+  isSubmit?: boolean;
   historyScope?: string;
   mathKeyboardLevel?: MathLevel | null;
   onChange: (responseIdentifier: string, value: string) => void;
@@ -47,10 +50,25 @@ function ImageBlankInput({
   readOnly,
   showMath,
   correctAnswer,
+  isSubmit,
   historyScope,
   mathKeyboardLevel,
   onChange,
 }: ImageBlankInputProps) {
+  // 제출 후에만. 정답 문자열이 없으면 색을 매기지 않는다. 선택 상태에는 쓰지 않는다.
+  const gradeClass =
+    isSubmit === true && correctAnswer !== undefined
+      ? textEntryValueMatches(value, correctAnswer)
+        ? "correct"
+        : "incorrect"
+      : undefined;
+  const inputGradeClass = gradeClass
+    ? `qti-ext-image-input-blank__input--${gradeClass}`
+    : undefined;
+  const fieldGradeClass = gradeClass
+    ? `qti-ext-image-input-blank__field--${gradeClass}`
+    : undefined;
+
   // 수식은 `$$...$$`로 감싸여 들어온다. renderLaTeX가 바깥 구분자를 벗긴다.
   if (showMath && value.trim() !== "" && isMathLatexAnswer(value)) {
     return (
@@ -59,7 +77,8 @@ function ImageBlankInput({
           "qti-ext-image-input-blank__input",
           "qti-ext-image-input-blank__math",
           partClassName,
-          stateClassName
+          stateClassName,
+          inputGradeClass
         )}
         data-response-identifier={responseIdentifier}
         aria-label={label}
@@ -79,7 +98,8 @@ function ImageBlankInput({
         className={clsx(
           "qti-ext-image-input-blank__field",
           "qti-ext-image-input-blank__field--keypad",
-          partClassName
+          partClassName,
+          fieldGradeClass
         )}
         data-response-identifier={responseIdentifier}
       >
@@ -102,7 +122,7 @@ function ImageBlankInput({
   }
 
   return (
-    <span className={clsx("qti-ext-image-input-blank__field", partClassName)}>
+    <span className={clsx("qti-ext-image-input-blank__field", partClassName, fieldGradeClass)}>
       <input
         type="text"
         inputMode={numeric ? "numeric" : undefined}
@@ -132,6 +152,8 @@ interface ImageBlankRegionContentProps {
   stateClassOf: (responseIdentifier: string) => string;
   /** 칸의 정답 문자열. `$$...$$` 정답이면 저장값도 같은 형태로 감싼다. */
   correctAnswerOf?: (responseIdentifier: string) => string;
+  /** 제출(채점)일 때만 칸 글자색으로 정오답을 표시한다. */
+  isSubmit?: boolean;
   historyScope?: string;
   mathKeyboardLevel?: MathLevel | null;
   onChange: (responseIdentifier: string, value: string) => void;
@@ -157,6 +179,8 @@ function ImageBlankFractionStack({
   showMath,
   valueOf,
   stateClassOf,
+  correctAnswerOf,
+  isSubmit,
   onChange,
 }: {
   /** 대분수 정수부. 칸은 스택 밖에 있지만 분수 선 색에는 함께 반영한다. */
@@ -187,6 +211,8 @@ function ImageBlankFractionStack({
         stateClassName={numeratorState}
         readOnly={readOnly}
         showMath={showMath}
+        correctAnswer={correctAnswerOf?.(numeratorId)}
+        isSubmit={isSubmit}
         onChange={onChange}
       />
       <span className="qti-ext-image-input-blank__fraction-line" aria-hidden="true" />
@@ -199,6 +225,8 @@ function ImageBlankFractionStack({
         stateClassName={denominatorState}
         readOnly={readOnly}
         showMath={showMath}
+        correctAnswer={correctAnswerOf?.(denominatorId)}
+        isSubmit={isSubmit}
         onChange={onChange}
       />
     </span>
@@ -214,11 +242,21 @@ export function ImageBlankRegionContent({
   valueOf,
   stateClassOf,
   correctAnswerOf,
+  isSubmit,
   historyScope,
   mathKeyboardLevel,
   onChange,
 }: ImageBlankRegionContentProps) {
-  const shared = { displayIndex, readOnly, showMath, valueOf, stateClassOf, onChange };
+  const shared = {
+    displayIndex,
+    readOnly,
+    showMath,
+    valueOf,
+    stateClassOf,
+    correctAnswerOf,
+    isSubmit,
+    onChange,
+  };
 
   if (showFractionAsLatex && region.inputType !== "text") {
     const latex = buildFractionLatexFromParts(
@@ -249,6 +287,7 @@ export function ImageBlankRegionContent({
         readOnly={readOnly}
         showMath={showMath}
         correctAnswer={correctAnswerOf?.(region.responseIdentifier)}
+        isSubmit={isSubmit}
         historyScope={historyScope}
         mathKeyboardLevel={mathKeyboardLevel}
         onChange={onChange}
@@ -268,6 +307,8 @@ export function ImageBlankRegionContent({
           stateClassName={stateClassOf(region.wholeId)}
           readOnly={readOnly}
           showMath={showMath}
+          correctAnswer={correctAnswerOf?.(region.wholeId)}
+          isSubmit={isSubmit}
           onChange={onChange}
         />
         <ImageBlankFractionStack

@@ -44,7 +44,6 @@ export function checkAnswerUtil(
 
 export interface CanSubmitOptions {
   type?: ItemsType;
-  maxChoices?: number;
   expectedResponseCount?: number;
 }
 
@@ -56,13 +55,14 @@ function isNonEmpty(value: unknown): boolean {
 }
 
 export function canSubmitUtil(responses: ResponseValueMap, options?: CanSubmitOptions): boolean {
-  const { type, maxChoices, expectedResponseCount } = options ?? {};
+  const { type, expectedResponseCount } = options ?? {};
+
+  // 다중 선택형은 정답 개수와 관계없이 하나 이상 선택하면 제출할 수 있다.
+  if (type === ITEM_TYPE.MCQ) {
+    return Object.values(responses).some((value) => Array.isArray(value) && value.length > 0);
+  }
 
   if (type === ITEM_TYPE.ORDER || type === ITEM_TYPE.VCQ) return true;
-
-  if (type === ITEM_TYPE.MCQ && maxChoices && maxChoices > 0) {
-    return Object.values(responses).some((v) => Array.isArray(v) && v.length >= maxChoices);
-  }
 
   if (type === ITEM_TYPE.DDQ || type === ITEM_TYPE.CLOZE || type === ITEM_TYPE.GMQ) {
     const values = Object.values(responses);

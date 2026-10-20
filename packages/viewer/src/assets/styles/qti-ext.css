@@ -165,7 +165,7 @@
   margin-right: auto;
   margin-left: 0;
 
-  @apply rqti:p-1;
+  /* @apply rqti:p-1; */
 }
 
 .qti-ext-figure .qti-ext-image {
@@ -1403,9 +1403,6 @@ textarea.qti-ext-text-entry-input {
   display: block;
 
   margin: 0;
-  padding-block: calc(
-    (2em - 1lh - 2 * var(--qti-option-border-width, 1px)) / 2
-  );
 
   outline: none;
 
@@ -1537,6 +1534,77 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   min-width: var(--qti-text-entry-min-box);
   max-width: 100%;
   margin-left: auto;
+}
+
+/* 썸네일 빈 칸: 정답 글자는 숨기고, 그 칸이 정답을 담았을 때의 크기만 남긴다. */
+.qti-ext-text-entry.qti-text-entry--inline.qti-ext-text-entry--measured,
+.rqti-viewer .qti-ext-text-entry.qti-text-entry--inline.qti-ext-text-entry--measured {
+  display: inline-grid;
+
+  grid-template-columns: minmax(var(--qti-text-entry-min-box), max-content);
+
+  width: auto;
+  min-width: var(--qti-text-entry-min-box);
+  max-width: 100%;
+}
+
+.qti-ext-text-entry--measured.qti-text-entry--inline > .qti-text-entry__control {
+  display: contents;
+}
+
+.qti-ext-text-entry-srq.qti-ext-text-entry--measured > .qti-text-entry__control {
+  display: grid;
+
+  grid-template-columns: minmax(var(--qti-text-entry-min-box), max-content);
+
+  width: fit-content;
+  min-width: var(--qti-text-entry-min-box);
+  max-width: 100%;
+  margin-left: auto;
+}
+
+.qti-ext-text-entry--measured .qti-ext-text-entry-sizer,
+.qti-ext-text-entry--measured .qti-ext-text-entry-input {
+  grid-area: 1 / 1;
+}
+
+.qti-ext-text-entry--measured .qti-ext-text-entry-sizer {
+  display: block;
+  visibility: hidden;
+
+  box-sizing: border-box;
+  width: auto;
+  min-width: var(--qti-text-entry-min-box);
+  max-width: 100%;
+  min-height: 2em;
+  padding-inline: 8px;
+  padding-block: calc((2em - 1lh - 2 * var(--qti-option-border-width, 1px)) / 2);
+
+  border-width: var(--qti-option-border-width, 1px);
+  border-style: solid;
+  border-color: transparent;
+
+  font-family: inherit;
+  font-size: var(--qti-font-size-base, inherit);
+  font-weight: var(--qti-option-font-weight, inherit);
+  line-height: var(--qti-line-height-base, 1.5);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.qti-ext-text-entry--measured textarea.qti-ext-text-entry-input,
+.qti-ext-text-entry--measured textarea.qti-ext-text-entry-input:placeholder-shown {
+  overflow: hidden;
+
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 100%;
+
+  text-overflow: clip;
+  white-space: pre-wrap;
+
+  field-sizing: fixed;
 }
 
 .qti-ext-text-entry-input:disabled {
@@ -2699,6 +2767,59 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
 .qti-ext-feedback-section-answer {
   @apply rqti:ml-4 rqti:flex rqti:gap-1;
+}
+
+.qti-ext-feedback-section-head:has(.qti-ext-order-correct-answer) {
+  min-width: 0;
+}
+
+.qti-ext-feedback-section-answer:has(.qti-ext-order-correct-answer) {
+  flex: 1 1 auto;
+
+  min-width: 0;
+  max-width: 100%;
+}
+
+.qti-ext-order-correct-answer {
+  display: flex;
+
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+
+  min-width: 0;
+  max-width: 100%;
+}
+
+:has(> .qti-ext-order-correct-answer) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.qti-ext-order-correct-answer p,
+.qti-ext-order-correct-answer div {
+  display: inline;
+
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.qti-ext-order-correct-answer .qti-ext-figure {
+  display: inline-block;
+
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+
+  vertical-align: middle;
+}
+
+.qti-ext-order-correct-answer img:not(.qti-ext-inline-image) {
+  height: auto !important;
+  margin: 0;
 }
 
 .qti-ext-feedback-section-content {
@@ -6937,8 +7058,20 @@ p:has(.qti-ext-image-input-blank) {
 /* 정오답은 테두리색만 바꾼다. 배경은 흰색을 유지한다. */
 .qti-ext-image-input-blank__input--correct {
   border-color: var(--qti-option-border-correct, #16a34a);
+  color: var(--qti-option-border-correct);
+}
+
+.qti-ext-image-input-blank__field--correct,
+.qti-ext-image-input-blank__field--correct .qti-ext-image-input-blank__input {
+  color: var(--qti-option-border-correct);
 }
 
 .qti-ext-image-input-blank__input--incorrect {
   border-color: var(--qti-option-border-incorrect, #dc2626);
+  color: var(--qti-option-border-incorrect);
+}
+
+.qti-ext-image-input-blank__field--incorrect,
+.qti-ext-image-input-blank__field--incorrect .qti-ext-image-input-blank__input {
+  color: var(--qti-option-border-incorrect);
 }

@@ -292,6 +292,29 @@
   min-width: 3em;
 }
 
+/* 빈 수식 칸은 숨긴 조판과 같은 칸에 겹쳐 그 크기만 남긴다. */
+.rqti-viewer .qti-ext-math-keyboard-display:has(> .qti-ext-text-entry-sizer) {
+  display: inline-grid;
+
+  place-items: center;
+  grid-template-columns: max-content;
+}
+
+.rqti-viewer .qti-ext-math-keyboard-display:has(> .qti-ext-text-entry-sizer) > * {
+  grid-area: 1 / 1;
+}
+
+.qti-ext-math-keyboard-display > .qti-ext-text-entry-sizer {
+  visibility: hidden;
+
+  width: max-content;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0;
+
+  border: 0;
+}
+
 /* 플로팅 팝업: 뷰포트 기준 고정. 위치는 인라인 left/top. */
 .qti-ext-math-keyboard-float {
   --qti-ext-mlk-key-size: 48px;
@@ -300,29 +323,30 @@
   --qti-ext-mlk-grid-cols: 4;
   --qti-ext-mlk-right-rows: 6;
   --qti-ext-mlk-pad-x: 8px;
-  --qti-ext-mlk-toggle-size: 1rem;
-  --qti-ext-mlk-toggle-gap: 8px;
+  --qti-ext-mlk-border: 1px;
+  --qti-ext-mlk-toggle-size: 28px;
   --qti-ext-mlk-body-gap: 8px;
   --qti-ext-mlk-pad-width: calc(
     var(--qti-ext-mlk-grid-cols) * var(--qti-ext-mlk-key-size) +
       (var(--qti-ext-mlk-grid-cols) - 1) * var(--qti-ext-mlk-key-gap)
   );
   --qti-ext-mlk-edge: 2px;
-  --qti-ext-mlk-scrollbar: 12px;
-  --qti-ext-mlk-width: calc(
-    var(--qti-ext-mlk-pad-width) + var(--qti-ext-mlk-edge) + var(--qti-ext-mlk-scrollbar)
-  );
+
+  /* 스크롤바 폭은 예약하지 않는다. 넘칠 때만 오른쪽에 스크롤바가 뜬다. */
+  --qti-ext-mlk-width: calc(var(--qti-ext-mlk-pad-width) + var(--qti-ext-mlk-edge));
   --qti-ext-mlk-height: calc(
     var(--qti-ext-mlk-right-rows) * var(--qti-ext-mlk-key-size) +
       (var(--qti-ext-mlk-right-rows) - 1) * var(--qti-ext-mlk-key-gap)
   );
+  /* border-box라 테두리 2px도 폭에 포함한다. 닫힘 간격은 서랍 margin-right로 전환돼 gap을 0으로 접는다. */
   --qti-ext-mlk-closed-width: calc(
-    2 * var(--qti-ext-mlk-pad-x) + var(--qti-ext-mlk-toggle-size) + var(--qti-ext-mlk-toggle-gap) +
-      var(--qti-ext-mlk-pad-width)
+    2 * var(--qti-ext-mlk-border) + 2 * var(--qti-ext-mlk-pad-x) + var(--qti-ext-mlk-toggle-size) +
+      var(--qti-ext-mlk-body-gap) + var(--qti-ext-mlk-pad-width)
   );
   --qti-ext-mlk-open-width: calc(
-    2 * var(--qti-ext-mlk-pad-x) + var(--qti-ext-mlk-width) + var(--qti-ext-mlk-body-gap) +
-      var(--qti-ext-mlk-toggle-size) + var(--qti-ext-mlk-body-gap) + var(--qti-ext-mlk-pad-width)
+    2 * var(--qti-ext-mlk-border) + 2 * var(--qti-ext-mlk-pad-x) + var(--qti-ext-mlk-width) +
+      var(--qti-ext-mlk-body-gap) + var(--qti-ext-mlk-toggle-size) + var(--qti-ext-mlk-body-gap) +
+      var(--qti-ext-mlk-pad-width)
   );
   position: fixed;
   z-index: 10050;
@@ -420,35 +444,69 @@
 }
 
 .qti-ext-math-keyboard-float-body {
+  /* 간격은 flex gap이 아니라 서랍·구분선 margin-right로 둔다(gap은 전환 중 들썩임). */
+  display: flex;
+}
+
+/* 두 패드 사이 구분선. 세로 1px 선은 클릭되지 않고, 가운데 알약만 클릭된다. */
+.qti-ext-math-keyboard-divider {
+  position: relative;
+
   display: flex;
 
-  gap: var(--qti-ext-mlk-body-gap);
+  flex: 0 0 auto;
+  justify-content: center;
+  align-items: center;
+  align-self: stretch;
+
+  width: var(--qti-ext-mlk-toggle-size);
+
+  /* 구분선→키패드 간격. 닫힘·열림 모두 일정하다. */
+  margin-right: var(--qti-ext-mlk-body-gap);
 }
 
-/* 닫힌 서랍은 폭 0이어도 gap이 펼침 버튼 왼쪽에 남는다. */
-.qti-ext-math-keyboard-float-body:not(:has(.qti-ext-math-keyboard-drawer--open)) {
-  gap: 0;
+.qti-ext-math-keyboard-divider::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+
+  width: 1px;
+
+  background: #cbd5e1;
+
+  transform: translateX(-50%);
+
+  pointer-events: none;
 }
 
+/* 구분선 세로 가운데에 올라탄 세로 알약 버튼. */
 .qti-ext-math-keyboard-drawer-toggle {
+  position: relative;
+  z-index: 1;
+
   display: inline-flex;
 
   flex: 0 0 auto;
   justify-content: center;
   align-items: center;
 
-  width: var(--qti-ext-mlk-toggle-size);
+  width: 28px;
+  height: 48px;
   margin: 0;
   padding: 0;
 
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
 
-  background: #f8fafc;
+  background: #ffffff;
+  box-shadow:
+    0 1px 3px rgb(15 23 42 / 0.12),
+    0 1px 2px rgb(15 23 42 / 0.06);
 
-  color: #334155;
-  font-size: 0.75rem;
-  line-height: 1;
+  color: #0c75d8;
 
   cursor: pointer;
   user-select: none;
@@ -472,9 +530,25 @@
   grid-template-columns: repeat(4, var(--qti-ext-mlk-key-size));
 }
 
-.qti-ext-math-keyboard-float-body:not(:has(.qti-ext-math-keyboard-drawer--open))
-  .qti-ext-math-keyboard-drawer-toggle {
-  margin-right: var(--qti-ext-mlk-toggle-gap);
+/* 닫힌/열린 패널 너비를 JS가 읽는 프로브. 레이아웃·클릭에 영향을 주지 않는다. */
+.qti-ext-mlk-width-probe {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  visibility: hidden;
+
+  height: 0;
+
+  pointer-events: none;
+}
+
+.qti-ext-mlk-width-probe--closed {
+  width: var(--qti-ext-mlk-closed-width);
+}
+
+.qti-ext-mlk-width-probe--open {
+  width: var(--qti-ext-mlk-open-width);
 }
 
 /* 좌측 서랍: 닫힘 시 폭 0, 열림 시 고정 폭으로 슬라이드 */
@@ -484,11 +558,17 @@
   width: 0;
   min-width: 0;
 
-  transition: width 0.2s ease;
+  /* 서랍→구분선 간격은 서랍 폭과 함께 전환한다. 닫히면 0이라 버튼 왼쪽 gap이 사라진다. */
+  margin-right: 0;
+
+  transition:
+    width 0.2s ease,
+    margin-right 0.2s ease;
 }
 
 .qti-ext-math-keyboard-drawer--open {
   width: var(--qti-ext-mlk-width);
+  margin-right: var(--qti-ext-mlk-body-gap);
 }
 
 .qti-ext-math-keyboard-drawer-inner {
@@ -619,24 +699,49 @@
   padding-right: var(--qti-ext-mlk-edge);
 }
 
-/* 탭은 한 줄로 가로 나열. 넘치면 가로 스크롤, 스크롤바는 숨긴다. */
+/* 탭 영역: 밑줄은 고정·전체폭으로 ::after가 그린다. 가로 스크롤은 안쪽 track만 한다. */
 .qti-ext-mlk-tabs {
+  position: relative;
+
+  display: flex;
+
+  flex: 0 0 auto;
+
+  width: 100%;
+  min-width: 0;
+}
+
+/* 밑줄: track이 스크롤돼도 고정되고 키 영역 전체 폭을 채운다. */
+.qti-ext-mlk-tabs::after {
+  content: "";
+
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  height: 1px;
+
+  background: #e5e7eb;
+}
+
+/* 탭 버튼 가로 스크롤(스크롤바 숨김). flex 1 1 auto + min-width 0이어야 내용 폭으로 안 늘고 스크롤된다. */
+.qti-ext-mlk-tabs-track {
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
 
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   gap: 4px;
 
-  width: 100%;
+  min-width: 0;
 
-  border-bottom: 1px solid #e5e7eb;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-.qti-ext-mlk-tabs::-webkit-scrollbar {
+.qti-ext-mlk-tabs-track::-webkit-scrollbar {
   display: none;
 
   width: 0;

@@ -113,18 +113,24 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
       : options.submitResponse
     : undefined;
 
-  /** GapMatch와 동일: 제출 응답의 correctAnswer 우선, 없으면 options.correctAnswers */
+  /** 제출 응답 → 전달된 정답 → 문항 XML 순으로 선지별 정답을 확인한다. */
   const correctIdList = useMemo(() => {
     const fromResponse = effectiveSubmitResponse?.correctAnswer?.[responseIdentifier];
     const fromOptions = options.correctAnswers?.[responseIdentifier];
-    const raw = fromResponse ?? fromOptions;
-    if (raw === undefined || raw === null) return [];
-    if (Array.isArray(raw)) {
-      return raw.filter((v): v is string => typeof v === "string");
+    for (const raw of [fromResponse, fromOptions]) {
+      const ids = (Array.isArray(raw) ? raw : [raw]).filter(
+        (v): v is string => typeof v === "string" && v.trim() !== ""
+      );
+      if (ids.length > 0) return ids;
     }
-    if (typeof raw === "string") return [raw];
-    return [];
-  }, [effectiveSubmitResponse, options.correctAnswers, responseIdentifier]);
+
+    const declaration = Array.from(
+      element.ownerDocument.querySelectorAll("qti-response-declaration")
+    ).find((node) => node.getAttribute("identifier") === responseIdentifier);
+    return Array.from(declaration?.querySelectorAll("qti-correct-response qti-value") ?? [])
+      .map((node) => node.textContent?.trim() ?? "")
+      .filter(Boolean);
+  }, [element, effectiveSubmitResponse, options.correctAnswers, responseIdentifier]);
 
   // TFQ 타입일 때 ChoiceButtons 사용 (radio/checkbox 없음)
   if (options.questionType === ITEM_TYPE.TFQ) {

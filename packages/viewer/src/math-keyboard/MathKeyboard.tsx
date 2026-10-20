@@ -9,11 +9,17 @@ import {
   useState,
 } from "react";
 import { MathJaxProviderWrapper } from "../providers/MathJaxProviderWrapper";
-import { Pencil, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, X } from "lucide-react";
 import "mathlive";
 import { createPortal } from "react-dom";
 import MathJaxRenderer from "../components/MathJaxRenderer";
 import { cn } from "../lib/utils";
+import {
+  type MathFieldSelection,
+  insertIntoMathField,
+  normalizeCommittedMathLatex,
+  runMathFieldCommand,
+} from "./mathFieldEditing";
 import {
   MAX_RECENT_KEY_IDS,
   type MathKeyboardHistory,
@@ -34,19 +40,28 @@ import {
 
 const MathField = "math-field" as unknown as ElementType;
 
-function attachKeysScrollWheel(el: HTMLDivElement): () => void {
+/** 휠로 스크롤한다. 가로("x")는 세로 휠도 받아 마우스 휠로 탭을 넘길 수 있게 한다. */
+function attachWheelScroll(el: HTMLDivElement, axis: "x" | "y"): () => void {
   const onWheel = (event: WheelEvent) => {
-    if (event.deltaY === 0) return;
-    const max = el.scrollHeight - el.clientHeight;
+    const primary =
+      axis === "x" && Math.abs(event.deltaX) >= Math.abs(event.deltaY)
+        ? event.deltaX
+        : event.deltaY;
+    if (primary === 0) return;
+    const size = axis === "x" ? el.clientWidth : el.clientHeight;
+    const max = (axis === "x" ? el.scrollWidth : el.scrollHeight) - size;
     if (max <= 0) return;
     const delta =
       event.deltaMode === WheelEvent.DOM_DELTA_LINE
-        ? event.deltaY * 16
+        ? primary * 16
         : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
-          ? event.deltaY * el.clientHeight
-          : event.deltaY;
+          ? primary * size
+          : primary;
     event.preventDefault();
-    el.scrollTop = Math.min(max, Math.max(0, el.scrollTop + delta));
+    const current = axis === "x" ? el.scrollLeft : el.scrollTop;
+    const next = Math.min(max, Math.max(0, current + delta));
+    if (axis === "x") el.scrollLeft = next;
+    else el.scrollTop = next;
   };
   el.addEventListener("wheel", onWheel, { passive: false });
   return () => el.removeEventListener("wheel", onWheel);
@@ -56,10 +71,12 @@ type MathFieldEl = HTMLElement & {
   value: string;
   position: number;
   lastOffset: number;
+  selection: MathFieldSelection;
   mathVirtualKeyboardPolicy?: string;
   focus: () => void;
   insert: (latex: string, options?: Record<string, unknown>) => void;
   executeCommand: (command: string | [string, ...unknown[]]) => void;
+  getValue: (start: number, end: number, format?: string) => string;
 };
 
 const VIEWPORT_PAD = 8;
@@ -68,20 +85,6 @@ const BACKSPACE_REPEAT_INTERVAL_MS = 70;
 
 function isEmptyMathLatex(latex: string): boolean {
   return latex.trim().length === 0;
-}
-
-/** MathLive는 근호 안이 숫자 하나면 `\sqrt3`처럼 중괄호를 뺀다. 에디터 정답은 `\sqrt{3}`이라 제출 직전에만 맞춘다. */
-function braceSingleDigitSqrt(latex: string): string {
-  return latex.replace(/\\sqrt\s*([0-9])/g, "\\sqrt{$1}");
-}
-
-/**
- * MathLive는 분자·분모가 숫자 하나면 `\frac23`처럼 중괄호를 뺀다.
- * 에디터 정답은 `\frac{2}{3}`이라 제출 직전에만 맞춘다.
- * `\frac{12}{3}`처럼 이미 중괄호가 있는 값은 그대로 둔다.
- */
-function braceSingleDigitFrac(latex: string): string {
-  return latex.replace(/\\(dfrac|tfrac|dbinom|tbinom|binom|frac)([0-9])([0-9])/g, "\\$1{$2}{$3}");
 }
 
 function eventPathContains(event: Event, ...nodes: Array<EventTarget | null | undefined>): boolean {
@@ -131,20 +134,12 @@ function deviceKeyAction(event: {
   }
 }
 
-/** MathLive #? / \\placeholder 를 MathJax가 아는 기호로 바꿔 닫힘 시 폭이 뛰지 않게 한다. */
+/** 빈 칸과 MathLive placeholder를 사각형으로 바꿔 닫힌 칸 너비를 유지한다. */
 function latexForInputMathJax(latex: string): string {
   return latex
     .replace(/\\placeholder(?:\[[^\]]*\])?\{[^}]*\}/g, "\\square")
-    .replace(/#\?/g, "\\square");
-}
-
-function clampPosition(x: number, y: number, width: number, height: number): MathKeyboardPosition {
-  const maxX = window.innerWidth - width - VIEWPORT_PAD;
-  const maxY = window.innerHeight - height - VIEWPORT_PAD;
-  return {
-    x: Math.min(Math.max(VIEWPORT_PAD, x), Math.max(VIEWPORT_PAD, maxX)),
-    y: Math.min(Math.max(VIEWPORT_PAD, y), Math.max(VIEWPORT_PAD, maxY)),
-  };
+    .replace(/#\?/g, "\\square")
+    .replace(/\{\}/g, "{\\square}");
 }
 
 function historyToState(level: MathLevel, historyScope?: string) {
@@ -185,6 +180,8 @@ export interface MathKeyboardProps {
    * 없으면 길이를 자르지 않는다.
    */
   maxLength?: number;
+  /** 값이 비어 있을 때 칸 크기만 잡는 정답. 썸네일만 넘긴다. */
+  measureValue?: string;
 }
 
 export function MathKeyboard({
@@ -202,6 +199,7 @@ export function MathKeyboard({
   ariaLabel,
   placeholder,
   maxLength,
+  measureValue = "",
 }: MathKeyboardProps) {
   const config = MATH_LEVEL_CONFIG[level];
 
@@ -213,6 +211,8 @@ export function MathKeyboard({
   const onContentSizeRef = useRef(onContentSize);
   const pendingInsertRef = useRef<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const closedProbeRef = useRef<HTMLSpanElement>(null);
+  const openProbeRef = useRef<HTMLSpanElement>(null);
   const dragRef = useRef<{
     pointerX: number;
     pointerY: number;
@@ -411,7 +411,7 @@ export function MathKeyboard({
       endEditing();
       return;
     }
-    const latest = braceSingleDigitFrac(braceSingleDigitSqrt(field.value));
+    const latest = normalizeCommittedMathLatex(field.value);
     valueRef.current = latest;
     commitLatex(latest);
     // MathLive가 같은 keydown에서 언마운트되면 오류가 난다. 이벤트 끝난 뒤에 닫는다.
@@ -428,13 +428,13 @@ export function MathKeyboard({
           openKeyboard(action.latex);
           return;
         }
-        field.insert(action.latex, { focus: true });
+        insertIntoMathField(field, action.latex);
         field.focus();
         return;
       }
       if (!field) return;
       if (action.type === "command") {
-        field.executeCommand(action.command);
+        runMathFieldCommand(field, action.command);
         field.focus();
         return;
       }
@@ -491,7 +491,7 @@ export function MathKeyboard({
     const pending = pendingInsertRef.current;
     if (!pending) return;
     pendingInsertRef.current = null;
-    field.insert(pending, { focus: true });
+    insertIntoMathField(field, pending);
     field.focus();
   }, [editing, keyboardOpen]);
 
@@ -526,42 +526,78 @@ export function MathKeyboard({
     return { x: rect.left, y: rect.bottom + VIEWPORT_PAD };
   };
 
+  // 닫힌/열린 패널 너비는 CSS 변수를 그대로 가진 프로브의 offsetWidth로 읽는다.
+  const readPanelWidths = useCallback(() => {
+    const closed = closedProbeRef.current?.offsetWidth ?? 0;
+    const open = openProbeRef.current?.offsetWidth ?? closed;
+    return { closed, open };
+  }, []);
+
+  // `x`는 닫힌 패널 왼쪽. 오른쪽 가장자리를 앵커로 쓰고, 펼침 시 왼쪽이 넘치면 그만큼 오른쪽으로 민다.
+  const clampAnchored = useCallback(
+    (x: number, y: number, open: boolean): MathKeyboardPosition => {
+      const { closed, open: openWidth } = readPanelWidths();
+      const height = panelRef.current?.offsetHeight ?? 0;
+      const maxX = window.innerWidth - VIEWPORT_PAD - closed;
+      let nx = Math.min(Math.max(VIEWPORT_PAD, x), Math.max(VIEWPORT_PAD, maxX));
+      if (open) {
+        const openLeft = nx + closed - openWidth;
+        if (openLeft < VIEWPORT_PAD) nx += VIEWPORT_PAD - openLeft;
+      }
+      const maxY = window.innerHeight - height - VIEWPORT_PAD;
+      const ny = Math.min(Math.max(VIEWPORT_PAD, y), Math.max(VIEWPORT_PAD, maxY));
+      return { x: nx, y: ny };
+    },
+    [readPanelWidths]
+  );
+
+  // left와 width가 함께 있으면 right가 무시되므로 left: auto로 둔다.
+  const applyAnchoredStyle = useCallback(
+    (pos: MathKeyboardPosition) => {
+      const panel = panelRef.current;
+      if (!panel) return;
+      const { closed } = readPanelWidths();
+      panel.style.left = "auto";
+      panel.style.right = `${Math.round(window.innerWidth - (pos.x + closed))}px`;
+      panel.style.top = `${pos.y}px`;
+    },
+    [readPanelWidths]
+  );
+
   useLayoutEffect(() => {
     if (!keyboardOpen) return;
     const panel = panelRef.current;
     if (!panel) return;
-    const width = panel.offsetWidth;
-    const height = panel.offsetHeight;
-    setPosition((prev: MathKeyboardPosition | null) => {
-      const base = prev ?? placeNearField();
-      const next = clampPosition(base.x, base.y, width, height);
-      if (prev && prev.x === next.x && prev.y === next.y) return prev;
-      // 좌표는 저장하지 않는다. 이 호출을 빼면 React Compiler가 수동 useCallback을 유지하지 못한다.
-      if (!prev) persist({});
-      return next;
+    // 패널 크기를 잰 뒤 위치를 정한다. 레이아웃 이펙트 본문에서 곧바로 setState하면 cascading render
+    // 경고가 난다. 커밋 후 프레임에서 올리고, position이 없으면 패널은 숨어 있어 깜빡임도 없다.
+    const frame = requestAnimationFrame(() => {
+      setPosition((prev: MathKeyboardPosition | null) => {
+        const base = prev ?? placeNearField();
+        const next = clampAnchored(base.x, base.y, drawerOpen);
+        if (prev && prev.x === next.x && prev.y === next.y) return prev;
+        // 좌표는 저장하지 않는다. 이 호출을 빼면 React Compiler가 수동 useCallback을 유지하지 못한다.
+        if (!prev) persist({});
+        return next;
+      });
     });
-  }, [keyboardOpen, drawerOpen]);
+    return () => cancelAnimationFrame(frame);
+  }, [keyboardOpen, drawerOpen, clampAnchored]);
 
   useLayoutEffect(() => {
-    const panel = panelRef.current;
-    if (!panel || !position || dragRef.current) return;
-    panel.style.left = `${position.x}px`;
-    panel.style.top = `${position.y}px`;
-  }, [position, keyboardOpen, drawerOpen]);
+    if (!position || dragRef.current) return;
+    applyAnchoredStyle(position);
+  }, [position, keyboardOpen, drawerOpen, applyAnchoredStyle]);
 
   useEffect(() => {
     if (!keyboardOpen) return;
     const onResize = () => {
-      const panel = panelRef.current;
-      if (!panel) return;
-      setPosition((prev: MathKeyboardPosition | null) => {
-        if (!prev) return prev;
-        return clampPosition(prev.x, prev.y, panel.offsetWidth, panel.offsetHeight);
-      });
+      setPosition((prev: MathKeyboardPosition | null) =>
+        prev ? clampAnchored(prev.x, prev.y, drawerOpen) : prev
+      );
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [keyboardOpen]);
+  }, [keyboardOpen, drawerOpen, clampAnchored]);
 
   useEffect(
     () => () => {
@@ -576,7 +612,7 @@ export function MathKeyboard({
   const insertLatex = (latex: string) => {
     const field = fieldRef.current;
     if (!field) return;
-    field.insert(latex, { focus: true });
+    insertIntoMathField(field, latex);
     field.focus();
   };
 
@@ -585,7 +621,7 @@ export function MathKeyboard({
     const field = fieldRef.current;
     if (!field) return;
     if (key.command) {
-      field.executeCommand(key.command);
+      runMathFieldCommand(field, key.command);
       field.focus();
       return;
     }
@@ -645,15 +681,13 @@ export function MathKeyboard({
     const drag = dragRef.current;
     const panel = panelRef.current;
     if (!drag || !panel) return null;
-    const next = clampPosition(
+    const next = clampAnchored(
       drag.x + event.clientX - drag.pointerX,
       drag.y + event.clientY - drag.pointerY,
-      panel.offsetWidth,
-      panel.offsetHeight
+      drawerOpen
     );
     drag.latest = next;
-    panel.style.left = `${next.x}px`;
-    panel.style.top = `${next.y}px`;
+    applyAnchoredStyle(next);
     return next;
   };
 
@@ -663,12 +697,15 @@ export function MathKeyboard({
     const panel = panelRef.current;
     if (!panel) return;
     const rect = panel.getBoundingClientRect();
+    // `x`는 닫힌 패널 왼쪽. 열림/닫힘 모두 rect.right가 고정 패드 오른쪽 끝 앵커다.
+    const { closed } = readPanelWidths();
+    const anchorX = rect.right - closed;
     dragRef.current = {
       pointerX: event.clientX,
       pointerY: event.clientY,
-      x: rect.left,
+      x: anchorX,
       y: rect.top,
-      latest: { x: rect.left, y: rect.top },
+      latest: { x: anchorX, y: rect.top },
     };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -687,15 +724,43 @@ export function MathKeyboard({
   const detachKeysScrollRef = useRef<(() => void) | null>(null);
   const bindKeysScroll = useCallback((el: HTMLDivElement | null) => {
     detachKeysScrollRef.current?.();
-    detachKeysScrollRef.current = el ? attachKeysScrollWheel(el) : null;
+    detachKeysScrollRef.current = el ? attachWheelScroll(el, "y") : null;
   }, []);
+
+  const tabsTrackRef = useRef<HTMLDivElement | null>(null);
+  const detachTabsScrollRef = useRef<(() => void) | null>(null);
+  const bindTabsScroll = useCallback((el: HTMLDivElement | null) => {
+    detachTabsScrollRef.current?.();
+    detachTabsScrollRef.current = el ? attachWheelScroll(el, "x") : null;
+    tabsTrackRef.current = el;
+  }, []);
+
+  // 선택·포커스된 탭이 스크롤 밖에 있으면 트랙 안으로 끌어온다.
+  const scrollTabIntoView = useCallback((tab: HTMLElement | null) => {
+    const track = tabsTrackRef.current;
+    if (!track || !tab) return;
+    const trackRect = track.getBoundingClientRect();
+    const tabRect = tab.getBoundingClientRect();
+    const leftOverflow = tabRect.left - trackRect.left;
+    const rightOverflow = tabRect.right - trackRect.right;
+    if (leftOverflow < 0) track.scrollLeft += leftOverflow;
+    else if (rightOverflow > 0) track.scrollLeft += rightOverflow;
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!keyboardOpen || !drawerOpen) return;
+    const active = tabsTrackRef.current?.querySelector<HTMLElement>(
+      '[role="tab"][aria-selected="true"]'
+    );
+    scrollTabIntoView(active ?? null);
+  }, [activeTab, keyboardOpen, drawerOpen, scrollTabIntoView]);
 
   const renderKeyButton = (item: MathKey) => (
     <button
       key={item.id}
       type="button"
       className={cn("qti-ext-mlk-key", item.cols === 2 && "qti-ext-mlk-key--wide")}
-      title={item.group}
+      aria-label={item.group}
       onPointerDown={(event) => event.preventDefault()}
       onClick={() => handleLeftKey(item)}
     >
@@ -727,6 +792,8 @@ export function MathKeyboard({
     field.macros = {
       ...field.macros,
       sslash: { def: "\\mathbin{/\\!/}", args: 0 },
+      // 키와 같은 ∽(U+223D). \backsim은 물결로 그려진다. expand: false라 저장 명령은 \sim.
+      sim: { def: '\\char"223D', args: 0, expand: false },
     };
     if (field.dataset.bound === "1") return;
     field.dataset.bound = "1";
@@ -766,6 +833,7 @@ export function MathKeyboard({
 
   const showPencil =
     !embedded && !readOnly && !isSubmit && !hasValue && !placeholder && !keyboardOpen;
+  const answerSizeLatex = hasValue ? "" : measureValue.replace(/[\r\n]/g, "");
   const renderedValue = answerLatex ? (
     <MathJaxRenderer
       ref={embedded ? bindContent : undefined}
@@ -792,6 +860,14 @@ export function MathKeyboard({
             )}
           >
             {renderedValue}
+            {answerSizeLatex !== "" ? (
+              <span className="qti-ext-text-entry-sizer" aria-hidden="true">
+                <MathJaxRenderer
+                  latex={latexForInputMathJax(answerSizeLatex)}
+                  className="qti-ext-math-keyboard-mathjax"
+                />
+              </span>
+            ) : null}
           </span>
         </span>
       </MathJaxProviderWrapper>
@@ -963,6 +1039,16 @@ export function MathKeyboard({
             }}
             data-math-keyboard={level}
           >
+            <span
+              ref={closedProbeRef}
+              className="qti-ext-mlk-width-probe qti-ext-mlk-width-probe--closed"
+              aria-hidden="true"
+            />
+            <span
+              ref={openProbeRef}
+              className="qti-ext-mlk-width-probe qti-ext-mlk-width-probe--open"
+              aria-hidden="true"
+            />
             <div
               className="qti-ext-math-keyboard-float-handle"
               role="separator"
@@ -1004,23 +1090,26 @@ export function MathKeyboard({
               >
                 <div className="qti-ext-math-keyboard-drawer-inner">
                   <div className="qti-ext-math-keyboard-keyboard">
-                    <div className="qti-ext-mlk-tabs" role="tablist">
-                      {drawerTabs.map((tab) => (
-                        <button
-                          key={tab.id}
-                          type="button"
-                          role="tab"
-                          aria-selected={tab.id === activeTab}
-                          className={cn(
-                            "qti-ext-mlk-tab",
-                            tab.id === activeTab && "qti-ext-mlk-tab--active"
-                          )}
-                          onPointerDown={(event) => event.preventDefault()}
-                          onClick={() => handleTabClick(tab.id)}
-                        >
-                          {tab.label}
-                        </button>
-                      ))}
+                    <div className="qti-ext-mlk-tabs">
+                      <div className="qti-ext-mlk-tabs-track" role="tablist" ref={bindTabsScroll}>
+                        {drawerTabs.map((tab) => (
+                          <button
+                            key={tab.id}
+                            type="button"
+                            role="tab"
+                            aria-selected={tab.id === activeTab}
+                            className={cn(
+                              "qti-ext-mlk-tab",
+                              tab.id === activeTab && "qti-ext-mlk-tab--active"
+                            )}
+                            onPointerDown={(event) => event.preventDefault()}
+                            onFocus={(event) => scrollTabIntoView(event.currentTarget)}
+                            onClick={() => handleTabClick(tab.id)}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     {characterTab ??
                       (activeTab === RECENT_TAB ? (
@@ -1039,16 +1128,22 @@ export function MathKeyboard({
                   </div>
                 </div>
               </div>
-              <button
-                type="button"
-                className="qti-ext-math-keyboard-drawer-toggle"
-                aria-expanded={drawerOpen}
-                aria-label={drawerOpen ? "확장 패드 접기" : "확장 패드 펼치기"}
-                onPointerDown={(event) => event.preventDefault()}
-                onClick={handleDrawerToggle}
-              >
-                {drawerOpen ? "<" : ">"}
-              </button>
+              <div className="qti-ext-math-keyboard-divider">
+                <button
+                  type="button"
+                  className="qti-ext-math-keyboard-drawer-toggle"
+                  aria-expanded={drawerOpen}
+                  aria-label={drawerOpen ? "확장 패드 접기" : "확장 패드 펼치기"}
+                  onPointerDown={(event) => event.preventDefault()}
+                  onClick={handleDrawerToggle}
+                >
+                  {drawerOpen ? (
+                    <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
+                  ) : (
+                    <ChevronLeft size={16} strokeWidth={2} aria-hidden="true" />
+                  )}
+                </button>
+              </div>
               <div className="qti-ext-math-keyboard-right" aria-label="자주 쓰는 키">
                 {MIDDLE_SCHOOL_PAD_KEYS.map((key) =>
                   key.empty ? (
@@ -1062,7 +1157,7 @@ export function MathKeyboard({
                       key={key.id}
                       type="button"
                       className="qti-ext-math-keyboard-right-key"
-                      title={key.label}
+                      aria-label={key.label}
                       onPointerDown={(event) => {
                         if (key.id === "backspace") onBackspacePointerDown(event);
                         else event.preventDefault();

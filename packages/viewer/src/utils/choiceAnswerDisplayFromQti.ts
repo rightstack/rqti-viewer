@@ -715,13 +715,81 @@ export function isOrderInteractionResponse(
   qtiXml: string | null | undefined,
   responseIdentifier: string,
 ): boolean {
+  return findOrderInteraction(qtiXml, responseIdentifier) !== null;
+}
+
+function findOrderInteraction(
+  qtiXml: string | null | undefined,
+  responseIdentifier: string,
+): Element | null {
   const rid = responseIdentifier.trim();
-  if (!rid || !qtiXml?.trim()) return false;
+  if (!rid || !qtiXml?.trim()) return null;
   const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
-  if (doc.querySelector("parsererror")) return false;
-  return Array.from(doc.querySelectorAll("qti-order-interaction")).some(
-    (el) => el.getAttribute("response-identifier")?.trim() === rid,
+  if (doc.querySelector("parsererror")) return null;
+  return (
+    Array.from(doc.querySelectorAll("qti-order-interaction")).find(
+      (el) => el.getAttribute("response-identifier")?.trim() === rid,
+    ) ?? null
   );
+}
+
+function orderChoicesById(interaction: Element): Map<string, { element: Element; index: number }> {
+  const choiceById = new Map<string, { element: Element; index: number }>();
+  interaction.querySelectorAll("qti-simple-choice").forEach((el, index) => {
+    const id = el.getAttribute("identifier")?.trim() ?? "";
+    if (!id || choiceById.has(id)) return;
+    choiceById.set(id, { element: el, index });
+  });
+  return choiceById;
+}
+
+function orderResponseIds(value: unknown): string[] {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed ? [trimmed] : [];
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => (typeof item === "string" ? item : String(item)));
+  }
+  if (value === null || value === undefined) return [];
+  return [String(value)];
+}
+
+export type OrderCorrectAnswerItem =
+  | { kind: "text"; key: string; text: string }
+  | { kind: "body"; key: string; html: string };
+
+function serializeElementChildren(el: Element): string {
+  const serializer = new XMLSerializer();
+  return Array.from(el.childNodes)
+    .map((node) => serializer.serializeToString(node))
+    .join("");
+}
+
+export function buildOrderCorrectAnswerItems(
+  qtiXml: string | null | undefined,
+  responseIdentifier: string,
+  value: unknown,
+): OrderCorrectAnswerItem[] | null {
+  const interaction = findOrderInteraction(qtiXml, responseIdentifier);
+  if (!interaction) return null;
+
+  const extracted = extractListStyleType(interaction.getAttribute("class") ?? "");
+  if (extracted !== "none") return null;
+
+  const choiceById = orderChoicesById(interaction);
+  const ids = orderResponseIds(value);
+  if (ids.length === 0) return null;
+
+  return ids.map((id, index) => {
+    const key = `${id}-${index}`;
+    const choice = choiceById.get(id);
+    if (!choice) return { kind: "text", key, text: id };
+    const label = choice.element.getAttribute("label")?.trim();
+    if (label) return { kind: "text", key, text: label };
+    if (bodyDisplayFromChoiceElement(choice.element) === "") return { kind: "text", key, text: id };
+    return { kind: "body", key, html: serializeElementChildren(choice.element) };
+  });
 }
 
 /** 해당 응답이 문항 XML 안의 qti-match-interaction 인지 */

@@ -45,6 +45,8 @@ export interface QuestionItem {
   type: ItemsType;
   qtiXml: string;
   correctAnswer: Record<string, ResponseValue> | null;
+  /** CLOZE 무순 채점. 없으면 `settings.ignoreAnswerOrder`를 본다. */
+  ignoreAnswerOrder?: boolean;
   settings: unknown | null;
   feedbacks: QuestionFeedback[];
   /** 연결지문. `content` HTML이 있으면 `toQuestionProps`가 `passage`로 넘긴다. */

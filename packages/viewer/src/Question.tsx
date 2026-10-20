@@ -105,6 +105,8 @@ export interface QuestionProps {
   questionIndex?: number;
   /** preview 채점 표시용 정오답 여부 */
   correct?: boolean;
+  /** CLOZE: true이면 칸 순서와 무관하게 정답 비교 */
+  ignoreAnswerOrder?: boolean;
   /**
    * preview(리뷰) 모드에서 문항 하단에 표시할 피드백 섹션(해설/해석/힌트 등).
    * 정답(correctAnswers)·지문 해설(passageFeedbacks)과 함께 FeedbackInline으로 렌더된다.
@@ -187,6 +189,7 @@ function Question({
   solutionButtonLabel = "풀이보기",
   questionIndex,
   correct,
+  ignoreAnswerOrder,
   feedbacks,
   passage,
   passageFeedbacks,
@@ -247,6 +250,8 @@ function Question({
   );
 
   const handleSubmit = useCallback(() => {
+    if (type === ITEM_TYPE.MCQ && !canSubmitUtil(responses, { type })) return;
+
     const submitted =
       type === ITEM_TYPE.VCQ
         ? (buildVcqSubmitResponse(
@@ -297,15 +302,9 @@ function Question({
   ]);
 
   const canSubmitOptions = useMemo<CanSubmitOptions>(() => {
-    if (!data || !type) return {};
+    if (!data || !type) return { type };
 
-    let maxChoices: number | undefined;
     let expectedResponseCount: number | undefined;
-
-    if (type === ITEM_TYPE.MCQ) {
-      const m = data.match(/max-choices="(\d+)"/);
-      maxChoices = m ? parseInt(m[1], 10) : undefined;
-    }
 
     if (type === ITEM_TYPE.CLOZE) {
       const textEntryCount = (
@@ -324,7 +323,7 @@ function Question({
         (data.match(/<qti-gap[\s>/]/g) ?? []).length || undefined;
     }
 
-    return { type, maxChoices, expectedResponseCount };
+    return { type, expectedResponseCount };
   }, [data, type]);
 
   const canSubmit = canSubmitUtil(responses, canSubmitOptions);
@@ -370,6 +369,7 @@ function Question({
   );
   const parserOptions = useMemo<QTIParserOptions>(
     () => ({
+      ignoreAnswerOrder,
       token,
       baseUrl,
       questionType: type,
@@ -385,6 +385,7 @@ function Question({
       onResponseChange: mode === "practice" ? handleResponseChange : undefined,
     }),
     [
+      ignoreAnswerOrder,
       token,
       baseUrl,
       type,

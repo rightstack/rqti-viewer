@@ -78,6 +78,8 @@ export interface ResponseValueMap {
 export type QuestionMode = "practice" | "preview" | "thumbnail";
 
 export interface QTIParserOptions {
+  /** CLOZE: true이면 칸 순서와 무관하게 정답 비교 */
+  ignoreAnswerOrder?: boolean;
   token?: string;
   itemKey?: string;
   correct?: boolean;

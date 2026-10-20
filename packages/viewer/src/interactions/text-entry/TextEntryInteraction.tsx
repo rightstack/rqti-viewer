@@ -10,8 +10,14 @@ import type {
   ResponseValueMap,
 } from "../../types";
 import { isMathLatexAnswer, isMathResponseId, resolveMathKeyboardLevel } from "../../utils";
+import { getClozeFeedback } from "./clozeFeedback";
 import { TextEntryInput } from "./components";
-import { isFractionPartId, resolveTextEntryMaxLength, textEntryValueMatches } from "./utils";
+import {
+  firstTextEntryAnswer,
+  isFractionPartId,
+  resolveTextEntryMaxLength,
+  textEntryValueMatches,
+} from "./utils";
 
 function getTextEntryResponseString(
   map: ResponseValueMap | undefined,
@@ -68,9 +74,9 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
   );
 
   const isPreview = options.mode === "preview";
+  const isThumbnail = options.mode === "thumbnail";
   const mathKeyboardLevel = resolveMathKeyboardLevel(element);
-  const mode = options.mode as string | undefined;
-  const isReadOnly = mode === "preview" || mode === "paper" || mode === "thumbnail";
+  const isReadOnly = isPreview || isThumbnail;
 
   const initialValue = useMemo(
     () =>
@@ -107,20 +113,42 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
 
   const isCorrect = useMemo(() => {
     if (!options.isSubmit) return undefined;
-    const perBlank =
-      effectiveSubmitResponse?.correctAnswer?.[responseIdentifier] ??
-      options.correctAnswers?.[responseIdentifier];
-    if (perBlank !== undefined) return textEntryValueMatches(value, perBlank);
-    return effectiveSubmitResponse?.correct;
+    const sr = effectiveSubmitResponse;
+    if (!isCLOZE) {
+      const perBlank =
+        sr?.correctAnswer?.[responseIdentifier] ?? options.correctAnswers?.[responseIdentifier];
+      if (perBlank !== undefined) return textEntryValueMatches(value, perBlank);
+      return sr?.correct;
+    }
+
+    const responses = { ...options.responses, ...sr?.response };
+    if (responses[responseIdentifier] === undefined) responses[responseIdentifier] = [value];
+
+    return getClozeFeedback({
+      responseIds: [responseIdentifier],
+      ignoreAnswerOrder: options.ignoreAnswerOrder,
+      responses,
+      correctAnswers: sr?.correctAnswer,
+      fallbackCorrectAnswers: options.correctAnswers,
+    })[responseIdentifier];
   }, [
     effectiveSubmitResponse,
-    options.correctAnswers,
+    isCLOZE,
     options.isSubmit,
+    options.responses,
+    options.correctAnswers,
+    options.ignoreAnswerOrder,
     responseIdentifier,
     value,
   ]);
 
-  const placeholder = placeholderText || undefined;
+  const showBlankFeedback = isPreview || options.submissionMode !== "SIMULTANEOUS";
+
+  const placeholder = isThumbnail ? undefined : placeholderText || undefined;
+  const measureValue =
+    isThumbnail && value.trim() === ""
+      ? firstTextEntryAnswer(options.correctAnswers?.[responseIdentifier])
+      : "";
 
   const handleAnswerChange = (id: string, val: string) => {
     setValue(val);
@@ -152,17 +180,17 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
           level={mathKeyboardLevel}
           historyScope={options.itemKey}
           isCorrect={isCorrect}
-          isSubmit={options.isSubmit}
+          isSubmit={showBlankFeedback && options.isSubmit}
           variant={variant}
           placeholder={placeholder}
-          maxLength={maxLength}
+          measureValue={measureValue}
         />
       </span>
     );
   }
 
   const content =
-    (isPreview || options.isSubmit) &&
+    (isPreview || options.isSubmit || isThumbnail) &&
     value.trim() !== "" &&
     (isMathLatexAnswer(value) || isMathResponseId(responseIdentifier)) ? (
       <span className="qti-ext-mathfield">
@@ -177,7 +205,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
       index={index}
       value={value}
       content={content}
-      isSubmit={options.isSubmit}
+      isSubmit={showBlankFeedback && options.isSubmit}
       isPreview={isReadOnly}
       isCorrect={isCorrect}
       onAnswerChange={handleAnswerChange}
@@ -185,6 +213,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
       placeholder={placeholder}
       layout={layout}
       maxLength={maxLength}
+      measureValue={measureValue}
       ariaLabel={`${responseIdentifier} 입력`}
       variant={isSRQ ? "srq" : isCLOZE ? "cloze" : "default"}
     />

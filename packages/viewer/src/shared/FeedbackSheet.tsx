@@ -32,6 +32,8 @@ interface FeedbackSheetProps {
   title: ReactNode;
   /** 피드백 설명 (선택) */
   description?: React.ReactNode;
+  /** 자체 섹션 구조를 가진 본문. description 래퍼 없이 렌더링 */
+  content?: ReactNode;
   /** HINT 등 섹션 표시 시 라벨 (있으면 아이콘+라벨 행 표시) */
   typeLabel?: string;
   /** typeLabel 표시 시 사용할 아이콘 타입 (기본: type) */
@@ -55,6 +57,7 @@ export const FeedbackSheet = ({
   open,
   onOpenChange,
   description,
+  content,
   typeLabel,
   sectionType,
   styleVariant,
@@ -148,6 +151,7 @@ export const FeedbackSheet = ({
             {title}
           </h2>
           {renderSectionHead}
+          {content}
           {description &&
             (typeof description === "string" ? (
               <div
@@ -183,6 +187,7 @@ export const FeedbackSheet = ({
             {title}
           </SheetHeader>
           {renderSectionHead}
+          {content}
           <SheetDescription>
             {description &&
               (typeof description === "string" ? (

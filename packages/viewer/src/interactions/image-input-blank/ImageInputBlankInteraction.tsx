@@ -185,13 +185,14 @@ function ImageInputBlankView({
                   region={region}
                   displayIndex={regionIndex + 1}
                   readOnly={isReadOnly}
-                  showMath={isPreview || options.isSubmit === true}
+                  showMath={isPreview || options.isSubmit === true || options.mode === "thumbnail"}
                   showFractionAsLatex={showFractionAsLatex}
                   valueOf={valueOf}
                   correctAnswerOf={correctAnswerOf}
                   historyScope={options.itemKey}
                   mathKeyboardLevel={region.isMath ? schoolLevel : null}
                   stateClassOf={stateClassOf}
+                  isSubmit={options.isSubmit === true}
                   onChange={handleChange}
                 />
               </div>
