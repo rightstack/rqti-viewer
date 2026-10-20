@@ -768,7 +768,7 @@ export function MathKeyboard({
         <span className="qti-ext-mlk-key-text">{item.label}</span>
       ) : (
         <span className="qti-ext-mlk-key-math">
-          <MathJaxRenderer latex={item.label} displayStyle={false} />
+          <MathJaxRenderer latex={item.label} displayStyle={false} dynamic={false} />
         </span>
       )}
     </button>
@@ -1184,7 +1184,7 @@ export function MathKeyboard({
                             key.id === "sup" && "qti-ext-math-keyboard-right-key-math--sup"
                           )}
                         >
-                          <MathJaxRenderer latex={key.labelLatex} displayStyle={false} />
+                          <MathJaxRenderer latex={key.labelLatex} displayStyle={false} dynamic={false} />
                         </span>
                       ) : (
                         key.label

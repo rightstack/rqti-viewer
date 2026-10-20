@@ -274,7 +274,7 @@ export const FeedbackInline = ({
                         />
                       ) : segment.kind === "fractionLatex" ? (
                         <span className="qti-ext-mathfield align-middle">
-                          {renderLaTeX(segment.latex, `fb-correct-${segment.key}`, false)}
+                          {renderLaTeX(segment.latex, `fb-correct-${segment.key}`, false, false)}
                         </span>
                       ) : matchStrings !== null ? (
                         <MatchAnswerView
@@ -295,6 +295,7 @@ export const FeedbackInline = ({
                                   {renderLaTeX(
                                     trimmed,
                                     `fb-correct-${segment.key}-${vi}`,
+                                    false,
                                     false
                                   )}
                                 </span>
@@ -308,7 +309,7 @@ export const FeedbackInline = ({
                       ) : defaultDisplay !== null &&
                         (isMathLatexAnswer(defaultDisplay) || isMathResponseId(segment.key)) ? (
                         <span className="qti-ext-mathfield align-middle">
-                          {renderLaTeX(defaultDisplay, `fb-correct-${segment.key}`, false)}
+                          {renderLaTeX(defaultDisplay, `fb-correct-${segment.key}`, false, false)}
                         </span>
                       ) : (
                         parseTextWithLaTeX(defaultDisplay ?? "", `fb-correct-${segment.key}`)

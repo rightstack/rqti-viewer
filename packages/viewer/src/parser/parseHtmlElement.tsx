@@ -147,7 +147,7 @@ export const parseHTMLElement = (
       );
     }
     if (!rawLatex) return null;
-    return renderLaTeX(rawLatex, `mathfield-${index}`, false);
+    return renderLaTeX(rawLatex, `mathfield-${index}`, false, false);
   }
 
   const dropLayoutWhitespace = isVcqLayoutClass(className);
@@ -325,7 +325,7 @@ export const parseHTMLElement = (
                       style={{ gridColumn: slot.column }}
                     >
                       {slot.token
-                        ? renderLaTeX(slot.token, `digit-${index}-${slot.column}`, false)
+                        ? renderLaTeX(slot.token, `digit-${index}-${slot.column}`, false, false)
                         : null}
                     </span>
                   ))}
@@ -345,7 +345,7 @@ export const parseHTMLElement = (
                     className="qti-ext-mathfield qti-ext-vcq-merged-fallback-content"
                     style={{ gridColumn: "1 / -1" }}
                   >
-                    {renderLaTeX(rawLatex, `merged-latex-${index}`, false)}
+                    {renderLaTeX(rawLatex, `merged-latex-${index}`, false, false)}
                   </span>
                 </div>
               );

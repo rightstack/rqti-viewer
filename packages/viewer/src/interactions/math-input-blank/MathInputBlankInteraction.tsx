@@ -61,17 +61,24 @@ function renderLabelContent(
   text: string,
   key: string,
   id?: string,
-  isMathContext = false
+  isMathContext = false,
+  dynamic = true
 ): ReactNode {
   if (needsMathRender(id, text, isMathContext)) {
-    return renderLaTeX(text, key, false);
+    return renderLaTeX(text, key, false, dynamic);
   }
   return text;
 }
 
-function renderCellText(text: string, key: string, id?: string, isMathContext = false): ReactNode {
+function renderCellText(
+  text: string,
+  key: string,
+  id?: string,
+  isMathContext = false,
+  dynamic = true
+): ReactNode {
   if (!text) return null;
-  const content = renderLabelContent(text, key, id, isMathContext);
+  const content = renderLabelContent(text, key, id, isMathContext, dynamic);
   if (typeof content === "string") {
     return <span className="qti-ext-mathfield">{content}</span>;
   }
@@ -469,7 +476,7 @@ function MathInputBlankView({
             fillSlot={!label || fillDisplaySlot}
             fitFormulaHost={useVcqFormulaFlow}
           >
-            {label ? renderLabelContent(label, `label-${id}`, id, false) : null}
+            {label ? renderLabelContent(label, `label-${id}`, id, false, false) : null}
           </FormulaSlotLatexDisplay>
         </span>
       );
@@ -601,7 +608,7 @@ function MathInputBlankView({
       if (seg.kind === "latex") {
         return (
           <span key={`${key}-ltx`} className="qti-ext-mathfield qti-ext-math-blank-latex">
-            {renderLaTeX(seg.latex, `${key}-ltx`, false)}
+            {renderLaTeX(seg.latex, `${key}-ltx`, false, false)}
           </span>
         );
       }
@@ -709,7 +716,8 @@ export function MathInputBlankDisplayMarkup({
                     label.text,
                     `display-label-${index}-${label.id ?? label.text}`,
                     label.id,
-                    true
+                    true,
+                    false
                   )}
                 </span>
               ) : null}

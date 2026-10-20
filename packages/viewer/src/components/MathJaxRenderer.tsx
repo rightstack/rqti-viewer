@@ -12,6 +12,7 @@ interface MathJaxRendererProps {
   inline?: boolean;
   displayStyle?: boolean;
   className?: string;
+  dynamic?: boolean;
   onTypeset?: () => void;
 }
 
@@ -24,7 +25,7 @@ function normalizeMathJaxDisplayLatex(latex: string): string {
 }
 
 const MathJaxRenderer = forwardRef<HTMLSpanElement, MathJaxRendererProps>(function MathJaxRenderer(
-  { latex, inline = true, displayStyle = true, className, onTypeset },
+  { latex, inline = true, displayStyle = true, className, dynamic = true, onTypeset },
   ref
 ) {
   const normalized = normalizeMathJaxDisplayLatex(latex);
@@ -35,7 +36,7 @@ const MathJaxRenderer = forwardRef<HTMLSpanElement, MathJaxRendererProps>(functi
 
   return (
     <span ref={ref} className={cn("qti-edit__mathjax", className)}>
-      <MathJaxWithTextFont inline={inline} dynamic onTypeset={onTypeset}>
+      <MathJaxWithTextFont inline={inline} dynamic={dynamic} onTypeset={onTypeset}>
         {math}
       </MathJaxWithTextFont>
     </span>

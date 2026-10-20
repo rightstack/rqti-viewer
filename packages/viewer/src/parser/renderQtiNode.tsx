@@ -72,7 +72,7 @@ export function renderQtiNode(node: ChildNode, options?: QTIParserOptions): Reac
     if (isMathField) {
       const rawLatex = el.textContent ?? "";
       if (!rawLatex) return null;
-      return renderLaTeX(rawLatex, `mathfield-${stableKey}`, false);
+      return renderLaTeX(rawLatex, `mathfield-${stableKey}`, false, false);
     }
 
     // img: SVG는 token 없이 그대로, 그 외는 resolveMediaUrl + token

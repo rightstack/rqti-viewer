@@ -18,6 +18,22 @@ import {
 } from "@rightstack/rqti-viewer";
 import { LOCAL_ITEMS, LOCAL_SAMPLE_ITEMS } from "./localItems";
 
+/** preview에서 제출 기록이 없을 때, 수식 빈칸 문항에 정답을 복원 응답으로 넣는다. */
+function mathBlankPreviewResponses(
+  item: QuestionItem | null,
+): ResponseValueMap | undefined {
+  if (!item?.qtiXml.includes("math-input-blank") || !item.correctAnswer) return undefined;
+  const next: ResponseValueMap = {};
+  for (const [id, value] of Object.entries(item.correctAnswer)) {
+    if (Array.isArray(value) && value.every((part) => typeof part === "string")) {
+      next[id] = value;
+    } else if (typeof value === "string") {
+      next[id] = [value];
+    }
+  }
+  return Object.keys(next).length > 0 ? next : undefined;
+}
+
 /** 호스트 API `hints[]` 형태. `content`만 라이브러리에 넘긴다. */
 type HostHint = {
   title: string;
@@ -623,9 +639,11 @@ export default function App() {
               showFeedback={false}
               showInlineFeedback={mode === "preview"}
               responses={
-                mode === "preview" || mode === "thumbnail"
+                mode === "thumbnail"
                   ? lastSubmit ?? undefined
-                  : undefined
+                  : mode === "preview"
+                    ? lastSubmit ?? mathBlankPreviewResponses(item)
+                    : undefined
               }
               passage={demoPassage ? DEMO_PASSAGE_HTML : props.passage}
               onSubmit={setLastSubmit}

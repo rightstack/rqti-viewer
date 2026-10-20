@@ -142,7 +142,8 @@ export const parseTextWithLaTeX = (
       renderLaTeX(
         latex,
         `${keyPrefix}-${displayMode ? "block" : "inline"}-${partIndex++}`,
-        displayMode
+        displayMode,
+        false
       )
     );
 
