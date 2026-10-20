@@ -8,3 +8,8 @@ dist
 .env.production.local
 .npmrc
 .DS_Store
+
+# Playwright E2E 산출물
+test-results
+playwright-report
+.playwright

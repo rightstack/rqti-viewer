@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script>
+// rqti-viewer 0.4.6 + better-react-mathjax 3.0.3 재현:
+// - better-react-mathjax v3 기본 src = tex-mml-chtml.js (MathML 입력 포함)
+// - 뷰어 config: input/tex + output/chtml, enableMenu:false (CFe)
+// - dynamic 모드: 매 렌더마다 typesetClear([el]) + typesetPromise([el])
+// 수업보드 presence 5초 주기를 가속해 N회 돌리고 DOM 깊이/노드 수 변화를 기록한다.
+window.MathJax = {
+  tex: {
+    packages: { "[+]": ["base", "ams", "cancel", "color", "html", "unicode"] },
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
+  },
+  options: { enableMenu: false },
+  startup: {
+    ready() {
+      MathJax.startup.defaultReady();
+      MathJax.startup.promise.then(async () => {
+        const el = document.getElementById("t");
+        const out = [];
+        const measure = () => {
+          let max = 0;
+          const walk = (n, d) => {
+            max = Math.max(max, d);
+            for (const c of n.children) walk(c, d + 1);
+          };
+          walk(el, 1);
+          return { depth: max, nodes: el.querySelectorAll("*").length };
+        };
+        await MathJax.typesetPromise([el]);
+        out.push("cycle0 " + JSON.stringify(measure()));
+        for (let i = 1; i <= 12; i++) {
+          MathJax.typesetClear([el]);
+          await MathJax.typesetPromise([el]);
+          if (i <= 3 || i % 4 === 0) out.push("cycle" + i + " " + JSON.stringify(measure()));
+        }
+        document.getElementById("out").textContent = "RESULT\n" + out.join("\n");
+      });
+    },
+  },
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<div id="t">인라인 \(\displaystyle \frac{a+b}{c^2}\) 그리고 블록 \[\sqrt{x^2+1}=\frac{1}{2}\]</div>
+<pre id="out">PENDING</pre>
+</body>
+</html>
