@@ -82,7 +82,9 @@ function ImageInputBlankView({
     if (!image) return;
 
     const measure = () => {
-      const { width, height } = image.getBoundingClientRect();
+      // offsetWidth는 미리보기 scale()을 무시한다. getBoundingClientRect는 축소된 화면 크기라 빈칸이 이미지보다 작아진다.
+      const width = image.offsetWidth;
+      const height = image.offsetHeight;
       if (width <= 0 || height <= 0) return;
       setImageSize((current) =>
         current.width === width && current.height === height ? current : { width, height }

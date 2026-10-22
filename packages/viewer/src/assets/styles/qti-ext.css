@@ -1631,7 +1631,9 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   background-color: var(--qti-option-bg-hover);
 }
 
-.qti-ext-text-entry-input:focus:not(:disabled),
+.qti-ext-text-entry-input:focus:not(:disabled):where(
+    :not(.qti-ext-text-entry-input-correct, .qti-ext-text-entry-input-incorrect)
+  ),
 .qti-ext-input-blank.qti-ext-text-entry-input:focus-within {
   border-color: var(--qti-option-border-selected);
 
@@ -1914,7 +1916,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   color: var(--qti-option-text);
   font-size: inherit;
 
-  @apply rqti:mx-1 rqti:my-1 rqti:inline-flex rqti:min-h-8 rqti:min-w-20 rqti:items-center rqti:justify-center rqti:gap-1 rqti:px-2 rqti:py-1 rqti:text-center rqti:align-middle rqti:transition-all rqti:duration-150;
+  @apply rqti:mx-1 rqti:my-1 rqti:inline-flex rqti:min-h-8 rqti:min-w-20 rqti:items-center rqti:justify-center rqti:gap-1 rqti:px-2 rqti:py-1 rqti:text-center rqti:align-middle rqti:indent-0 rqti:transition-all rqti:duration-150;
 }
 
 /* Gap 식별 라벨 (예: "1.", "①") */
