@@ -673,12 +673,15 @@
              ======================================== */
 
 .qti-ext-choice-button {
-  @apply rqti:flex rqti:h-auto rqti:items-center rqti:justify-center rqti:gap-4 rqti:whitespace-normal;
+  min-width: 120px;
+  min-height: 60px;
+
+  @apply rqti:flex rqti:items-center rqti:justify-center rqti:gap-4 rqti:text-center rqti:whitespace-normal;
 }
 
 /* Choice Button 내부 이미지 */
 .qti-ext-choice-button img:where(:not(.qti-ext-inline-image)) {
-  width: 100% !important;
+  width: 24px !important;
 
   @apply rqti:h-auto rqti:max-w-full rqti:rounded-md rqti:object-contain;
 }
@@ -687,15 +690,11 @@
   @apply rqti:mx-auto rqti:p-0;
 }
 
-/* 태블릿 디바이스: 단일 문항 TFQ OX SVG 이미지 크기 축소 */
-[data-device="tablet"]
-  .tfq-single
-  .qti-ext-choice-button
-  img:where(:not(.qti-ext-inline-image)) {
-  width: 50% !important;
-  max-width: 36px;
+.qti-ext-choice-button .qti-ext-ox-icon {
+  flex-shrink: 0;
 
-  @apply rqti:mx-auto;
+  width: 24px;
+  height: 24px;
 }
 
 /* Button Hover State - 선택되지 않은 상태에서만 적용 */
@@ -4050,16 +4049,6 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 /* stylelint-disable-next-line no-descending-specificity */
 [data-device="mobile"] .qti-ext-choice-option {
   padding: 10px !important;
-}
-
-[data-device="mobile"]
-  .tfq-buttons
-  .qti-ext-choice-button
-  img:where(:not(.qti-ext-inline-image)) {
-  width: 30% !important;
-  max-width: 36px;
-
-  @apply rqti:mx-auto;
 }
 
 [data-device="mobile"] .qti-orientation-horizontal.qti-choices-stacking-4,

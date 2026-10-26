@@ -42,26 +42,28 @@ export const countTfqPairs = (nodes: NodeListOf<ChildNode>): number => {
 
 /**
  * TFQ row 레이아웃 클래스.
- * - 1문항: 항상 세로(below)
- * - 2문항 이상: 지문 60% / 버튼 40% 가로 배치
+ * - 1문항: 항상 세로. tfq-single은 단일 문항 표시용으로 유지
+ * - 2문항 이상: 발문과 버튼을 세로로 쌓음. 버튼 줄은 가로 100%에서 가운데 정렬
  */
 export function getTfqLayoutClasses(tfqCount: number): {
   row: string;
   prompt: string;
   buttons: string;
 } {
+  const buttons =
+    "tfq-buttons rqti:w-full rqti:flex rqti:justify-center rqti:gap-2 rqti:shrink-0";
+
   if (tfqCount <= 1) {
     return {
       row: "tfq-row tfq-single rqti:flex rqti:flex-col rqti:gap-3",
       prompt: "tfq-prompt rqti:w-full",
-      buttons: "tfq-buttons rqti:w-full rqti:flex rqti:justify-start rqti:gap-2 rqti:shrink-0",
+      buttons,
     };
   }
   return {
-    row: "tfq-row rqti:flex rqti:flex-row rqti:items-center rqti:justify-between rqti:gap-6",
-    prompt: "tfq-prompt rqti:w-[60%] rqti:min-w-0",
-    buttons:
-      "tfq-buttons rqti:flex rqti:w-[40%] rqti:min-w-[120px] rqti:shrink-0 rqti:justify-end rqti:gap-2",
+    row: "tfq-row rqti:flex rqti:flex-col rqti:gap-3",
+    prompt: "tfq-prompt rqti:w-full rqti:min-w-0",
+    buttons,
   };
 }
 

@@ -30,7 +30,10 @@ export const ChoiceButtons = ({
   const effectiveOrientation = orientation || (choices.length <= 2 ? "horizontal" : "vertical");
 
   return (
-    <div className="rqti:my-4 rqti:flex rqti:gap-4" style={getOrientationStyle(effectiveOrientation, stacking)}>
+    <div
+      className="rqti:flex rqti:items-center rqti:justify-center rqti:gap-4"
+      style={getOrientationStyle(effectiveOrientation, stacking)}
+    >
       {choices.map((choice) => {
         const selected = isSelected(choice.identifier);
         const selectedIds = submitResponse?.response?.[responseIdentifier];
@@ -97,7 +100,7 @@ const ChoiceButtonItem = ({
   isPreview?: boolean;
   onSelect: (identifier: string) => void;
 }) => (
-  <div className={cn("rqti:relative rqti:min-w-0 rqti:flex-1", isPreview && "rqti:pointer-events-none")}>
+  <div className={cn("rqti:relative rqti:w-max rqti:shrink-0", isPreview && "rqti:pointer-events-none")}>
     <div
       role="button"
       tabIndex={0}

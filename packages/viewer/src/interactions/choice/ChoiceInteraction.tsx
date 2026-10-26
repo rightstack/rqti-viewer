@@ -9,7 +9,13 @@ import type {
   ResponseValue,
 } from "../../types";
 import { extractMediaFromElement, extractTextFromElement } from "../../utils";
-import { ChoiceButtons, ChoiceOption, McqChoiceOption } from "./components";
+import {
+  ChoiceButtons,
+  ChoiceOption,
+  McqChoiceOption,
+  OCircleIcon,
+  XMarkIcon,
+} from "./components";
 
 type ChoiceWithElement = ChoiceType & { element: Element };
 
@@ -134,6 +140,17 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
 
   // TFQ 타입일 때 ChoiceButtons 사용 (radio/checkbox 없음)
   if (options.questionType === ITEM_TYPE.TFQ) {
+    const isOxDisplay = xmlClass.split(/\s+/).includes("qti-ext-display-type-ox");
+    const renderChoiceContent = (choice: ChoiceWithElement) => {
+      if (isOxDisplay && choice.identifier === "CHOICE_O") {
+        return <OCircleIcon className="qti-ext-ox-icon" />;
+      }
+      if (isOxDisplay && choice.identifier === "CHOICE_X") {
+        return <XMarkIcon className="qti-ext-ox-icon" />;
+      }
+      return renderQtiNode(choice.element, options);
+    };
+
     const selectedIdentifier: string | null =
       typeof value === "string"
         ? value
@@ -157,7 +174,7 @@ export const ChoiceInteraction: React.FC<ChoiceInteractionProps> = ({
 
       return {
         identifier: choice.identifier,
-        content: renderQtiNode(choice.element, options),
+        content: renderChoiceContent(choice),
         isCorrect,
       };
     });
