@@ -1070,6 +1070,9 @@
   .qti-ext-dropdown-content {
   overflow: visible;
 
+  padding-left: 0;
+
+  text-align: center;
   text-overflow: clip;
   white-space: normal;
   overflow-wrap: break-word;
@@ -1100,6 +1103,7 @@
   .qti-ext-dropdown-rich-label {
   overflow: visible;
 
+  text-align: center;
   white-space: normal;
   overflow-wrap: break-word;
 
@@ -1388,8 +1392,6 @@
   font-weight: var(--qti-option-font-weight, inherit);
   line-height: var(--qti-line-height-base, 1.5);
   text-align: inherit;
-
-  /* text-align: left;ㅇ */
   white-space: pre-wrap;
   overflow-wrap: break-word;
 
@@ -1615,6 +1617,11 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   border-color: var(--qti-option-border-selected);
 
   background-color: var(--qti-option-bg-selected);
+}
+
+/* 값이 들어간 단답·빈칸만 칸 가운데. 빈 칸은 inherit. */
+.qti-ext-text-entry .qti-ext-text-entry-input-focus {
+  text-align: center;
 }
 
 .qti-ext-text-entry-input:not(
@@ -2770,15 +2777,37 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   @apply rqti:ml-4 rqti:flex rqti:gap-1;
 }
 
-.qti-ext-feedback-section-head:has(.qti-ext-order-correct-answer) {
+.qti-ext-feedback-section-head:has(.qti-ext-order-correct-answer, .qti-ext-choice-correct-answer) {
   min-width: 0;
 }
 
-.qti-ext-feedback-section-answer:has(.qti-ext-order-correct-answer) {
+.qti-ext-feedback-section-answer:has(
+  .qti-ext-order-correct-answer,
+  .qti-ext-choice-correct-answer
+) {
   flex: 1 1 auto;
 
   min-width: 0;
   max-width: 100%;
+}
+
+.qti-ext-choice-correct-answer {
+  display: flex;
+
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+
+  min-width: 0;
+  max-width: 100%;
+}
+
+:has(> .qti-ext-choice-correct-answer),
+.qti-ext-choice-correct-answer-body {
+  min-width: 0;
+  max-width: 100%;
+
+  overflow-wrap: anywhere;
 }
 
 .qti-ext-order-correct-answer {
@@ -4360,8 +4389,12 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   color: inherit;
   font: inherit;
   line-height: inherit;
-  text-align: center;
+  text-align: start;
   appearance: none;
+}
+
+.qti-ext-input-blank__field:not([value=""]) {
+  text-align: center;
 }
 
 /* 단독 빈칸: 입력 높이는 고정. 긴 입력은 너비만 커짐 */
@@ -4462,6 +4495,21 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 .qti-align-left .qti-ext-input-blank,
 .qti-ext-input-blank.qti-align-left {
   justify-content: flex-start;
+}
+
+/* 값이 있는 수식·세로셈 답만 칸 가운데. 빈 칸은 위 정렬을 유지한다. */
+
+.qti-align-left .qti-ext-input-blank:has(.qti-ext-input-blank__label),
+.qti-align-right .qti-ext-input-blank:has(.qti-ext-input-blank__label),
+.qti-ext-input-blank.qti-align-left:has(.qti-ext-input-blank__label),
+.qti-ext-input-blank.qti-align-right:has(.qti-ext-input-blank__label),
+.qti-align-left .qti-ext-input-blank:has(.qti-ext-math-keyboard-mathjax),
+.qti-align-right .qti-ext-input-blank:has(.qti-ext-math-keyboard-mathjax),
+.qti-align-left .qti-ext-input-blank:has(.qti-ext-input-blank__field:not([value=""])),
+.qti-align-right .qti-ext-input-blank:has(.qti-ext-input-blank__field:not([value=""])),
+.qti-ext-input-blank.qti-align-left:has(.qti-ext-input-blank__field:not([value=""])),
+.qti-ext-input-blank.qti-align-right:has(.qti-ext-input-blank__field:not([value=""])) {
+  justify-content: center;
 }
 
 :where(.qti-ext-vcq-grid:not(.qti-ext-vcq-grid--display))
@@ -5279,6 +5327,19 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   text-align: center;
 }
 
+/* 값이 들어간 칸만 글자를 가운데. 라벨은 글자가 있을 때만 나온다. */
+.qti-align-left .qti-ext-input-blank__field:not([value=""]),
+.qti-align-right .qti-ext-input-blank__field:not([value=""]),
+.qti-align-center .qti-ext-input-blank__field:not([value=""]),
+.qti-ext-input-blank__field.qti-align-left:not([value=""]),
+.qti-ext-input-blank__field.qti-align-center:not([value=""]),
+.qti-ext-input-blank__field.qti-align-right:not([value=""]),
+.qti-align-left .qti-ext-input-blank__label,
+.qti-align-center .qti-ext-input-blank__label,
+.qti-align-right .qti-ext-input-blank__label {
+  text-align: center;
+}
+
 .qti-ext-vcq-col--narrow .qti-ext-input-blank__field,
 .qti-ext-vcq-cell[data-vcq-width-unit] .qti-ext-input-blank__field {
   min-width: 0;
@@ -5308,7 +5369,6 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   color: transparent;
   font: inherit;
   line-height: 1;
-  text-align: center;
 
   caret-color: var(--vcq-ink, #1f2328);
   -webkit-text-fill-color: transparent;
@@ -5350,7 +5410,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   text-align: right;
 }
 
-/* 셀·그리드 정렬은 빈칸 상자 위치만 옮긴다. 상자 안 글자는 항상 가운데. */
+/* 셀·그리드 정렬은 빈칸 상자 위치만 옮긴다. 값이 있는 글자만 가운데. */
 .qti-ext-vcq-grid.qti-align-left .qti-ext-vcq-cell--blank .qti-ext-input-blank,
 .qti-ext-vcq-grid.qti-align-right .qti-ext-vcq-cell--blank .qti-ext-input-blank,
 .qti-ext-vcq-grid .qti-ext-vcq-cell--blank.qti-align-left .qti-ext-input-blank,
@@ -5363,9 +5423,9 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 .qti-ext-vcq-grid
   .qti-ext-vcq-cell--blank
   :is(
-    .qti-ext-input-blank__field,
+    .qti-ext-input-blank__field:not([value=""]),
     .qti-ext-input-blank__label,
-    .qti-ext-input-blank .qti-ext-mathfield
+    .qti-ext-input-blank:has(.qti-ext-math-keyboard-mathjax) .qti-ext-mathfield
   ) {
   justify-content: center;
 
@@ -6821,12 +6881,16 @@ p:has(.qti-ext-image-input-blank) {
   color: var(--qti-base-text-color, #1a1a1a);
   font-family: var(--qti-font-family, inherit);
   line-height: 1;
-  text-align: center;
   white-space: nowrap;
 
   caret-color: currentcolor;
 
   appearance: none;
+}
+
+.qti-ext-image-input-blank__input:not([value=""]),
+.qti-ext-image-input-blank__math {
+  text-align: center;
 }
 
 .qti-ext-image-input-blank__field {

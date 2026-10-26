@@ -15,6 +15,7 @@ import { cn } from "../lib/utils";
 import { parseFeedbackContentToReact, parseTextWithLaTeX, renderLaTeX } from "../parser";
 import type { FeedbackItem, FeedbackType, ResponseValue } from "../types";
 import {
+  buildChoiceCorrectAnswerItems,
   buildChoiceIdentifierDisplayMapsFromQtiXml,
   buildCorrectAnswerFeedbackSegments,
   extractMatchRowColIdentifiersFromQtiXml,
@@ -22,6 +23,7 @@ import {
   buildOrderCorrectAnswerItems,
   getMatchCorrectResponseStrings,
 } from "../utils/choiceAnswerDisplayFromQti";
+import { ChoiceCorrectAnswerPreview } from "./ChoiceCorrectAnswerPreview";
 import { isMathLatexAnswer, isMathResponseId } from "../utils/isMathLatexAnswer";
 import type { CSSVariables } from "../utils/themeToCSS";
 import { MatchAnswerView } from "./MatchAnswerView";
@@ -208,12 +210,16 @@ export const FeedbackInline = ({
             <span className="qti-ext-feedback-section-label">정답</span>
             <div className="qti-ext-feedback-section-answer rqti:flex-wrap">
               {correctAnswerSegments.map((segment, index, segments) => {
-                const matchStrings =
+                const choiceAnswerItems =
                   segment.kind === "default"
+                    ? buildChoiceCorrectAnswerItems(qtiXml, segment.key, segment.value)
+                    : null;
+                const matchStrings =
+                  segment.kind === "default" && choiceAnswerItems === null
                     ? getMatchCorrectResponseStrings(qtiXml, segment.key, segment.value)
                     : null;
                 const orderAnswerItems =
-                  segment.kind === "default" && matchStrings === null
+                  segment.kind === "default" && choiceAnswerItems === null && matchStrings === null
                     ? buildOrderCorrectAnswerItems(qtiXml, segment.key, segment.value)
                     : null;
                 const isBlockAnswer =
@@ -223,6 +229,7 @@ export const FeedbackInline = ({
                   segment.kind === "imageInputBlank";
                 const isMultiMath =
                   segment.kind === "default" &&
+                  choiceAnswerItems === null &&
                   matchStrings === null &&
                   orderAnswerItems === null &&
                   isMathResponseId(segment.key) &&
@@ -230,6 +237,7 @@ export const FeedbackInline = ({
                   segment.value.length > 1;
                 const defaultDisplay =
                   segment.kind === "default" &&
+                  choiceAnswerItems === null &&
                   matchStrings === null &&
                   orderAnswerItems === null &&
                   !isMultiMath
@@ -241,15 +249,23 @@ export const FeedbackInline = ({
                       )
                     : null;
 
+                const Wrap = choiceAnswerItems !== null ? "div" : "span";
+
                 return (
                   <React.Fragment key={`${segment.kind}-${segment.key}`}>
-                    <span
+                    <Wrap
                       className={cn(
                         "qti-ext-feedback-section-answer-item",
                         isBlockAnswer && "rqti:block rqti:w-full rqti:basis-full"
                       )}
                     >
-                      {segment.kind === "vcqGrid" ? (
+                      {choiceAnswerItems !== null ? (
+                        <ChoiceCorrectAnswerPreview
+                          items={choiceAnswerItems}
+                          token={token}
+                          baseUrl={baseUrl}
+                        />
+                      ) : segment.kind === "vcqGrid" ? (
                         <VcqCorrectAnswerPreview
                           qtiXml={qtiXml ?? ""}
                           correctAnswer={segment.correctAnswer}
@@ -314,7 +330,7 @@ export const FeedbackInline = ({
                       ) : (
                         parseTextWithLaTeX(defaultDisplay ?? "", `fb-correct-${segment.key}`)
                       )}
-                    </span>
+                    </Wrap>
                     {index < segments.length - 1 && <span aria-hidden="true">, </span>}
                   </React.Fragment>
                 );

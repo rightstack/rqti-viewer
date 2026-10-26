@@ -40,6 +40,12 @@ import {
 
 const MathField = "math-field" as unknown as ElementType;
 
+function wheelPixels(event: WheelEvent, delta: number, size: number): number {
+  if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) return delta * 16;
+  if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) return delta * size;
+  return delta;
+}
+
 /** 휠로 스크롤한다. 가로("x")는 세로 휠도 받아 마우스 휠로 탭을 넘길 수 있게 한다. */
 function attachWheelScroll(el: HTMLDivElement, axis: "x" | "y"): () => void {
   const onWheel = (event: WheelEvent) => {
@@ -51,12 +57,7 @@ function attachWheelScroll(el: HTMLDivElement, axis: "x" | "y"): () => void {
     const size = axis === "x" ? el.clientWidth : el.clientHeight;
     const max = (axis === "x" ? el.scrollWidth : el.scrollHeight) - size;
     if (max <= 0) return;
-    const delta =
-      event.deltaMode === WheelEvent.DOM_DELTA_LINE
-        ? primary * 16
-        : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
-          ? primary * size
-          : primary;
+    const delta = wheelPixels(event, primary, size);
     event.preventDefault();
     const current = axis === "x" ? el.scrollLeft : el.scrollTop;
     const next = Math.min(max, Math.max(0, current + delta));
@@ -65,6 +66,68 @@ function attachWheelScroll(el: HTMLDivElement, axis: "x" | "y"): () => void {
   };
   el.addEventListener("wheel", onWheel, { passive: false });
   return () => el.removeEventListener("wheel", onWheel);
+}
+
+const PREVIEW_SCROLL_MARGIN = 20;
+
+function alignPreviewScroll(
+  scroll: number,
+  viewStart: number,
+  viewSize: number,
+  targetStart: number,
+  targetSize: number
+): number {
+  if (viewSize <= 0) return scroll;
+  const viewEnd = viewStart + viewSize;
+  const targetEnd = targetStart + targetSize;
+  const fitsWithMargin = targetSize + PREVIEW_SCROLL_MARGIN * 2 <= viewSize;
+  const margin = fitsWithMargin ? PREVIEW_SCROLL_MARGIN : 0;
+  const insetStart = viewStart + margin;
+  const insetEnd = viewEnd - margin;
+  if (targetStart >= insetStart && targetEnd <= insetEnd) return scroll;
+
+  if (!fitsWithMargin) {
+    const nearerStart = Math.abs(targetStart - viewStart) <= Math.abs(targetEnd - viewEnd);
+    if (nearerStart) {
+      if (targetStart >= viewStart && targetStart <= viewEnd) return scroll;
+      return scroll + targetStart - viewStart;
+    }
+    if (targetEnd >= viewStart && targetEnd <= viewEnd) return scroll;
+    return scroll + targetEnd - viewEnd;
+  }
+
+  if (targetStart < insetStart) return scroll + targetStart - insetStart;
+  return scroll + targetEnd - insetEnd;
+}
+
+function clampPreviewScroll(value: number, max: number): number {
+  if (max <= 0) return 0;
+  return Math.min(max, Math.max(0, value));
+}
+
+function attachPreviewWheel(el: HTMLElement): () => void {
+  const onWheel = (event: WheelEvent) => {
+    if (event.ctrlKey || event.metaKey) return;
+    const dx = wheelPixels(event, event.deltaX, el.clientWidth);
+    const dy = wheelPixels(event, event.deltaY, el.clientHeight);
+    if (dx === 0 && dy === 0) return;
+    const maxX = el.scrollWidth - el.clientWidth;
+    const maxY = el.scrollHeight - el.clientHeight;
+    if (maxX > 0) el.scrollLeft = Math.min(maxX, Math.max(0, el.scrollLeft + dx));
+    if (maxY > 0) el.scrollTop = Math.min(maxY, Math.max(0, el.scrollTop + dy));
+    event.preventDefault();
+    event.stopPropagation();
+  };
+  el.addEventListener("wheel", onWheel, { capture: true, passive: false });
+  return () => el.removeEventListener("wheel", onWheel, { capture: true });
+}
+
+function isPreviewScrollbarPointer(event: ReactPointerEvent<HTMLDivElement>): boolean {
+  const preview = event.currentTarget;
+  const bounds = preview.getBoundingClientRect();
+  const x = event.clientX - bounds.left - preview.clientLeft;
+  const y = event.clientY - bounds.top - preview.clientTop;
+  return x > preview.clientWidth || y > preview.clientHeight;
 }
 
 type MathFieldEl = HTMLElement & {
@@ -77,7 +140,51 @@ type MathFieldEl = HTMLElement & {
   insert: (latex: string, options?: Record<string, unknown>) => void;
   executeCommand: (command: string | [string, ...unknown[]]) => void;
   getValue: (start: number, end: number, format?: string) => string;
+  selectionIsCollapsed: boolean;
+  onScrollIntoView: ((sender: unknown) => void) | null;
 };
+
+function previewInsertionRect(field: MathFieldEl): DOMRect | null {
+  const root = field.shadowRoot;
+  if (!root) return null;
+  if (!field.selectionIsCollapsed) {
+    let right = Number.NEGATIVE_INFINITY;
+    let top = Number.POSITIVE_INFINITY;
+    root.querySelectorAll(".ML__selection").forEach((box) => {
+      const rect = box.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) return;
+      if (rect.right > right) right = rect.right;
+      if (rect.top < top) top = rect.top;
+    });
+    if (Number.isFinite(right) && Number.isFinite(top)) return new DOMRect(right, top, 0, 0);
+  }
+  const caret = root.querySelector(".ML__caret, .ML__text-caret, .ML__latex-caret");
+  return caret ? caret.getBoundingClientRect() : null;
+}
+
+function scrollPreviewToInsertion(preview: HTMLElement, field: MathFieldEl) {
+  const target = previewInsertionRect(field);
+  if (!target) return;
+  const bounds = preview.getBoundingClientRect();
+  const viewLeft = bounds.left + preview.clientLeft;
+  const viewTop = bounds.top + preview.clientTop;
+  const nextLeft = clampPreviewScroll(
+    alignPreviewScroll(
+      preview.scrollLeft,
+      viewLeft,
+      preview.clientWidth,
+      target.left,
+      target.width
+    ),
+    preview.scrollWidth - preview.clientWidth
+  );
+  const nextTop = clampPreviewScroll(
+    alignPreviewScroll(preview.scrollTop, viewTop, preview.clientHeight, target.top, target.height),
+    preview.scrollHeight - preview.clientHeight
+  );
+  preview.scrollLeft = nextLeft;
+  preview.scrollTop = nextTop;
+}
 
 const VIEWPORT_PAD = 8;
 const BACKSPACE_REPEAT_DELAY_MS = 400;
@@ -132,6 +239,27 @@ function deviceKeyAction(event: {
     default:
       return null;
   }
+}
+
+const MATH_INPUT_ERROR_MESSAGE = "정답을 다시 입력해주세요.";
+
+/** 입력칸 MathJax가 이미 만든 오류 글자만 바꾼다. 노드와 성공한 수식은 그대로 둔다. */
+function replaceMathInputErrorText(host: ParentNode | null) {
+  if (!host) return;
+  host.querySelectorAll("mjx-merror").forEach((error) => {
+    const textHost = error.querySelector("mjx-utext") ?? error.querySelector("mjx-mtext") ?? error;
+    if (textHost.textContent === MATH_INPUT_ERROR_MESSAGE) return;
+    textHost.textContent = MATH_INPUT_ERROR_MESSAGE;
+    if (textHost instanceof HTMLElement) {
+      textHost.style.lineHeight = "normal";
+      textHost.style.fontFamily = "inherit";
+    }
+    const container = error.closest("mjx-container");
+    if (container instanceof HTMLElement) {
+      container.style.width = "auto";
+      container.style.height = "auto";
+    }
+  });
 }
 
 /** 빈 칸과 MathLive placeholder를 사각형으로 바꿔 닫힌 칸 너비를 유지한다. */
@@ -206,6 +334,9 @@ export function MathKeyboard({
   const rootRef = useRef<HTMLElement>(null);
   const shellRef = useRef<HTMLElement>(null);
   const fieldRef = useRef<MathFieldEl | null>(null);
+  const previewRef = useRef<HTMLDivElement | null>(null);
+  const previewScrollFrameRef = useRef<number | null>(null);
+  const suppressPreviewScrollRef = useRef(false);
   const contentRef = useRef<HTMLSpanElement | null>(null);
   const contentObserverRef = useRef<ResizeObserver | null>(null);
   const onContentSizeRef = useRef(onContentSize);
@@ -349,6 +480,24 @@ export function MathKeyboard({
     },
     [reportContentSize]
   );
+
+  const bindInputMath = useCallback(
+    (el: HTMLSpanElement | null) => {
+      if (embedded) {
+        bindContent(el);
+        return;
+      }
+      contentObserverRef.current?.disconnect();
+      contentObserverRef.current = null;
+      contentRef.current = el;
+    },
+    [bindContent, embedded]
+  );
+
+  const handleInputTypeset = useCallback(() => {
+    replaceMathInputErrorText(contentRef.current);
+    if (embedded) reportContentSize();
+  }, [embedded, reportContentSize]);
 
   const hasValue = !isEmptyMathLatex(value);
 
@@ -721,6 +870,13 @@ export function MathKeyboard({
     setPosition(next);
   };
 
+  const detachPreviewWheelRef = useRef<(() => void) | null>(null);
+  const bindPreview = useCallback((el: HTMLDivElement | null) => {
+    detachPreviewWheelRef.current?.();
+    detachPreviewWheelRef.current = el ? attachPreviewWheel(el) : null;
+    previewRef.current = el;
+  }, []);
+
   const detachKeysScrollRef = useRef<(() => void) | null>(null);
   const bindKeysScroll = useCallback((el: HTMLDivElement | null) => {
     detachKeysScrollRef.current?.();
@@ -782,7 +938,13 @@ export function MathKeyboard({
 
   const bindField = useCallback((el: MathFieldEl | null) => {
     fieldRef.current = el;
-    if (!el) return;
+    if (!el) {
+      if (previewScrollFrameRef.current !== null) {
+        cancelAnimationFrame(previewScrollFrameRef.current);
+        previewScrollFrameRef.current = null;
+      }
+      return;
+    }
     // 플로팅 키패드가 열린 동안 MathLive 가상 키보드는 띄우지 않는다.
     el.mathVirtualKeyboardPolicy = "manual";
     const field = el as MathFieldEl & {
@@ -794,6 +956,19 @@ export function MathKeyboard({
       sslash: { def: "\\mathbin{/\\!/}", args: 0 },
       // 키와 같은 ∽(U+223D). \backsim은 물결로 그려진다. expand: false라 저장 명령은 \sim.
       sim: { def: '\\char"223D', args: 0, expand: false },
+    };
+    el.onScrollIntoView = () => {
+      if (previewScrollFrameRef.current !== null) {
+        cancelAnimationFrame(previewScrollFrameRef.current);
+      }
+      previewScrollFrameRef.current = requestAnimationFrame(() => {
+        previewScrollFrameRef.current = null;
+        if (suppressPreviewScrollRef.current) return;
+        const preview = previewRef.current;
+        const current = fieldRef.current;
+        if (!preview || !current) return;
+        scrollPreviewToInsertion(preview, current);
+      });
     };
     if (field.dataset.bound === "1") return;
     field.dataset.bound = "1";
@@ -836,10 +1011,10 @@ export function MathKeyboard({
   const answerSizeLatex = hasValue ? "" : measureValue.replace(/[\r\n]/g, "");
   const renderedValue = answerLatex ? (
     <MathJaxRenderer
-      ref={embedded ? bindContent : undefined}
+      ref={bindInputMath}
       latex={latexForInputMathJax(answerLatex)}
       className="qti-ext-math-keyboard-mathjax"
-      onTypeset={embedded ? reportContentSize : undefined}
+      onTypeset={handleInputTypeset}
     />
   ) : placeholder ? (
     <span className="qti-ext-math-keyboard-placeholder">{placeholder}</span>
@@ -1073,8 +1248,20 @@ export function MathKeyboard({
               </button>
             </div>
             <div
+              ref={bindPreview}
               className="qti-ext-math-keyboard-preview"
               onPointerDown={(event) => {
+                if (isPreviewScrollbarPointer(event)) {
+                  suppressPreviewScrollRef.current = true;
+                  const stop = () => {
+                    suppressPreviewScrollRef.current = false;
+                    window.removeEventListener("pointerup", stop, true);
+                    window.removeEventListener("pointercancel", stop, true);
+                  };
+                  window.addEventListener("pointerup", stop, true);
+                  window.addEventListener("pointercancel", stop, true);
+                  return;
+                }
                 event.preventDefault();
                 fieldRef.current?.focus();
               }}

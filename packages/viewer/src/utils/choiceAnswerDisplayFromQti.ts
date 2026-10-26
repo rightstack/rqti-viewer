@@ -3,6 +3,7 @@
  *
  * - qti-choice-interaction: label 속성이 있으면 그 값만; 없으면 interaction·부모 qti-ext-grid의
  *   qti-list-style-type-* 로 목록 마커(① 등); 그것도 없으면 본문 → identifier
+ *   `qti-list-style-type-none`이면 buildChoiceCorrectAnswerItems로 원본 본문을 렌더
  * - qti-order-interaction: label 속성 → 순번 마커(A·1 등, identifier=DOM 순서에 고정) → 본문 → identifier
  * - qti-inline-choice-interaction: label → 본문 → 미디어 → identifier (단일 문자열, 기존과 동일)
  * - qti-match-interaction 정답만: 쌍이 ROW_n / COL_m 형태면 `n-m` 또는 MatchAnswerView용 배열 (qtiXml으로 interaction 판별)
@@ -758,6 +759,40 @@ function orderResponseIds(value: unknown): string[] {
 export type OrderCorrectAnswerItem =
   | { kind: "text"; key: string; text: string }
   | { kind: "body"; key: string; html: string };
+
+export type ChoiceCorrectAnswerItem =
+  | { kind: "text"; key: string; text: string }
+  | { kind: "body"; key: string; element: Element };
+
+/** 레이블 없는 선다형 정답은 이미지·캡션·수식 마커를 포함한 원본 본문을 보존한다. */
+export function buildChoiceCorrectAnswerItems(
+  qtiXml: string | null | undefined,
+  responseIdentifier: string,
+  value: unknown,
+): ChoiceCorrectAnswerItem[] | null {
+  if (!qtiXml?.trim()) return null;
+  const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
+  if (doc.querySelector("parsererror")) return null;
+
+  const interaction = Array.from(doc.querySelectorAll("qti-choice-interaction")).find(
+    (el) => el.getAttribute("response-identifier")?.trim() === responseIdentifier,
+  );
+  if (!interaction || listStyleTypeForChoiceInteraction(interaction) !== "none") return null;
+
+  const ids = orderResponseIds(value);
+  if (ids.length === 0) return null;
+  const choices = orderChoicesById(interaction);
+
+  return ids.map((id, index) => {
+    const key = `${id}-${index}`;
+    const choice = choices.get(id)?.element;
+    if (!choice) return { kind: "text", key, text: id };
+    const hasBody = Array.from(choice.childNodes).some(
+      (node) => node.nodeType === Node.ELEMENT_NODE || node.textContent?.trim(),
+    );
+    return hasBody ? { kind: "body", key, element: choice } : { kind: "text", key, text: id };
+  });
+}
 
 function serializeElementChildren(el: Element): string {
   const serializer = new XMLSerializer();

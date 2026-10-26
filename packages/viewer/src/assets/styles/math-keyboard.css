@@ -47,7 +47,7 @@
 .qti-ext-math-keyboard-display.qti-ext-text-entry-input-incorrect {
   font-size: var(--qti-font-size-base, inherit) !important;
   line-height: normal;
-  text-align: start;
+  text-align: center;
 }
 
 /* 텍스트 칸의 px-2/px-3/px-4를 덮는다. 수식 칸 여백은 위 변수만 따른다. */
@@ -164,6 +164,12 @@
 .qti-ext-math-keyboard-mathjax mjx-utext {
   width: auto !important;
   padding: 0 !important;
+}
+
+.qti-ext-math-keyboard-mathjax mjx-merror {
+  background-color: transparent;
+
+  color: var(--qti-base-text-color, inherit);
 }
 
 /* MathJax 3은 자동 줄바꿈이 없다. 칸이 문항 너비에 닿으면 최상위 항(mn·mo…) 사이에서만 줄을 나눈다.
@@ -899,6 +905,7 @@
 
   /* overlay: 가로 막대가 내용 위에 겹치고 칸 높이를 밀지 않는다. */
   overflow: auto;
+  overscroll-behavior: contain;
 
   box-sizing: border-box;
   width: 100%;
