@@ -42,28 +42,18 @@ export const countTfqPairs = (nodes: NodeListOf<ChildNode>): number => {
 
 /**
  * TFQ row 레이아웃 클래스.
- * - 1문항: 항상 세로. tfq-single은 단일 문항 표시용으로 유지
- * - 2문항 이상: 발문과 버튼을 세로로 쌓음. 버튼 줄은 가로 100%에서 가운데 정렬
+ * 문항 수와 화면 너비와 관계없이 버튼은 발문 아래에 둔다.
  */
 export function getTfqLayoutClasses(tfqCount: number): {
   row: string;
   prompt: string;
   buttons: string;
 } {
-  const buttons =
-    "tfq-buttons rqti:w-full rqti:flex rqti:justify-center rqti:gap-2 rqti:shrink-0";
-
-  if (tfqCount <= 1) {
-    return {
-      row: "tfq-row tfq-single rqti:flex rqti:flex-col rqti:gap-3",
-      prompt: "tfq-prompt rqti:w-full",
-      buttons,
-    };
-  }
+  const singleClass = tfqCount <= 1 ? " tfq-single" : "";
   return {
-    row: "tfq-row rqti:flex rqti:flex-col rqti:gap-3",
-    prompt: "tfq-prompt rqti:w-full rqti:min-w-0",
-    buttons,
+    row: `tfq-row${singleClass} rqti:flex rqti:flex-col rqti:gap-3`,
+    prompt: "tfq-prompt rqti:w-full",
+    buttons: "tfq-buttons rqti:flex rqti:w-full rqti:shrink-0 rqti:justify-center rqti:gap-2",
   };
 }
 

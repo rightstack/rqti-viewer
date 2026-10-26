@@ -4080,6 +4080,23 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   padding: 10px !important;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
+[data-device="mobile"] .qti-ext-choice-button {
+  min-width: 104px;
+  min-height: 52px;
+}
+
+[data-device="mobile"] .tfq-buttons .qti-ext-choice-button img:where(:not(.qti-ext-inline-image)) {
+  width: 28px !important;
+
+  @apply rqti:mx-auto;
+}
+
+[data-device="mobile"] .qti-ext-choice-button .qti-ext-ox-icon {
+  width: 28px;
+  height: 28px;
+}
+
 [data-device="mobile"] .qti-orientation-horizontal.qti-choices-stacking-4,
 [data-device="mobile"] .qti-orientation-horizontal.qti-choices-stacking-5 {
   grid-template-columns: 1fr;
