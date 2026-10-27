@@ -409,6 +409,14 @@ const VCQ_CANCEL_BLANK_FEEDBACK = {
   content: "<p>취소선이 그어진 칸에 3, 옆 칸에 2를 적습니다.</p>",
 };
 
+/** 운영 문항 i_6rceiajpw7kfhy3c — template-narrow 소인수분해 */
+const GCD_NARROW_XML = String.raw`<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-item xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="i_6rceiajpw7kfhy3c" title="맞춤온_연결지문 테스트2" time-dependent="false"><qti-response-declaration identifier="RESPONSE_1" cardinality="single" base-type="string"><qti-correct-response><qti-value>$7$</qti-value></qti-correct-response></qti-response-declaration><qti-response-declaration identifier="RESPONSE_3" cardinality="single" base-type="string"><qti-correct-response><qti-value>$14$</qti-value></qti-correct-response></qti-response-declaration><qti-response-declaration identifier="RESPONSE_4" cardinality="single" base-type="string"><qti-correct-response><qti-value>$2$</qti-value></qti-correct-response></qti-response-declaration><qti-response-declaration identifier="RESPONSE_5" cardinality="single" base-type="string"><qti-correct-response><qti-value>$3$</qti-value></qti-correct-response></qti-response-declaration><qti-response-declaration identifier="RESPONSE_6" cardinality="single" base-type="string"><qti-correct-response><qti-value>$7$</qti-value></qti-correct-response></qti-response-declaration><qti-item-body><div class="qti-ext-question"><p>(2) 나눗셈을 이용하는 방법</p><div class="qti-ext-vcq-grid qti-ext-vcq-grid--response qti-ext-vcq-grid--template-narrow qti-ext-vcq-grid--size-small qti-align-center"><div class="qti-ext-vcq-row qti-ext-vcq-row--normal"><div class="qti-ext-vcq-cell"><span class="qti-ext-mathfield" data-latex="2">2</span></div><div class="qti-ext-vcq-cell"><span class="qti-ext-mathfield" data-latex="28">28</span></div><div class="qti-ext-vcq-cell"><span class="qti-ext-mathfield" data-latex="42">42</span></div><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/></div><div class="qti-ext-vcq-row qti-ext-vcq-row--normal"><div class="qti-ext-vcq-cell qti-ext-vcq-cell--blank"><qti-portable-custom-interaction response-identifier="RESPONSE_1" custom-interaction-type-identifier="math-input-blank" data-is-math="true" data-school-level="m"><qti-interaction-markup><div class="qti-ext-input-blank" data-latex="\inputblank{RESPONSE_1}{1}"/></qti-interaction-markup></qti-portable-custom-interaction></div><div class="qti-ext-vcq-cell qti-ext-vcq-cell--blank"><qti-portable-custom-interaction response-identifier="RESPONSE_3" custom-interaction-type-identifier="math-input-blank" data-is-math="true" data-school-level="m"><qti-interaction-markup><div class="qti-ext-input-blank" data-latex="\inputblank{RESPONSE_3}{2}"/></qti-interaction-markup></qti-portable-custom-interaction></div><div class="qti-ext-vcq-cell"><span class="qti-ext-mathfield" data-latex="21">21</span></div><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/></div><div class="qti-ext-vcq-row qti-ext-vcq-row--normal"><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell qti-ext-vcq-cell--blank"><qti-portable-custom-interaction response-identifier="RESPONSE_4" custom-interaction-type-identifier="math-input-blank" data-is-math="true" data-school-level="m"><qti-interaction-markup><div class="qti-ext-input-blank" data-latex="\inputblank{RESPONSE_4}{1}"/></qti-interaction-markup></qti-portable-custom-interaction></div><div class="qti-ext-vcq-cell qti-ext-vcq-cell--blank"><qti-portable-custom-interaction response-identifier="RESPONSE_5" custom-interaction-type-identifier="math-input-blank" data-is-math="true" data-school-level="m"><qti-interaction-markup><div class="qti-ext-input-blank" data-latex="\inputblank{RESPONSE_5}{1}"/></qti-interaction-markup></qti-portable-custom-interaction></div><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/><div class="qti-ext-vcq-cell"/></div><div class="qti-ext-vcq-row qti-ext-vcq-row--normal"><div class="qti-ext-vcq-cell qti-ext-vcq-cell--blank qti-ext-vcq-cell--merged qti-align-left" data-vcq-colspan="13" data-vcq-content-layout="flow"><qti-portable-custom-interaction response-identifier="RESPONSE_6" custom-interaction-type-identifier="math-input-blank" data-is-math="true" data-school-level="m"><qti-interaction-markup><div class="qti-ext-input-blank" data-latex="⇒\text{ (최대공약수)}=2 \times \inputblank{RESPONSE_6}{1}=\text{(여기 인풋박스 하나 더 있어야 함.)}"/></qti-interaction-markup></qti-portable-custom-interaction></div><div class="qti-ext-vcq-cell"/></div><span class="qti-ext-vcq-division-bar-track qti-ext-vcq-division-bar-track--reverse" data-vcq-grid-column="2 / 4" data-vcq-grid-row="1 / 2" aria-hidden="true"><span class="qti-ext-vcq-division-bar"/></span><span class="qti-ext-vcq-division-bar-track qti-ext-vcq-division-bar-track--reverse" data-vcq-grid-column="2 / 4" data-vcq-grid-row="2 / 3" aria-hidden="true"><span class="qti-ext-vcq-division-bar"/></span></div><p/></div></qti-item-body></qti-assessment-item>`;
+
+/** 운영 문항 i_ddbaiey4fog64cy4 — 이미지 빈칸 + 분수 뒤 문장 */
+const IMAGE_TABLE_BLANK_XML = String.raw`<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-item xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="i_ddbaiey4fog64cy4" title="이미지 내 빈칸_표" time-dependent="false"><qti-response-declaration identifier="MATH_RESPONSE_1" cardinality="record"><qti-correct-response><qti-value field-identifier="RESPONSE_4" base-type="string">$3$</qti-value></qti-correct-response></qti-response-declaration><qti-response-declaration identifier="IMAGE_RESPONSE_1" cardinality="record"><qti-correct-response><qti-value field-identifier="RESPONSE_1" base-type="string">3</qti-value><qti-value field-identifier="RESPONSE_2" base-type="string">3</qti-value><qti-value field-identifier="RESPONSE_3" base-type="string">$\frac{4}{5}$</qti-value></qti-correct-response></qti-response-declaration><qti-item-body><div class="qti-ext-question"><div class="qti-ext-prompt"><p><img class="qti-ext-inline-image" src="/api/external/v1/assessment-resource/object/15019" alt="제목 없음" data-inline-image-height="1.5"/>의 수에 대한 규칙을 찾아 식으로 나타내시오. </p></div><div class="qti-ext-figure qti-align-center"><qti-portable-custom-interaction response-identifier="IMAGE_RESPONSE_1" custom-interaction-type-identifier="image-input-blank" data-school-level="m"><qti-interaction-markup><div class="qti-ext-image-input-blank" data-src="/api/external/v1/assessment-resource/object/15020" data-alt="sample1" data-width="686" data-height="441" data-display-width="493" data-font-size="24"><span class="qti-ext-image-input-blank__region qti-ext-input-blank" data-width="71.57086614173227" data-height="71.57282296650715" data-region-id="0c9138ff-85e3-4589-8458-9e04de4bb0e5" data-input-type="text" data-response-identifier="RESPONSE_1" data-x="440.2283464566929" data-y="266.0559330143541" data-is-math="false"/><span class="qti-ext-image-input-blank__region qti-ext-input-blank" data-width="71.57086614173227" data-height="71.5728229665072" data-region-id="95109f92-24e2-4220-ae0a-e8f46c00c390" data-input-type="text" data-response-identifier="RESPONSE_2" data-x="386.21259842519686" data-y="355.18435406698563" data-is-math="false"/><span class="qti-ext-image-input-blank__region qti-ext-input-blank" data-width="72.92125984251965" data-height="71.5728229665072" data-region-id="b50aba2c-8df0-4497-99ca-725afc114b26" data-input-type="text" data-response-identifier="RESPONSE_3" data-x="494.244094488189" data-y="355.18435406698563" data-is-math="true"/></div></qti-interaction-markup></qti-portable-custom-interaction></div><div><qti-portable-custom-interaction response-identifier="MATH_RESPONSE_1" custom-interaction-type-identifier="math-input-blank" data-is-math="true" data-school-level="m"><qti-interaction-markup><div class="qti-ext-math-input-blank" data-latex="\frac{3}{\inputblank{RESPONSE_4}{1}}=1"/></qti-interaction-markup></qti-portable-custom-interaction>이므로 어쩌구~</div></div></qti-item-body></qti-assessment-item>`;
+
 /** 운영 문항 i_hi3zlxp01bpqpkpl — 단답 + data-is-math / data-school-level=m */
 const HEX_PYRAMID_SRQ_XML = String.raw`<?xml version="1.0" encoding="UTF-8"?>
 <qti-assessment-item xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="i_hi3zlxp01bpqpkpl" title="리피트개념중등수학1-2(개념책)_1_028p_01" time-dependent="false" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqtiasi_v3p0 /assessment/xml-catalog/purl.imsglobal.org/spec/qti/v3p0/schema/xsd/imsqti_asiv3p0_v1p0.xsd"><qti-response-declaration identifier="RESPONSE" cardinality="single" base-type="string"><qti-correct-response><qti-value>$84$</qti-value></qti-correct-response><qti-mapping lower-bound="0.0" upper-bound="1.0" default-value="0.0"><qti-map-entry map-key="84" mapped-value="1.0" case-sensitive="true"/></qti-mapping></qti-response-declaration><qti-outcome-declaration identifier="SCORE" cardinality="single" base-type="float"><qti-default-value><qti-value>0.0</qti-value></qti-default-value></qti-outcome-declaration><qti-outcome-declaration identifier="MAXSCORE" cardinality="single" base-type="float"><qti-default-value><qti-value>1.0</qti-value></qti-default-value></qti-outcome-declaration><qti-item-body><div class="qti-ext-question"><div class="qti-ext-prompt"><p>그림과 같은 육각뿔에서 교점의 개수를 <span class="qti-ext-mathfield" data-latex="a">a</span>, 교선의 개수를 <span class="qti-ext-mathfield" data-latex="b">b</span>라 할 때, <span class="qti-ext-mathfield" data-latex="ab">ab</span>의 값을 구하시오.</p></div><p>맞춤온 뷰어 확인</p><p>sum_{n=1}^{infty} a_n <span class="qti-ext-mathfield" data-latex="sum_{n=1}^{infty} a_n">sum_{n=1}^{infty} a_n</span></p><p>sumlimits_{n=1}^{infty} a_n <span class="qti-ext-mathfield" data-latex="sumlimits_{n=1}^{infty} a_n">sumlimits_{n=1}^{infty} a_n</span></p><figure class="qti-ext-figure qti-align-center"><img src="/api/v3/assessment-resource/object/8516" alt="/api/v3/assessment-resource/object/8516" width="150"/></figure><p><qti-text-entry-interaction response-identifier="RESPONSE" expected-length="50" data-is-math="true" data-school-level="m"/></p></div></qti-item-body><qti-response-processing><qti-set-outcome-value identifier="SCORE"><qti-sum><qti-variable identifier="SCORE"/><qti-map-response identifier="RESPONSE"/></qti-sum></qti-set-outcome-value></qti-response-processing></qti-assessment-item>`;
@@ -538,6 +546,37 @@ export const LOCAL_ITEMS: Record<string, QuestionItem> = {
     settings: null,
     feedbacks: [],
   },
+  i_6rceiajpw7kfhy3c: {
+    id: -13,
+    qtiIdentifier: "i_6rceiajpw7kfhy3c",
+    title: "맞춤온_연결지문 테스트2",
+    type: ITEM_TYPE.VCQ,
+    qtiXml: GCD_NARROW_XML,
+    correctAnswer: {
+      RESPONSE_1: ["$7$"],
+      RESPONSE_3: ["$14$"],
+      RESPONSE_4: ["$2$"],
+      RESPONSE_5: ["$3$"],
+      RESPONSE_6: ["$7$"],
+    },
+    settings: null,
+    feedbacks: [],
+  },
+  i_ddbaiey4fog64cy4: {
+    id: -14,
+    qtiIdentifier: "i_ddbaiey4fog64cy4",
+    title: "이미지 내 빈칸_표",
+    type: ITEM_TYPE.CLOZE,
+    qtiXml: IMAGE_TABLE_BLANK_XML,
+    correctAnswer: {
+      RESPONSE_1: ["3"],
+      RESPONSE_2: ["3"],
+      RESPONSE_3: ["$\\frac{4}{5}$"],
+      RESPONSE_4: ["$3$"],
+    },
+    settings: null,
+    feedbacks: [],
+  },
 };
 
 export const LOCAL_SAMPLE_ITEMS: SampleItem[] = [
@@ -600,5 +639,15 @@ export const LOCAL_SAMPLE_ITEMS: SampleItem[] = [
     type: ITEM_TYPE.SRQ,
     label: "육각뿔 단답 · 수식입력 (SRQ)",
     qtiIdentifier: "i_hi3zlxp01bpqpkpl",
+  },
+  {
+    type: ITEM_TYPE.VCQ,
+    label: "세로셈형 · 소인수 나눗셈 (VCQ)",
+    qtiIdentifier: "i_6rceiajpw7kfhy3c",
+  },
+  {
+    type: ITEM_TYPE.CLOZE,
+    label: "이미지 내 빈칸 · 표 (CLOZE)",
+    qtiIdentifier: "i_ddbaiey4fog64cy4",
   },
 ];

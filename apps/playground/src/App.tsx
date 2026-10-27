@@ -83,7 +83,7 @@ function resolveHints(
 const FOCUS_ITEM: SampleItem = {
   type: ITEM_TYPE.TFQ,
   label: "외부 문항 (TFQ)",
-  qtiIdentifier: "i_i3morb62n4sgu5rz",
+  qtiIdentifier: "i_6j1oyi0j40nnyplv",
 };
 
 /** API 문항 + 로컬(XML 직접 주입) 문항 통합 목록 */
@@ -94,7 +94,7 @@ const NAV_ITEMS: readonly SampleItem[] = [
 ];
 
 const QMS_API_TOKEN = "ra_jxpo7UZ3UEweSQel2PL1B";
-const DESIGN_WIDTH = 1000;
+const DESIGN_WIDTH = 520;
 
 const DEMO_PASSAGE_HTML = `
 <p><strong>다음 글을 읽고 물음에 답하시오.</strong></p>
@@ -102,7 +102,7 @@ const DEMO_PASSAGE_HTML = `
 <p>한참을 헤매던 남매는 과자로 만든 집을 발견했다. 배가 고팠던 아이들은 지붕과 창문을 깨물어 먹기 시작했다.</p>
 `;
 
-/** 1000px 저작 기준 폭을 전부 사용하는 뷰어 테마 예시. 문항 번호는 플랫폼이 그리는 전제. */
+/** 520px 고정 폭을 전부 사용하는 뷰어 테마 예시. 문항 번호는 플랫폼이 그리는 전제. */
 const FULL_WIDTH_THEME: Theme = {
   ...DEFAULT_THEME,
   id: "full-width",
@@ -280,7 +280,7 @@ export default function App() {
   const [drawing, setDrawing] = useState(true);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   // 문항 컨테이너 가용 폭(px). 슬라이더로 좁혀 고정폭 scale 축소를 시연한다.
-  const [previewWidth, setPreviewWidth] = useState(1000);
+  const [previewWidth, setPreviewWidth] = useState(DESIGN_WIDTH);
   const [demoPassage, setDemoPassage] = useState(false);
 
   const saveAnnotations = () => {
@@ -419,7 +419,7 @@ export default function App() {
             <input
               type="range"
               min={320}
-              max={1000}
+              max={DESIGN_WIDTH}
               step={10}
               value={previewWidth}
               onChange={(e) => setPreviewWidth(Number(e.target.value))}
@@ -626,7 +626,7 @@ export default function App() {
       </aside>
 
       <main style={styles.main}>
-        <div style={{ ...styles.card, maxWidth: previewWidth }}>
+        <div style={{ ...styles.card, width: previewWidth, maxWidth: "100%" }}>
           {status === "error" && (
             <p style={styles.statusText}>API 오류: {error}</p>
           )}
@@ -647,6 +647,8 @@ export default function App() {
               }
               passage={demoPassage ? DEMO_PASSAGE_HTML : props.passage}
               onSubmit={setLastSubmit}
+              token={QMS_API_TOKEN}
+              baseUrl="/qms-api"
               designWidth={DESIGN_WIDTH}
               // annotationOverlay={
               //   <Whiteboard
