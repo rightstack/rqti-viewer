@@ -178,17 +178,18 @@ export function getResponseRawString(map: Record<string, unknown> | undefined, i
   return Array.isArray(raw) ? String(raw[0] ?? "") : String(raw);
 }
 
-/** 본문은 responses. 정답영역만 correctAnswers. PCI 부모 배열·record는 RESPONSE_N으로 편평. */
+/** 제출 후는 responses. preview 본문만 correctAnswers. 칸 ID 키만 본다. PCI 부모 배열·record는 RESPONSE_N으로 편평. */
 export function buildMathBlankAnswerSource(
-  answerKeyPreview: boolean,
+  isPreview: boolean,
+  isSubmit: boolean | undefined,
   correctAnswers: Record<string, unknown> | undefined,
   responses: Record<string, unknown> | undefined,
   responseId: string | undefined,
   latex: string
 ): Record<string, unknown> | undefined {
-  const useAnswerKey =
-    answerKeyPreview && !!correctAnswers && Object.keys(correctAnswers).length > 0;
-  const raw = useAnswerKey ? correctAnswers : responses;
+  const usePreviewAnswers =
+    !isSubmit && isPreview && !!correctAnswers && Object.keys(correctAnswers).length > 0;
+  const raw = usePreviewAnswers ? correctAnswers : responses;
   if (!raw) return undefined;
 
   const flat: Record<string, unknown> = { ...raw };

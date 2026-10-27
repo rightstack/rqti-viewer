@@ -61,11 +61,10 @@ function renderLabelContent(
   text: string,
   key: string,
   id?: string,
-  isMathContext = false,
-  dynamic = true
+  isMathContext = false
 ): ReactNode {
   if (needsMathRender(id, text, isMathContext)) {
-    return renderLaTeX(text, key, false, dynamic);
+    return renderLaTeX(text, key, false);
   }
   return text;
 }
@@ -74,11 +73,10 @@ function renderCellText(
   text: string,
   key: string,
   id?: string,
-  isMathContext = false,
-  dynamic = true
+  isMathContext = false
 ): ReactNode {
   if (!text) return null;
-  const content = renderLabelContent(text, key, id, isMathContext, dynamic);
+  const content = renderLabelContent(text, key, id, isMathContext);
   if (typeof content === "string") {
     return <span className="qti-ext-mathfield">{content}</span>;
   }
@@ -385,13 +383,14 @@ function MathInputBlankView({
   const answerSource = useMemo(
     () =>
       buildMathBlankAnswerSource(
-        options.answerKeyPreview === true,
+        isPreview,
+        options.isSubmit,
         options.correctAnswers as Record<string, unknown>,
         options.responses as Record<string, unknown>,
         responseId,
         latex
       ),
-    [latex, options.answerKeyPreview, options.correctAnswers, options.responses, responseId]
+    [isPreview, latex, options.correctAnswers, options.isSubmit, options.responses, responseId]
   );
 
   const blankIds = useMemo(() => extractResponseIds(latex), [latex]);
@@ -476,7 +475,7 @@ function MathInputBlankView({
             fillSlot={!label || fillDisplaySlot}
             fitFormulaHost={useVcqFormulaFlow}
           >
-            {label ? renderLabelContent(label, `label-${id}`, id, false, false) : null}
+            {label ? renderLabelContent(label, `label-${id}`, id, false) : null}
           </FormulaSlotLatexDisplay>
         </span>
       );
@@ -608,7 +607,7 @@ function MathInputBlankView({
       if (seg.kind === "latex") {
         return (
           <span key={`${key}-ltx`} className="qti-ext-mathfield qti-ext-math-blank-latex">
-            {renderLaTeX(seg.latex, `${key}-ltx`, false, false)}
+            {renderLaTeX(seg.latex, `${key}-ltx`, false)}
           </span>
         );
       }
@@ -716,8 +715,7 @@ export function MathInputBlankDisplayMarkup({
                     label.text,
                     `display-label-${index}-${label.id ?? label.text}`,
                     label.id,
-                    true,
-                    false
+                    true
                   )}
                 </span>
               ) : null}
