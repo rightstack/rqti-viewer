@@ -4,6 +4,8 @@ import type { GapChoiceType } from "../../../types";
 
 interface GapChoiceProps {
   choice: GapChoiceType;
+  /** 선택지 레이블. 선택지 데이터에는 합치지 않는다. */
+  label?: string;
   isUsed: boolean;
   isSubmit: boolean;
   isPreview?: boolean;
@@ -18,6 +20,7 @@ interface GapChoiceProps {
 
 export const GapChoice = ({
   choice,
+  label,
   isUsed,
   isSubmit,
   isPreview = false,
@@ -29,6 +32,8 @@ export const GapChoice = ({
 }: GapChoiceProps) => {
   const disabled = isSubmit || isPreview || isUsed;
   const interactive = clickable && !disabled;
+  const plainName = choice.text || choice.identifier;
+  const accessibleName = label ? `${label} ${plainName}` : plainName;
   return (
     <span
       role="button"
@@ -42,10 +47,10 @@ export const GapChoice = ({
         selected && "qti-ext-gap-choice-selected"
       )}
       draggable={draggable}
-      onDragStart={onDragStart}
+      onDragStart={draggable ? onDragStart : undefined}
       onClick={interactive ? onClick : undefined}
       aria-disabled={disabled}
-      aria-label={choice.text || choice.identifier}
+      aria-label={accessibleName}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -53,7 +58,8 @@ export const GapChoice = ({
         }
       }}
     >
-      {choice.text || choice.identifier}
+      {label ? <span className="qti-ext-gap-choice-label">{label}</span> : null}
+      {choice.content ?? choice.text ?? choice.identifier}
     </span>
   );
 };

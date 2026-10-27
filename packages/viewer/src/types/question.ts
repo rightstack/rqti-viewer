@@ -163,6 +163,8 @@ export interface OrderChoiceType {
   text?: string | string[];
   media?: MediaContentType[];
   label?: string;
+  /** 클릭형 본문. `<p>`와 수식을 그대로 그리기 위해 원본 선택지 요소를 둔다. */
+  element?: Element;
 }
 
 export interface GapType {
@@ -173,4 +175,6 @@ export interface GapChoiceType {
   identifier: string;
   text?: string;
   media?: MediaContentType[];
+  /** 수식·HTML을 유지한 선택지 본문. 없으면 text 또는 identifier를 표시한다. */
+  content?: ReactNode;
 }

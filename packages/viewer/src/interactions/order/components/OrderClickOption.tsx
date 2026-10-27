@@ -1,7 +1,7 @@
 import { cn } from "../../../lib/utils";
-import { MediaContent } from "../../../shared";
 import type { OrderChoiceType, QTIParserOptions } from "../../../types";
 import { getListStyleLabel } from "../../../utils/listStyleLabel";
+import OrderChoiceContent from "./OrderChoiceContent";
 
 interface OrderClickOptionProps {
   choices: OrderChoiceType[];
@@ -23,9 +23,10 @@ interface OrderClickOptionProps {
 
 /**
  * 클릭 방식 순서 정하기.
- * - 선택지는 원래(셔플된) 위치에 고정되어 표시된다.
- * - 누르면 다음 순번이 부여되고, 다시 누르면 해제되어 뒤 순번이 자동으로 당겨진다.
- * - 응답값은 "누른 순서"의 identifier 배열.
+ * - 선택지는 원래 위치에 고정된다.
+ * - 왼쪽 칸은 누른 순번 1, 2, 3이다.
+ * - 다시 누르면 해제되고 뒤 순번이 당겨진다.
+ * - thumbnail·preview는 읽기 전용이다.
  */
 const OrderClickOption = ({
   choices,
@@ -67,11 +68,11 @@ const OrderClickOption = ({
       role="group"
       aria-label="순서대로 선택하세요"
     >
-      {choices.map((choice) => {
+      {choices.map((choice, domIndex) => {
         const order = clickedOrder.indexOf(choice.identifier);
         const selected = order !== -1;
+        const orderRank = selected ? order + 1 : null;
 
-        // 제출 후 정오답: 누른 순번 위치가 정답 순서와 일치하는지
         const isCorrect =
           isSubmit && selected && correctOrder[order] === choice.identifier;
         const isIncorrect = isSubmit && selected && !isCorrect;
@@ -85,12 +86,12 @@ const OrderClickOption = ({
           disabled && "qti-ext-option-disabled",
         );
 
-        const badgeClassName = cn(
-          "qti-ext-order-click-badge",
-          selected && "qti-ext-order-click-badge-active",
-          isSubmit && isCorrect && "qti-ext-order-number-correct",
-          isSubmit && isIncorrect && "qti-ext-order-number-incorrect",
-        );
+        const choiceLabel =
+          listStyleType === "none" ? null : (
+            <span className="qti-ext-choice-option-label">
+              {getListStyleLabel(listStyleType, domIndex + 1)}
+            </span>
+          );
 
         return (
           <button
@@ -101,16 +102,14 @@ const OrderClickOption = ({
             disabled={disabled}
             aria-pressed={selected}
           >
-            <span className={badgeClassName} aria-hidden={!selected}>
-              {selected ? getListStyleLabel(listStyleType, order + 1) : ""}
-            </span>
-            <span className="qti-ext-order-click-content">
-              {choice.media && (
-                <MediaContent media={choice.media} token={options.token} />
-              )}
-              {choice.text && (
-                <span className="qti-ext-order-click-text">{choice.text}</span>
-              )}
+            <span className="qti-ext-order-click-rank">{orderRank}</span>
+            <span className="qti-ext-order-click-body">
+              {choiceLabel}
+              <span className="qti-ext-order-click-content">
+                {choice.element ? (
+                  <OrderChoiceContent element={choice.element} options={options} />
+                ) : null}
+              </span>
             </span>
           </button>
         );

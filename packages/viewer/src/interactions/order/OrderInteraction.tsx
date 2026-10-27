@@ -55,6 +55,7 @@ export const OrderInteraction = ({ element, options, index }: OrderInteractionPr
         identifier,
         text: choiceText || undefined,
         media: media.length > 0 ? media : undefined,
+        element: choiceEl,
       });
     });
     return result;

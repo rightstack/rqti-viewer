@@ -1,8 +1,9 @@
 import React from "react";
-import { INDENT_UNIT_EM } from "../themes/utils";
+import { INDENT_UNIT_EM, parseTextIndent } from "../themes/utils";
 
 const LIST_STYLE_TYPE_RE = /qti-list-style-type-([a-z-]+)/;
 const TEXT_INDENT_RE = /qti-text-indent-(\d+)/;
+const TEXT_INDENT_BLOCK_RE = /qti-text-indent-(?!first-)(\d+)/g;
 
 const ORDERED_TYPES = new Set([
   "decimal",
@@ -56,16 +57,45 @@ function buildList(
 ): React.ReactElement {
   const tag = isOrderedListType(frame.listStyleType) ? "ol" : "ul";
 
+  const buildListItemContent = (itemProps: {
+    children?: React.ReactNode;
+    className?: string;
+  }): React.ReactNode => {
+    const className = itemProps.className ?? "";
+    const style = parseTextIndent(className).style;
+    const blockIndent = sumBlockIndentLevel(className) * INDENT_UNIT_EM;
+
+    if (typeof style.marginLeft === "string" && style.marginLeft.endsWith("em")) {
+      const parsedMarginLeft = parseFloat(style.marginLeft);
+      const contentMarginLeft = parsedMarginLeft - blockIndent;
+
+      if (contentMarginLeft === 0) {
+        delete style.marginLeft;
+      } else {
+        style.marginLeft = `${contentMarginLeft}em`;
+      }
+    }
+
+    if (Object.keys(style).length === 0) {
+      return itemProps.children;
+    }
+
+    return React.createElement("div", { style }, itemProps.children);
+  };
+
   const listItems = frame.items.map((li) => {
     const elKey = li.element.key ?? "";
     const itemProps = li.element.props as {
       children?: React.ReactNode;
+      className?: string;
       [key: string]: unknown;
     };
+    const content = buildListItemContent(itemProps);
+
     if (li.subList) {
-      return React.createElement("li", { key: `li-${elKey}` }, itemProps.children, li.subList);
+      return React.createElement("li", { key: `li-${elKey}` }, content, li.subList);
     }
-    return React.createElement("li", { key: `li-${elKey}` }, itemProps.children);
+    return React.createElement("li", { key: `li-${elKey}` }, content);
   });
 
   const style: React.CSSProperties | undefined = marginLeft ? { marginLeft } : undefined;
@@ -79,6 +109,15 @@ function buildList(
     },
     ...listItems
   );
+}
+
+function sumBlockIndentLevel(className: string): number {
+  let acc = 0;
+  for (const match of className.matchAll(TEXT_INDENT_BLOCK_RE)) {
+    const token = match[1];
+    if (token) acc += parseInt(token, 10);
+  }
+  return acc;
 }
 
 /**
@@ -143,12 +182,30 @@ function nestGroup(items: React.ReactElement[], keyBase: number): React.ReactEle
   return result;
 }
 
+const LIST_ITEM_HOSTS = new Set(["p", "div"]);
+
+function isListItemHost(child: React.ReactElement, className: string): boolean {
+  if (!LIST_ITEM_HOSTS.has(child.type as string) || extractListStyleType(className) === null) {
+    return false;
+  }
+
+  // 표 구조 래퍼도 선택지 라벨 표시를 위해 qti-list-style-type-*를 쓴다.
+  // 목록으로 바꾸면 qti-ext-grid 클래스와 레이아웃이 사라진다.
+  const isGridWrapper = className
+    .split(/\s+/)
+    .some((token) => token === "qti-ext-grid" || /^qti-ext-grid-\d+$/.test(token));
+
+  return !isGridWrapper;
+}
+
 /**
- * processedChildren 배열을 순회하며 qti-list-style-type-* <p> 요소들을
+ * processedChildren 배열을 순회하며 qti-list-style-type-* 항목을
  * indent level 기반으로 그룹핑하여 중첩 <ol>/<ul> > <li> 구조로 변환한다.
  *
  * 그룹핑 규칙:
- * - qti-list-style-type-* 없음 → 리스트 아이템 아님 (그룹 종료)
+ * - qti-list-style-type-* 가 있는 p/div만 리스트 아이템
+ * - qti-ext-grid 래퍼는 리스트 아이템에서 제외
+ * - 그 외 → 리스트 아이템 아님 (그룹 종료)
  * - 연속된 리스트 아이템은 qti-text-indent-N 기반으로 중첩 처리
  */
 export function groupListItems(
@@ -173,17 +230,10 @@ export function groupListItems(
       continue;
     }
 
-    if (child.type !== "p") {
-      flushGroup();
-      result.push(child);
-      continue;
-    }
-
     const props = child.props as Record<string, unknown>;
     const className = (props.className as string) || "";
-    const listStyleType = extractListStyleType(className);
 
-    if (!listStyleType) {
+    if (!isListItemHost(child, className)) {
       flushGroup();
       result.push(child);
       continue;

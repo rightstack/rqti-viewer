@@ -156,7 +156,7 @@ function toRomanNumeral(num: number): string {
  * 본문용 마침표 구분자는 포함하지 않는다.
  * 알 수 없는 타입·범위 초과면 null → 호출부에서 일반 표시 로직으로 폴백.
  */
-function listStyleMarkerForIndex(
+export function listStyleMarkerForIndex(
   listStyleType: string,
   oneBasedIndex: number,
 ): string | null {

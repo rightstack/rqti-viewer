@@ -3,7 +3,7 @@ import type { Plugin } from "vite";
 
 const SCOPE = ".rqti-viewer";
 const ANCESTOR_ATTR_RE =
-  /^(\[(?:data-device|data-item-detail-split)(?:=[^\]]*)?\])(\s+|$)/;
+  /^(\[data-item-detail-split(?:=[^\]]*)?\])(\s+|$)/;
 /** `.rqti-*`는 매칭하지 않음. `img.qti-ext-image`처럼 태그+클래스는 매칭함. */
 const QTI_CLASS_RE = /\.qti-/;
 const KEYFRAME_RE = /^(\d+%|from|to)$/i;

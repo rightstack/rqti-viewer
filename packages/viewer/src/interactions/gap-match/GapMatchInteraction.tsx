@@ -10,9 +10,12 @@ import type {
   ResponseValueMap,
 } from "../../types";
 import { extractMediaFromElement, extractTextFromElement } from "../../utils";
+import { listStyleMarkerForIndex } from "../../utils/choiceAnswerDisplayFromQti";
 import { getListStyleLabel } from "../../utils/listStyleLabel";
 import { Gap } from "./components/Gap";
 import { GapChoice } from "./components/GapChoice";
+import { extractGapChoiceLabelType, gapChoiceLabel } from "./gapChoiceLabel";
+import { renderGapChoiceContent } from "./renderGapChoiceContent";
 
 interface GapMatchInteractionProps {
   element: Element;
@@ -23,13 +26,53 @@ interface GapMatchInteractionProps {
   index: number;
 }
 
-/** 선택 방식: class로 결정 (기본 drag) */
+/** 선택 방식: qti-ext-gap-match-drag가 있으면 drag, 아니면 click */
 type GapMatchMode = "click" | "drag";
 
 const resolveGapMatchMode = (className: string): GapMatchMode => {
-  if (className.includes("qti-ext-gap-match-click")) return "click";
-  // qti-ext-gap-match-drag 또는 미지정 시 drag(기본)
-  return "drag";
+  if (className.includes("qti-ext-gap-match-drag")) return "drag";
+  return "click";
+};
+
+/**
+ * `"CHOICE GAP"` 문자열과 `[gapId, choiceId]`(또는 좌우가 바뀐 쌍)를 gapId → choiceId로 푼다.
+ */
+const pairsToMap = (
+  raw: unknown,
+  gapIdentifiers?: ReadonlySet<string>,
+  choiceIdentifiers?: ReadonlySet<string>
+): Record<string, string> => {
+  const list = Array.isArray(raw) ? raw : typeof raw === "string" ? [raw] : [];
+  const selections: Record<string, string> = {};
+
+  list.forEach((pair) => {
+    let first: string | undefined;
+    let second: string | undefined;
+
+    if (typeof pair === "string") {
+      [first, second] = pair.trim().split(/\s+/);
+    } else if (
+      Array.isArray(pair) &&
+      pair.length === 2 &&
+      typeof pair[0] === "string" &&
+      typeof pair[1] === "string"
+    ) {
+      first = pair[0];
+      second = pair[1];
+    }
+
+    if (!first || !second) return;
+
+    const isReversed =
+      gapIdentifiers?.has(second) === true && choiceIdentifiers?.has(first) === true;
+    const gapId = isReversed ? second : first;
+    const choiceId = isReversed ? first : second;
+    if (gapIdentifiers && !gapIdentifiers.has(gapId)) return;
+    if (choiceIdentifiers && !choiceIdentifiers.has(choiceId)) return;
+    selections[gapId] = choiceId;
+  });
+
+  return selections;
 };
 
 /** 선택지(gap-text) 패널 자리표시 요소 여부: <div class="qti-ext-gap-text-panel"/> */
@@ -45,15 +88,22 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
   const responseIdentifier = element.getAttribute("response-identifier") || "";
   const className = element.getAttribute("class") || "";
   const choicesPosition = className.includes("qti-choices-top") ? "top" : "bottom";
-  // 선택 방식 (click | drag)
   const mode = useMemo(() => resolveGapMatchMode(className), [className]);
-  // gap 라벨 스타일 (qti-list-style-type-*), 미지정 시 decimal
   const listStyleType = useMemo(() => extractListStyleType(className), [className]);
-  // 선택지 패널 자리표시(qti-ext-gap-text-panel) 존재 여부 → 있으면 그 위치에 렌더
-  const hasGapTextPanel = useMemo(
-    () => !!element.querySelector(".qti-ext-gap-text-panel"),
+  const choiceLabelType = useMemo(() => extractGapChoiceLabelType(className), [className]);
+  const gapTextPanels = useMemo(
+    () => Array.from(element.querySelectorAll(".qti-ext-gap-text-panel")).filter(isGapTextPanel),
     [element]
   );
+  const panelCount = gapTextPanels.length;
+  const firstGapTextPanel = gapTextPanels[0];
+
+  useEffect(() => {
+    if (panelCount < 2) return;
+    console.warn(
+      `qti-gap-match-interaction: qti-ext-gap-text-panel이 ${panelCount}개입니다. 첫 위치만 렌더합니다.`
+    );
+  }, [panelCount]);
 
   const gapTextElements = element.querySelectorAll("qti-gap-text");
   const gapTexts: GapChoiceType[] = useMemo(() => {
@@ -67,10 +117,11 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
         identifier,
         text: text || undefined,
         media: media.length > 0 ? media : undefined,
+        content: mode === "click" ? renderGapChoiceContent(choice, options) : undefined,
       });
     });
     return result;
-  }, [gapTextElements]);
+  }, [gapTextElements, mode, options]);
 
   // choiceId → match-max (0 = 무제한/다중, 미지정 = 1(단일 사용))
   const matchMaxMap = useMemo(() => {
@@ -97,20 +148,11 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
     return gapList;
   }, [element]);
 
-  const pairsArrayToMap = (arr: unknown[]): Record<string, string> => {
-    const selections: Record<string, string> = {};
-    arr.forEach((pair) => {
-      if (
-        Array.isArray(pair) &&
-        pair.length === 2 &&
-        typeof pair[0] === "string" &&
-        typeof pair[1] === "string"
-      ) {
-        selections[pair[0]] = pair[1];
-      }
-    });
-    return selections;
-  };
+  const gapIdentifiers = useMemo(() => new Set(gaps.map((gap) => gap.identifier)), [gaps]);
+  const choiceIdentifiers = useMemo(
+    () => new Set(gapTexts.map((choice) => choice.identifier)),
+    [gapTexts]
+  );
 
   // 내부 상태 관리
   const [gapSelections, setGapSelections] = useState<Record<string, string>>(() => {
@@ -118,19 +160,21 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
       return options.gapSelections;
     }
     if (options.responses && responseIdentifier in options.responses) {
-      const responseValue = options.responses[responseIdentifier];
-      if (typeof responseValue === "object" && Array.isArray(responseValue)) {
-        const fromResponses = pairsArrayToMap(responseValue);
-        if (Object.keys(fromResponses).length > 0) return fromResponses;
-      }
+      const fromResponses = pairsToMap(
+        options.responses[responseIdentifier],
+        gapIdentifiers,
+        choiceIdentifiers
+      );
+      if (Object.keys(fromResponses).length > 0) return fromResponses;
     }
-    // 정답 프리필은 preview(정답 확인) 모드에서만. practice 등에서는 빈 값으로 시작.
+    // 정답 프리필은 preview(정답 확인) 모드에서만. practice·thumbnail은 빈 값으로 시작.
     if (options.mode === "preview") {
-      const rawCorrect = options.correctAnswers?.[responseIdentifier];
-      if (Array.isArray(rawCorrect)) {
-        const fromCorrect = pairsArrayToMap(rawCorrect);
-        if (Object.keys(fromCorrect).length > 0) return fromCorrect;
-      }
+      const fromCorrect = pairsToMap(
+        options.correctAnswers?.[responseIdentifier],
+        gapIdentifiers,
+        choiceIdentifiers
+      );
+      if (Object.keys(fromCorrect).length > 0) return fromCorrect;
     }
     return {};
   });
@@ -169,15 +213,14 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
     const raw =
       options.submitResponse?.correctAnswer?.[responseIdentifier] ??
       options.correctAnswers?.[responseIdentifier];
-    if (!Array.isArray(raw)) return {};
-    const map: Record<string, string> = {};
-    for (const pair of raw) {
-      if (Array.isArray(pair) && pair.length === 2) {
-        map[pair[0]] = pair[1];
-      }
-    }
-    return map;
-  }, [options.submitResponse, options.correctAnswers, responseIdentifier]);
+    return pairsToMap(raw, gapIdentifiers, choiceIdentifiers);
+  }, [
+    options.submitResponse,
+    options.correctAnswers,
+    responseIdentifier,
+    gapIdentifiers,
+    choiceIdentifiers,
+  ]);
 
   // response 변경 알림 헬퍼
   const notifyResponseChange = useCallback(
@@ -358,16 +401,26 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
 
       const currentGapIndex = gapIndexCounter.current++;
       const selectedChoiceId = gapSelections[gapId] || null;
-      const selectedChoice = selectedChoiceId
-        ? gapTexts.find((c) => c.identifier === selectedChoiceId)
-        : null;
+      const selectedChoiceIndex = selectedChoiceId
+        ? gapTexts.findIndex((c) => c.identifier === selectedChoiceId)
+        : -1;
+      const selectedChoice = selectedChoiceIndex >= 0 ? gapTexts[selectedChoiceIndex] : null;
+      const filledChoiceLabel =
+        mode === "click" && choiceLabelType && selectedChoiceIndex >= 0
+          ? gapChoiceLabel(choiceLabelType, selectedChoiceIndex)
+          : "";
 
       const gapIsCorrect: boolean | undefined =
         options.isSubmit && selectedChoiceId && Object.keys(correctMap).length > 0
           ? selectedChoiceId === correctMap[gapId]
           : undefined;
 
-      const label = getListStyleLabel(listStyleType, currentGapIndex + 1);
+      const label =
+        mode === "click"
+          ? listStyleType
+            ? (listStyleMarkerForIndex(listStyleType, currentGapIndex + 1) ?? "")
+            : ""
+          : getListStyleLabel(listStyleType, currentGapIndex + 1);
 
       // preview에서는 클릭 반응 없음. click 모드: 항상 클릭(배치/비우기). drag 모드: 채워졌을 때만 클릭(비우기).
       const onClick = isPreview
@@ -385,8 +438,19 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
           index={currentGapIndex}
           label={label}
           canDrag={mode === "drag"}
+          markEmptyUnanswered={mode === "click"}
           selectedChoiceId={selectedChoiceId}
-          selectedChoiceText={selectedChoice?.text || null}
+          selectedChoiceText={
+            mode === "click"
+              ? selectedChoice?.text || selectedChoice?.identifier || null
+              : selectedChoice?.text || null
+          }
+          selectedChoiceContent={
+            mode === "click"
+              ? (selectedChoice?.content ?? selectedChoice?.identifier ?? null)
+              : undefined
+          }
+          choiceLabel={filledChoiceLabel || undefined}
           isSubmit={!!options.isSubmit}
           isPreview={isPreview}
           isCorrect={gapIsCorrect}
@@ -412,6 +476,7 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
       correctMap,
       dragOverGapId,
       listStyleType,
+      choiceLabelType,
       mode,
       isPreview,
       options.isSubmit,
@@ -427,13 +492,16 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
   // gap-text 선택 옵션들 렌더링
   const gapTextChoices =
     gapTexts.length > 0 &&
-    gapTexts.map((choice) => {
+    gapTexts.map((choice, choiceIndex) => {
       const exhausted = isChoiceExhausted(choice.identifier);
       const isArmed = armedChoiceId === choice.identifier;
+      const choiceLabelText =
+        mode === "click" && choiceLabelType ? gapChoiceLabel(choiceLabelType, choiceIndex) : "";
       return (
         <GapChoice
           key={`gap-choice-${choice.identifier}`}
           choice={choice}
+          label={choiceLabelText || undefined}
           isUsed={exhausted}
           isSubmit={!!options.isSubmit}
           isPreview={isPreview}
@@ -472,7 +540,10 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
       const tag = el.tagName.toLowerCase();
       if (tag === "qti-gap") return processGapNode(el, gapIndexCounter) ?? null;
       if (tag === "qti-gap-text") return null; // 선택지는 패널/상·하단에서 별도 렌더
-      if (isGapTextPanel(el)) return choicesGroup ?? null;
+      if (isGapTextPanel(el)) {
+        if (el !== firstGapTextPanel) return null;
+        return choicesGroup ?? null;
+      }
       return undefined;
     };
 
@@ -510,16 +581,23 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
       }
       return c;
     });
-  }, [element, options, processGapNode, choicesGroup]);
+  }, [element, options, processGapNode, choicesGroup, firstGapTextPanel]);
+
+  const handleInteractionKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (mode !== "click" || isPreview || isSubmit || e.key !== "Escape" || !armedChoiceId) return;
+    e.preventDefault();
+    setArmedChoiceId(null);
+  };
 
   return (
     <div
       key={`gap-match-${responseIdentifier}-${index}`}
       className={`qti-ext-gap-match qti-ext-gap-match-${mode}`}
+      onKeyDown={handleInteractionKeyDown}
     >
-      {!hasGapTextPanel && choicesPosition === "top" && choicesGroup}
+      {panelCount === 0 && choicesPosition === "top" && choicesGroup}
       {renderContent}
-      {!hasGapTextPanel && choicesPosition === "bottom" && choicesGroup}
+      {panelCount === 0 && choicesPosition === "bottom" && choicesGroup}
     </div>
   );
 };

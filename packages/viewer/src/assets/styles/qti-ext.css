@@ -4,13 +4,11 @@
    ======================================== */
 
 /* ---------------------------------------------------------------------------
-   반응형을 쓰지 않습니다. 폭에 따라 값이 달라지는 분기(@media / @container /
-   Tailwind sm:·md: / vh·vw)를 추가하지 마세요. 레이아웃은 designWidth 고정 폭으로
-   렌더한 뒤 transform: scale()로만 크기를 조절합니다
+   반응형과 디바이스 모드를 쓰지 않습니다. 폭에 따라 값이 달라지는 분기
+   (@media / @container / Tailwind sm:·md: / vh·vw)와 [data-device] 분기를
+   추가하지 마세요. 레이아웃은 designWidth 고정 폭으로 렌더한 뒤
+   transform: scale()로만 크기를 조절합니다
    (sizing="fixed" + FixedScaleContainer).
-
-   모바일·태블릿 UI가 필요하면 폭이 아니라 호스트가 지정하는 조상 속성
-   [data-device="mobile"] / [data-device="tablet"] 블록에만 선언합니다.
    --------------------------------------------------------------------------- */
 
 /* ========================================
@@ -383,6 +381,11 @@
   @apply rqti:flex rqti:min-h-0 rqti:min-w-0 rqti:flex-1 rqti:items-center rqti:gap-2 rqti:overflow-x-auto rqti:text-left rqti:wrap-break-word;
 }
 
+/* MathJax 분수의 세로 여유 공간을 확보하고 세로 스크롤만 숨김 */
+.qti-ext-choice-option-content:has(.qti-ext-mathfield) {
+  @apply rqti:overflow-y-hidden;
+}
+
 /* Option Label (DOM 라벨용; XML class + counter 시에는 ::before 사용) */
 .qti-ext-choice-option-label {
   color: var(--qti-base-text-color);
@@ -437,34 +440,8 @@
   @apply rqti:flex rqti:flex-col rqti:gap-4;
 }
 
-/* horizontal + stacking: grid 열 수 — choice/order 등 인터랙션 공통 (두 클래스만으로 적용) */
-.qti-orientation-horizontal.qti-choices-stacking-2 {
-  display: grid;
-
-  gap: 1rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.qti-orientation-horizontal.qti-choices-stacking-3 {
-  display: grid;
-
-  gap: 1rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.qti-orientation-horizontal.qti-choices-stacking-4 {
-  display: grid;
-
-  gap: 1rem;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.qti-orientation-horizontal.qti-choices-stacking-5 {
-  display: grid;
-
-  gap: 1rem;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
+/* 열 그리드는 orientation 없이 .qti-choices-stacking-N.
+   클릭형 목록의 flex-col보다 뒤에 둔다. 여기 규칙과 겹치면 그리드가 무너진다. */
 
 /* horizontal + stacking 그리드: 같은 행 선택지 박스 높이 통일 (.qti-ext-choice-option 기본 h-auto 보정) */
 .qti-choice-interaction-wrapper.qti-orientation-horizontal.qti-choices-stacking-2
@@ -1864,9 +1841,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
            ======================================== */
 
 .qti-ext-gap-choices {
-  border-color: var(--qti-option-border);
-
-  @apply rqti:my-4 rqti:flex rqti:flex-wrap rqti:items-center rqti:justify-center rqti:gap-4 rqti:rounded-md rqti:border rqti:p-4;
+  @apply rqti:mx-auto rqti:flex rqti:w-fit rqti:max-w-full rqti:flex-wrap rqti:justify-start rqti:gap-2;
 }
 
 /* Gap Choice (선택지 버튼) */
@@ -1886,7 +1861,19 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   cursor: default;
   user-select: none;
 
-  @apply rqti:px-3 rqti:py-1.5 rqti:transition-all rqti:duration-150;
+  @apply rqti:min-h-8 rqti:px-2 rqti:py-0.5;
+}
+
+.qti-ext-gap-choice .qti-ext-mathfield,
+.qti-ext-gap-content .qti-ext-mathfield {
+  display: inline-block !important;
+
+  padding: 8px 0;
+}
+
+/* 선택지 레이블. 패널과 채워진 빈칸에서 함께 쓴다. 빈 빈칸 표식(.qti-ext-gap-label)과 별개 */
+.qti-ext-gap-choice-label {
+  @apply rqti:mr-1 rqti:shrink-0;
 }
 
 .qti-ext-gap-choice-draggable {
@@ -1898,8 +1885,6 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 }
 
 .qti-ext-gap-choice:hover:not([aria-disabled="true"]) {
-  border-color: var(--qti-option-border-hover);
-
   background-color: var(--qti-option-bg-hover);
 }
 
@@ -1922,11 +1907,12 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   border-color: var(--qti-option-border-selected);
 
   background-color: var(--qti-option-bg-selected);
-  box-shadow: 0 0 0 2px var(--qti-option-border-selected);
 }
 
 /* Gap (빈칸 - 드롭 영역) */
 .qti-ext-gap {
+  width: max-content;
+
   border-width: var(--qti-option-border-width);
   border-style: dashed;
   border-color: var(--qti-option-border);
@@ -1937,7 +1923,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   color: var(--qti-option-text);
   font-size: inherit;
 
-  @apply rqti:mx-1 rqti:my-1 rqti:inline-flex rqti:min-h-8 rqti:min-w-20 rqti:items-center rqti:justify-center rqti:gap-1 rqti:px-2 rqti:py-1 rqti:text-center rqti:align-middle rqti:indent-0 rqti:transition-all rqti:duration-150;
+  @apply rqti:mx-1 rqti:my-0.5 rqti:inline-block rqti:min-h-8 rqti:min-w-20 rqti:gap-1 rqti:px-2 rqti:text-center rqti:indent-0;
 }
 
 /* Gap 식별 라벨 (예: "1.", "①") */
@@ -1961,10 +1947,24 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   background-color: var(--qti-option-bg-selected);
 
   cursor: grab;
+
+  @apply rqti:min-w-0;
 }
 
 .qti-ext-gap-filled:active {
   cursor: grabbing;
+}
+
+.qti-ext-gap-match-click .qti-ext-gap-filled,
+.qti-ext-gap-match-click .qti-ext-gap-filled:active {
+  cursor: pointer;
+}
+
+.qti-ext-gap-filled[aria-disabled="true"],
+.qti-ext-gap-filled[aria-disabled="true"]:active,
+.qti-ext-gap-match-click .qti-ext-gap-filled[aria-disabled="true"],
+.qti-ext-gap-match-click .qti-ext-gap-filled[aria-disabled="true"]:active {
+  cursor: default;
 }
 
 /* 드래그 오버 상태 */
@@ -1985,6 +1985,13 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 }
 
 .qti-ext-gap-incorrect {
+  border-style: solid;
+  border-color: var(--qti-option-border-incorrect);
+
+  background-color: var(--qti-option-bg-incorrect);
+}
+
+.qti-ext-gap-unanswered {
   border-style: solid;
   border-color: var(--qti-option-border-incorrect);
 
@@ -2038,6 +2045,10 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   color: inherit;
   font-size: inherit;
   line-height: inherit;
+}
+
+.qti-ext-mathfield .katex {
+  font-family: "KaTeX_Main", "KaTeX_Math", serif;
 }
 
 .qti-ext-mathfield mjx-container {
@@ -2526,54 +2537,144 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 /* 이미지형: 자동 채움 그리드 */
 .qti-ext-order-click-list-image {
   display: grid;
+
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 
   @apply rqti:gap-3;
 }
 
-/* 클릭형 선택지 버튼 */
+/* stacking 열 수 — choice/order 등 공통. 클릭 목록 flex-col·이미지 auto-fill보다 뒤에 둔다. */
+.qti-choices-stacking-2 {
+  display: grid;
+
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.qti-choices-stacking-3 {
+  display: grid;
+
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.qti-choices-stacking-4 {
+  display: grid;
+
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.qti-choices-stacking-5 {
+  display: grid;
+
+  gap: 1rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.qti-ext-order-click-list.qti-choices-stacking-2 .qti-ext-order-click-choice,
+.qti-ext-order-click-list.qti-choices-stacking-3 .qti-ext-order-click-choice,
+.qti-ext-order-click-list.qti-choices-stacking-4 .qti-ext-order-click-choice,
+.qti-ext-order-click-list.qti-choices-stacking-5 .qti-ext-order-click-choice {
+  min-width: 0;
+}
+
+.qti-ext-order-click-list.qti-choices-stacking-2 .qti-ext-figure,
+.qti-ext-order-click-list.qti-choices-stacking-3 .qti-ext-figure,
+.qti-ext-order-click-list.qti-choices-stacking-4 .qti-ext-figure,
+.qti-ext-order-click-list.qti-choices-stacking-5 .qti-ext-figure,
+.qti-ext-order-click-list.qti-choices-stacking-2 .qti-ext-order-click-content img,
+.qti-ext-order-click-list.qti-choices-stacking-3 .qti-ext-order-click-content img,
+.qti-ext-order-click-list.qti-choices-stacking-4 .qti-ext-order-click-content img,
+.qti-ext-order-click-list.qti-choices-stacking-5 .qti-ext-order-click-content img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+}
+
 .qti-ext-order-click-choice {
-  @apply rqti:relative rqti:flex rqti:select-none rqti:items-center rqti:gap-2 rqti:text-left;
+  align-items: stretch;
+  gap: 0;
+
+  padding: 0;
+
+  @apply rqti:relative rqti:flex rqti:text-left rqti:select-none;
 }
 
-.qti-ext-order-click-list-image .qti-ext-order-click-choice {
-  @apply rqti:flex-col rqti:items-stretch rqti:gap-2;
-}
-
-/* 선택된 상태 */
 .qti-ext-order-click-choice-selected {
   border-color: var(--qti-option-border-selected);
 
   background-color: var(--qti-option-bg-selected);
-
-  color: var(--qti-option-text-selected);
 }
 
-/* 순번 배지 */
-.qti-ext-order-click-badge {
-  border-width: var(--qti-option-border-width);
-  border-style: solid;
-  border-color: var(--qti-option-border);
+.qti-ext-order-click-choice.qti-ext-order-choice-correct {
+  border-color: var(--qti-option-border-correct);
 
-  background-color: var(--qti-option-bg);
+  background-color: var(--qti-option-bg-correct);
 
-  color: var(--qti-option-border);
-
-  @apply rqti:flex rqti:h-6 rqti:w-6 rqti:shrink-0 rqti:items-center rqti:justify-center rqti:rounded-full rqti:leading-none rqti:font-extrabold;
+  color: inherit;
 }
 
-/* 이미지형에서는 배지를 좌상단 모서리에 걸치도록 오버레이 */
-.qti-ext-order-click-list-image .qti-ext-order-click-badge {
-  @apply rqti:absolute rqti:-top-2.5 rqti:-left-2.5 rqti:z-10;
+.qti-ext-order-click-choice.qti-ext-order-choice-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+
+  background-color: var(--qti-option-bg-incorrect);
+
+  color: inherit;
 }
 
-/* 선택 시: 빈 원(테두리/배경) 제거하고 라벨만 바로 표시 */
-.qti-ext-order-click-badge-active {
-  border-color: transparent;
+.qti-ext-order-click-rank {
+  display: flex;
 
-  background-color: transparent;
+  flex: none;
+  justify-content: center;
+  align-items: center;
 
-  color: var(--qti-option-border-selected);
+  width: 3em;
+
+  border-right: var(--qti-option-border-width) dashed var(--qti-option-border);
+
+  font-weight: 700;
+}
+
+.qti-ext-order-click-choice-selected .qti-ext-order-click-rank {
+  border-right-style: none;
+  border-right-color: var(--qti-option-bg-selected);
+
+  background-color: var(--qti-option-border-selected);
+
+  color: #ffffff;
+  border-bottom-left-radius: calc(var(--qti-option-border-radius) - 0.2rem);
+  border-top-left-radius: calc(var(--qti-option-border-radius) - 0.2rem);
+}
+
+.qti-ext-order-click-choice.qti-ext-order-choice-correct .qti-ext-order-click-rank {
+  border-right-style: none;
+  border-right-color: var(--qti-option-bg-correct);
+
+  background-color: var(--qti-option-border-correct);
+
+  color: #ffffff;
+}
+
+.qti-ext-order-click-choice.qti-ext-order-choice-incorrect .qti-ext-order-click-rank {
+  border-right-style: none;
+  border-right-color: var(--qti-option-bg-incorrect);
+
+  background-color: var(--qti-option-border-incorrect);
+
+  color: #ffffff;
+}
+
+.qti-ext-order-click-body {
+  display: flex;
+
+  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
+
+  min-width: 0;
+  padding: var(--qti-option-padding);
 }
 
 /* 콘텐츠 영역 */
@@ -2593,15 +2694,19 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
              Order Interaction - 나열 방식 (orientation/stacking)
              ======================================== */
 
-/* 가로 N열 그리드는 공통 규칙(.qti-orientation-horizontal.qti-choices-stacking-N) 사용.
+/* N열 그리드는 공통 규칙(.qti-choices-stacking-N) 사용.
    드래그형만 세로 리스트용 여백(space-y / choice mb)을 gap으로 대체 */
-.qti-ext-order-list.qti-orientation-horizontal[class*="qti-choices-stacking-"]
-  > * {
+.qti-ext-order-list.qti-choices-stacking-2 > *,
+.qti-ext-order-list.qti-choices-stacking-3 > *,
+.qti-ext-order-list.qti-choices-stacking-4 > *,
+.qti-ext-order-list.qti-choices-stacking-5 > * {
   margin-top: 0;
 }
 
-.qti-ext-order-list.qti-orientation-horizontal[class*="qti-choices-stacking-"]
-  .qti-ext-order-choice {
+.qti-ext-order-list.qti-choices-stacking-2 .qti-ext-order-choice,
+.qti-ext-order-list.qti-choices-stacking-3 .qti-ext-order-choice,
+.qti-ext-order-list.qti-choices-stacking-4 .qti-ext-order-choice,
+.qti-ext-order-list.qti-choices-stacking-5 .qti-ext-order-choice {
   margin-bottom: 0;
 }
 
@@ -3829,7 +3934,23 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
 .qti-ext-grid-header-cell,
 .qti-ext-grid-cell {
+  @apply rqti:text-center rqti:break-all;
+}
+
+.qti-ext-grid-header-cell.qti-align-left {
+  @apply rqti:text-left;
+}
+
+.qti-ext-grid-header-cell.qti-align-right {
+  @apply rqti:text-right;
+}
+
+.qti-ext-grid-header-cell.qti-align-center {
   @apply rqti:text-center;
+}
+
+.qti-ext-grid-header-cell.qti-align-justify {
+  @apply rqti:text-justify;
 }
 
 .qti-ext-choice-label {
@@ -4051,147 +4172,20 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   @apply rqti:space-y-2 rqti:p-2;
 }
 
+.qti-choice-interaction-wrapper .qti-ext-column-group {
+  @apply rqti:gap-0;
+}
+
+.qti-choice-interaction-wrapper .qti-ext-column {
+  @apply rqti:space-y-0 rqti:p-0;
+}
+
 .qti-ext-column .qti-text-entry--inline {
   min-width: 0;
   max-width: 100%;
   margin-right: 0;
   margin-left: 0;
 }
-
-/* ========================================================================
-   모바일 UI — 조상 [data-device="mobile"] 일 때만 적용한다. 폭 기준 분기는 없다.
-   테마·컴포넌트 기본 스타일에 !important가 많아 동일 특이도에서는 출현 순서가
-   우선하므로, 이 블록은 해당 선택자의 다른 규칙보다 뒤(파일 말단)에 둔다.
-   ======================================================================== */
-[data-device="mobile"] .qti-ext-wrapper,
-[data-device="mobile"] .qti-ext-passage {
-  --qti-font-size-base: 16px !important;
-  --qti-line-height-base: 1.5 !important;
-  --qti-option-font-size: 16px !important;
-  --qti-prompt-font-size: 16px !important;
-  --qti-example-stimulus-font-size: 16px !important;
-  --qti-question-number-font-size: 15px !important;
-  --qti-feedback-font-size: 15px !important;
-  --qti-feedback-title-font-size: 16px !important;
-  --qti-container-padding: 16px !important;
-  --qti-container-max-width: 100% !important;
-}
-
-[data-device="mobile"] .qti-ext-passage {
-  padding: 24px 16px !important;
-}
-
-/* stylelint-disable-next-line no-descending-specificity */
-[data-device="mobile"] .qti-ext-container {
-  padding: 24px 16px !important;
-}
-
-[data-device="mobile"] .qti-ext-option-base {
-  padding: 10px !important;
-}
-
-/* stylelint-disable-next-line no-descending-specificity */
-[data-device="mobile"] .qti-ext-choice-option {
-  padding: 10px !important;
-}
-
-/* stylelint-disable-next-line no-descending-specificity */
-[data-device="mobile"] .qti-ext-choice-button {
-  min-width: 104px;
-  min-height: 52px;
-}
-
-[data-device="mobile"] .tfq-buttons .qti-ext-choice-button img:where(:not(.qti-ext-inline-image)) {
-  width: 28px !important;
-
-  @apply rqti:mx-auto;
-}
-
-[data-device="mobile"] .qti-ext-choice-button .qti-ext-ox-icon {
-  width: 28px;
-  height: 28px;
-}
-
-[data-device="mobile"] .qti-orientation-horizontal.qti-choices-stacking-4,
-[data-device="mobile"] .qti-orientation-horizontal.qti-choices-stacking-5 {
-  grid-template-columns: 1fr;
-}
-
-[data-device="mobile"] .qti-ext-dropdown {
-  margin: 0.5rem !important;
-}
-
-/* stylelint-disable-next-line no-descending-specificity */
-[data-device="mobile"] .qti-ext-prev-next-button {
-  padding: 0.5rem 1rem !important;
-
-  font-size: 14px !important;
-}
-
-/* stylelint-disable-next-line no-descending-specificity */
-[data-device="mobile"] .qti-ext-nav-button {
-  padding: 0.5rem 1rem !important;
-
-  font-size: 14px !important;
-}
-
-[data-device="mobile"] .qti-ext-assessment-nav {
-  padding-top: 1rem !important;
-  padding-bottom: 1.5rem !important;
-}
-
-/* stylelint-disable-next-line no-descending-specificity */
-[data-device="mobile"] .qti-ext-submit-button {
-  width: min(100%, 20rem) !important;
-  height: auto !important;
-  min-height: 44px !important;
-  padding: 0.625rem 1rem !important;
-
-  font-size: 14px !important;
-}
-
-[data-device="mobile"] .qti-ext-feedback-button {
-  width: min(100%, 20rem) !important;
-  max-width: 100% !important;
-  height: auto !important;
-  min-height: 44px !important;
-  padding: 0.5rem 1rem !important;
-
-  font-size: 14px !important;
-}
-
-[data-device="mobile"] .qti-ext-column-group {
-  flex-direction: column !important;
-}
-
-[data-device="mobile"] .qti-ext-column {
-  flex: none !important;
-
-  width: 100% !important;
-  max-width: 100% !important;
-}
-
-[data-device="mobile"] .qti-ext-feedback-inline {
-  font-size: 16px !important;
-}
-
-[data-device="mobile"] .qti-ext-feedback-title {
-  font-size: 16px !important;
-}
-
-[data-device="mobile"] .qti-ext-feedback-description {
-  font-size: 16px !important;
-}
-
-/* [data-device="mobile"] .qti-ext-feedback-badge {
-  width: 6em;
-  height: 6em;
-} */
-
-/* [data-device="mobile"] .qti-ext-container > .qti-ext-feedback-badge {
-  top: 0;
-  left: 0;
-} */
 
 /* ========================================================================
    qti.css 레이아웃 그리드 무력화 — 라이브러리에 남은 마지막 뷰포트 @media 제거
