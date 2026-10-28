@@ -9,14 +9,18 @@ import {
 } from "react";
 import clsx from "clsx";
 import { Pencil } from "lucide-react";
-import { MathKeyboard, type MathKeyboardContentSize, type MathLevel } from "../../math-keyboard";
+import {
+  MathKeyboard,
+  type MathKeyboardContentSize,
+  type MathLevel,
+} from "../../math-keyboard";
 import {
   MATH_BLANK_DISPLAY_SCALE,
   type SlotContentEm,
   markerSlotWidthEm,
   markerSlotWidthPx,
 } from "./mathBlankLatex";
-import { measureDisplayContent, measureTextContentWidth, readBoxExtras } from "./slotMeasure";
+import { measureTextContentWidth, readBoxExtras } from "./slotMeasure";
 import { type BlankVariant, getBlankVariantClass } from "./utils";
 
 type FormulaSlotInputProps = {
@@ -35,6 +39,35 @@ type FormulaSlotInputProps = {
   onContentEm?: (em: SlotContentEm) => void;
 };
 
+function clearSlotInlineSize(slot: HTMLElement) {
+  slot.style.width = "";
+  slot.style.minWidth = "";
+  slot.style.height = "";
+  slot.style.minHeight = "";
+}
+
+/** 슬롯을 채우는 라벨 박스가 아니라, 조판된 수식이나 글자의 고유 크기만 잰다. */
+function readSlotContentSize(
+  content: HTMLElement,
+): { w: number; h: number } | "pending" | "empty" {
+  const hasMathHost = !!content.querySelector(
+    ".qti-ext-mathfield, mjx-container",
+  );
+  const typeset = content.querySelector<HTMLElement>("mjx-math");
+  if (hasMathHost && !typeset) return "pending";
+  if (typeset) {
+    const rect = typeset.getBoundingClientRect();
+    return { w: rect.width, h: rect.height };
+  }
+  if (!content.textContent?.trim()) return "empty";
+
+  const range = document.createRange();
+  range.selectNodeContents(content);
+  const rect = range.getBoundingClientRect();
+  range.detach();
+  return { w: rect.width, h: rect.height };
+}
+
 function applySlotBox(slot: HTMLElement, targetW: number, targetH: number) {
   const w = Math.ceil(targetW);
   const h = Math.ceil(targetH);
@@ -52,7 +85,8 @@ function applySlotBox(slot: HTMLElement, targetW: number, targetH: number) {
     math.style.maxWidth = "none";
   }
   const container =
-    math?.closest<HTMLElement>("mjx-container") ?? slot.closest<HTMLElement>("mjx-container");
+    math?.closest<HTMLElement>("mjx-container") ??
+    slot.closest<HTMLElement>("mjx-container");
   if (container) {
     container.style.width = "max-content";
     container.style.maxWidth = "none";
@@ -67,7 +101,7 @@ function fitSlotToContent(
   contentW: number,
   contentH: number,
   widthCh: number | undefined,
-  scale = 1
+  scale = 1,
 ): SlotContentEm {
   const { padX, padY, borderX, borderY } = readBoxExtras(blankStyle);
   const fontSize = parseFloat(blankStyle.fontSize) || 16;
@@ -76,7 +110,7 @@ function fitSlotToContent(
   const applied = applySlotBox(
     box,
     Math.max(baseWidth, contentW + Math.max(padX + borderX, fontSize)),
-    Math.max(baseHeight, contentH + padY + borderY)
+    Math.max(baseHeight, contentH + padY + borderY),
   );
   return { widthEm: applied.w / fontSize, heightEm: applied.h / fontSize };
 }
@@ -98,7 +132,9 @@ export function FormulaSlotInput({
   const useKeypad = level === "middle" || level === "high";
   const showPencil = !readOnly && value === "";
   /** 현재 값의 렌더 크기. 값이 바뀌면 다시 올 때까지 null이라, 이전 값 크기를 식에 알리지 않는다. */
-  const [measured, setMeasured] = useState<MathKeyboardContentSize | null>(null);
+  const [measured, setMeasured] = useState<MathKeyboardContentSize | null>(
+    null,
+  );
   const [trackedValue, setTrackedValue] = useState(value);
   if (trackedValue !== value) {
     setTrackedValue(value);
@@ -113,9 +149,14 @@ export function FormulaSlotInput({
   }, [onContentEm]);
 
   const handleContentSize = useCallback((size: MathKeyboardContentSize) => {
-    const next = { width: Math.round(size.width), height: Math.round(size.height) };
+    const next = {
+      width: Math.round(size.width),
+      height: Math.round(size.height),
+    };
     setMeasured((prev) =>
-      prev && prev.width === next.width && prev.height === next.height ? prev : next
+      prev && prev.width === next.width && prev.height === next.height
+        ? prev
+        : next,
     );
   }, []);
 
@@ -132,7 +173,8 @@ export function FormulaSlotInput({
   };
 
   const isEditing = () =>
-    focusedRef.current || !!wrapperRef.current?.contains(document.activeElement);
+    focusedRef.current ||
+    !!wrapperRef.current?.contains(document.activeElement);
 
   const emitIfChanged = (em: SlotContentEm) => {
     const prev = lastEmRef.current;
@@ -150,10 +192,17 @@ export function FormulaSlotInput({
   const fitCurrentSlot = () => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return null;
-    const box = wrapper.closest<HTMLElement>(".qti-ext-mjx-blank-slot") ?? wrapper;
+    const box =
+      wrapper.closest<HTMLElement>(".qti-ext-mjx-blank-slot") ?? wrapper;
     const size = readContentSize();
     if (!size) return null;
-    return fitSlotToContent(box, getComputedStyle(wrapper), size.width, size.height, widthCh);
+    return fitSlotToContent(
+      box,
+      getComputedStyle(wrapper),
+      size.width,
+      size.height,
+      widthCh,
+    );
   };
 
   useLayoutEffect(() => {
@@ -176,7 +225,9 @@ export function FormulaSlotInput({
 
   const openKeypadFromBox = (event: ReactPointerEvent<HTMLSpanElement>) => {
     if (event.button !== 0 || readOnly) return;
-    const valueEl = wrapperRef.current?.querySelector<HTMLElement>(".qti-ext-math-keyboard-value");
+    const valueEl = wrapperRef.current?.querySelector<HTMLElement>(
+      ".qti-ext-math-keyboard-value",
+    );
     if (!valueEl || valueEl.contains(event.target as Node)) return;
     event.preventDefault();
     valueEl.click();
@@ -189,7 +240,7 @@ export function FormulaSlotInput({
         "qti-ext-math-blank-field qti-ext-input-blank qti-ext-text-entry-input",
         useKeypad && "qti-ext-math-blank-field--keypad",
         fitFormulaHost && "qti-ext-math-blank-slot-content",
-        stateClassName
+        stateClassName,
       )}
       style={{ minWidth: markerSlotWidthEm(widthCh) }}
       data-response-identifier={id}
@@ -221,7 +272,9 @@ export function FormulaSlotInput({
           onChange={(event) => onChange(id, event.target.value)}
         />
       )}
-      {showPencil ? <Pencil className="qti-ext-text-entry-pencil" aria-hidden="true" /> : null}
+      {showPencil ? (
+        <Pencil className="qti-ext-text-entry-pencil" aria-hidden="true" />
+      ) : null}
     </span>
   );
 }
@@ -251,7 +304,11 @@ export function FormulaSlotLatexDisplay({
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const contentRef = useRef<HTMLSpanElement>(null);
   const growToContent = !fillSlot;
-  const sizeScale = fitFormulaHost ? 1 : variant === "blank-box" ? MATH_BLANK_DISPLAY_SCALE : 1;
+  const sizeScale = fitFormulaHost
+    ? 1
+    : variant === "blank-box"
+    ? MATH_BLANK_DISPLAY_SCALE
+    : 1;
   const emitRef = useRef(onContentEm);
 
   useEffect(() => {
@@ -260,13 +317,11 @@ export function FormulaSlotLatexDisplay({
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
-    const box = wrapper?.closest<HTMLElement>(".qti-ext-mjx-blank-slot") ?? wrapper;
+    const box =
+      wrapper?.closest<HTMLElement>(".qti-ext-mjx-blank-slot") ?? wrapper;
     if (!growToContent) {
       if (!box) return;
-      box.style.width = "";
-      box.style.minWidth = "";
-      box.style.height = "";
-      box.style.minHeight = "";
+      clearSlotInlineSize(box);
       return;
     }
     if (!wrapper || !box) return;
@@ -274,18 +329,23 @@ export function FormulaSlotLatexDisplay({
     let frame = 0;
 
     const tryApply = () => {
-      const hasMathHost = !!content?.querySelector(".qti-ext-mathfield, mjx-container");
-      const size = measureDisplayContent(content);
-      if (size.w === 0 && size.h === 0 && (hasMathHost || content?.textContent?.trim())) {
-        return false;
+      if (!content) return false;
+      const size = readSlotContentSize(content);
+      // 조판 전에는 공백으로 보지 않고 다시 잰다.
+      if (size === "pending") return false;
+      // 공백 정답은 선언된 \Rule 폭만 남긴다. 100% 라벨을 재면 칸이 계속 길어진다.
+      if (size === "empty") {
+        clearSlotInlineSize(box);
+        return true;
       }
+      if (size.w === 0 && size.h === 0) return false;
       const em = fitSlotToContent(
         box,
         getComputedStyle(wrapper),
         size.w,
         size.h,
         widthCh,
-        sizeScale
+        sizeScale,
       );
       emitRef.current?.(em);
       return true;
@@ -318,7 +378,11 @@ export function FormulaSlotLatexDisplay({
         frame = window.requestAnimationFrame(tick);
       };
       const mutationObserver = new MutationObserver(poke);
-      mutationObserver.observe(content, { childList: true, subtree: true, attributes: true });
+      mutationObserver.observe(content, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+      });
       document.fonts?.ready.then(poke).catch(poke);
       poke();
       return () => {
@@ -329,12 +393,19 @@ export function FormulaSlotLatexDisplay({
     }
     if (!content) return;
 
+    const resizeObserver = new ResizeObserver(applyAfterLayout);
+    const observeIntrinsicSize = () => {
+      resizeObserver.disconnect();
+      // 슬롯을 채우는 라벨이 아니라 조판된 수식만 본다. 공백 칸은 관찰하지 않는다.
+      const typeset = content.querySelector<HTMLElement>("mjx-math");
+      if (typeset) resizeObserver.observe(typeset);
+    };
     const mutationObserver = new MutationObserver(() => {
+      observeIntrinsicSize();
       applyAfterLayout();
     });
     mutationObserver.observe(content, { childList: true, subtree: true });
-    const resizeObserver = new ResizeObserver(applyAfterLayout);
-    if (fitFormulaHost) resizeObserver.observe(content);
+    observeIntrinsicSize();
     document.fonts?.ready.then(applyAfterLayout).catch(() => undefined);
     applyAfterLayout();
     return () => {
@@ -352,7 +423,7 @@ export function FormulaSlotLatexDisplay({
         fitFormulaHost && "qti-ext-math-blank-slot-content",
         getBlankVariantClass(variant),
         growToContent && "qti-ext-input-blank--latex-content",
-        stateClassName
+        stateClassName,
       )}
     >
       <span ref={contentRef} className="qti-ext-input-blank__label">
