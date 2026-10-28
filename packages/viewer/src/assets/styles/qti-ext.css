@@ -19,6 +19,7 @@
   --qti-math-blank-size: 2em;
   --qti-math-blank-pad: 0.25em;
   --qti-math-blank-display-scale: 0.85;
+  --qti-graphic-interaction-max-width: 520px;
   width: 100%;
 
   background-color: var(--qti-container-bg, #ffffff);
@@ -104,7 +105,7 @@
 }
 
 .qti-ext-passage-panel {
-  @apply rqti:flex rqti:min-h-0 rqti:min-w-0 rqti:flex-1 rqti:basis-0 rqti:overflow-y-auto;
+  @apply rqti:min-h-0 rqti:min-w-0 rqti:flex-1 rqti:basis-0 rqti:overflow-y-auto;
 }
 
 .qti-ext-passage-divider {
@@ -121,7 +122,7 @@
 /* 지문 전용 블록 (문항 .qti-ext-container와 대응) */
 .qti-ext-passage {
   width: 100%;
-  max-width: 100%;
+  max-width: var(--qti-container-max-width);
   padding: 54px var(--qti-container-padding);
 
   background-color: var(--qti-container-bg);
@@ -139,7 +140,7 @@
   font-weight: var(--font-weight-normal, 400);
   line-height: var(--qti-line-height-base, 1.5);
 
-  @apply rqti:relative rqti:flex rqti:w-full rqti:min-w-0 rqti:flex-col;
+  @apply rqti:relative rqti:mx-auto rqti:flex rqti:w-full rqti:min-w-0 rqti:flex-col;
 }
 
 /**
@@ -716,7 +717,7 @@
 
 /* Question Container */
 .qti-ext-question {
-  @apply rqti:space-y-2 rqti:pb-[54px];
+  @apply rqti:pb-[54px];
 
   /* 폰트는 .qti-ext-container에서 상속 */
 }
@@ -758,7 +759,7 @@
 ========================================
 */
 .qti-ext-prompt {
-  padding-bottom: 0.5em;
+  /* padding-bottom: 0.5em; */
 
   font-size: var(--qti-prompt-font-size, var(--qti-font-size-base, inherit));
   font-weight: var(
@@ -766,13 +767,12 @@
     var(--qti-font-weight-base, inherit)
   );
 
-  @apply rqti:space-y-2 rqti:break-words;
+  @apply rqti:break-words;
 }
 
 /* 보기 영역 */
 .qti-ext-example {
-  margin: 1em 0;
-  padding: 1em;
+  padding-top: 1em;
 
   border-width: var(--qti-example-stimulus-border-width, 1px);
   border-style: solid;
@@ -781,7 +781,7 @@
     var(--qti-option-border)
   );
 
-  background-color: var(--qti-container-bg);
+  /* background-color: var(--qti-container-bg); */
 
   font-size: var(
     --qti-example-stimulus-font-size,
@@ -792,7 +792,7 @@
     var(--qti-font-weight-base, inherit)
   );
 
-  @apply rqti:relative rqti:space-y-2 rqti:rounded-lg;
+  @apply rqti:relative rqti:mt-6 rqti:mb-3 rqti:rounded-lg rqti:px-3 rqti:pb-3;
 }
 
 /* 보기 라벨 */
@@ -832,7 +832,7 @@
     var(--qti-font-weight-base, inherit)
   );
 
-  @apply rqti:space-y-2 rqti:rounded-md rqti:p-3;
+  @apply rqti:rounded-md rqti:p-3;
 }
 
 .qti-ext-stimulus-dialogue {
@@ -2039,6 +2039,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   position: relative;
 
   display: inline-block;
+  display: inline-flex !important;
 
   padding: 0 1px;
 
@@ -2854,7 +2855,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 .qti-ext-feedback-section {
   background-color: var(--qti-feedback-section-bg, transparent);
 
-  @apply rqti:p-1;
+  /* @apply rqti:p-1; */
 }
 
 .qti-ext-feedback-section-head {
@@ -2977,7 +2978,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   font-size: inherit;
   font-weight: inherit;
 
-  @apply rqti:px-6 rqti:pb-5 rqti:whitespace-pre-line;
+  @apply rqti:pb-5 rqti:whitespace-pre-line;
 }
 
 .qti-ext-feedback-section-content p:first-child {
@@ -3070,13 +3071,15 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   --qti-math-blank-size: 2em;
   --qti-math-blank-pad: 0.2em;
   --qti-math-blank-display-scale: 0.85;
+  --qti-graphic-interaction-max-width: 520px;
 
   display: flex;
 
   flex-shrink: 0;
   flex-direction: column;
 
-  max-width: var(--qti-container-max-width);
+  max-width: var(--qti-container-max-width, 520px);
+  padding-inline: var(--qti-feedback-inline-padding, var(--qti-container-padding, 20px));
 
   background-color: var(--qti-feedback-bg-explanation) !important;
 
@@ -3091,7 +3094,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   );
   font-size: var(--qti-feedback-description-font-size);
 
-  @apply rqti:mx-auto rqti:flex rqti:w-full rqti:flex-col rqti:rounded-md rqti:px-4 rqti:py-5;
+  @apply rqti:mx-auto rqti:flex rqti:w-full rqti:min-w-0 rqti:flex-col rqti:rounded-md rqti:py-5;
 }
 
 /* 피드백 VCQ는 문항과 같은 셀·상자 토큰을 쓴다. 섹션 여백만 유지한다. */
@@ -3213,11 +3216,20 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   );
   font-size: var(--qti-feedback-font-size);
 
-  @apply rqti:absolute rqti:right-0 rqti:bottom-0 rqti:left-0 rqti:z-50 rqti:flex rqti:w-full rqti:flex-col rqti:justify-center rqti:p-8 rqti:transition rqti:duration-500 rqti:ease-in-out;
+  --qti-graphic-interaction-max-width: 520px;
+
+  @apply rqti:absolute rqti:right-0 rqti:bottom-0 rqti:left-0 rqti:z-50 rqti:flex rqti:w-full rqti:flex-col rqti:justify-center rqti:px-0 rqti:py-8 rqti:transition rqti:duration-500 rqti:ease-in-out;
 }
 
 .qti-ext-feedback-wrapper-mobile .qti-ext-feedback-sheet {
-  @apply rqti:p-5;
+  @apply rqti:px-0 rqti:py-5;
+}
+
+.qti-ext-feedback-sheet-content {
+  max-width: var(--qti-container-max-width, 520px);
+  padding-inline: var(--qti-container-padding, 20px);
+
+  @apply rqti:mx-auto rqti:w-full rqti:min-w-0;
 }
 
 .qti-ext-feedback-sheet[data-state="closed"] {
@@ -3331,6 +3343,9 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 }
 
 .qti-ext-feedback-modal {
+  --qti-graphic-interaction-max-width: 520px;
+  padding-inline: var(--qti-feedback-modal-padding, var(--qti-container-padding, 20px));
+
   background-color: var(--qti-feedback-bg-explanation) !important;
 
   color: var(--qti-feedback-text-explanation) !important;
@@ -3348,11 +3363,13 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   @apply rqti:absolute rqti:flex rqti:flex-col rqti:bg-white rqti:shadow-xl;
 
   /* 중앙 팝업 + 페이드/줌. 전체 화면 형태는 .qti-ext-feedback-wrapper-mobile 로 전환 */
-  @apply rqti:animate-in rqti:fade-in rqti:zoom-in-95 rqti:top-1/2 rqti:left-1/2 rqti:h-auto rqti:max-h-[80%] rqti:w-[calc(100%-2rem)] rqti:max-w-lg rqti:-translate-x-1/2 rqti:-translate-y-1/2 rqti:overflow-y-auto rqti:rounded-2xl rqti:duration-200;
+  @apply rqti:animate-in rqti:fade-in rqti:zoom-in-95 rqti:top-1/2 rqti:left-1/2 rqti:h-auto rqti:max-h-[80%] rqti:w-fit rqti:max-w-[calc(100%-2rem)] rqti:-translate-x-1/2 rqti:-translate-y-1/2 rqti:overflow-y-auto rqti:rounded-2xl rqti:duration-200;
 }
 
 .qti-ext-feedback-modal-content {
-  @apply rqti:p-5;
+  max-width: var(--qti-container-max-width, 520px);
+
+  @apply rqti:min-w-0 rqti:py-5;
 }
 
 /* ========================================
@@ -4082,6 +4099,8 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 .qti-ext-feedback-description ul[class*="qti-list-style-type-"] {
   padding-left: 0;
   list-style-position: outside;
+
+  @apply rqti:my-2;
 }
 
 .qti-ext-container ol.qti-list-style-type-decimal,
@@ -4161,7 +4180,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
   width: 100%;
 
-  @apply rqti:gap-3;
+  @apply rqti:gap-1;
 }
 
 .qti-ext-column {
@@ -4169,7 +4188,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
   min-width: 0;
 
-  @apply rqti:space-y-2 rqti:p-2;
+  @apply rqti:p-2;
 }
 
 .qti-choice-interaction-wrapper .qti-ext-column-group {
@@ -4626,6 +4645,10 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   min-height: calc(
     var(--qti-math-blank-size, 2em) * var(--qti-math-blank-display-scale, 0.85)
   );
+}
+
+.qti-ext-vcq-col--narrow .qti-ext-mathfield {
+  display: inline !important;
 }
 
 /* 식 통째 조판 슬롯. 지수·분수 자리는 수식 엔진, input만 포털 */
@@ -6765,8 +6788,11 @@ img.qti-ext-inline-image,
 .qti-ext-image-input-blank__image {
   display: block;
 
-  max-width: none;
+  /* 선택지·정답 영역의 일반 이미지 축소 규칙보다 저작 기준 폭을 우선한다. */
+  width: var(--qti-image-input-blank-width) !important;
+  max-width: var(--qti-graphic-interaction-max-width) !important;
   height: auto;
+  max-height: none !important;
 }
 
 /* 정답도 문항과 같은 저작 폭이다. 넘치면 이 영역만 가로로 스크롤한다. */
@@ -6817,13 +6843,6 @@ p:has(.qti-ext-image-input-blank) {
   width: auto !important;
   min-width: max-content !important;
   max-width: none !important;
-}
-
-.qti-ext-option-base .qti-ext-image-input-blank,
-.qti-ext-match-option .qti-ext-image-input-blank,
-.qti-ext-option-base .qti-ext-image-input-blank__image,
-.qti-ext-match-option .qti-ext-image-input-blank__image {
-  max-width: 100%;
 }
 
 .qti-ext-option-base

@@ -59,7 +59,7 @@ import themeJson from "./my-theme.json";
 | 필드              | 예시        | 설명                    |
 | ----------------- | ----------- | ----------------------- |
 | `maxWidth`        | `"520px"`   | 문항 컨테이너 최대 너비 |
-| `padding`         | `"20px"`    | 컨테이너 안쪽 여백      |
+| `padding`         | `"0px"`     | 컨테이너 안쪽 여백      |
 | `backgroundColor` | `"#FFFFFF"` | 컨테이너 배경색         |
 
 1000px 기준 너비 전체를 사용하려면 다음과 같이 설정합니다.
@@ -79,9 +79,9 @@ containerConfig: {
 | 필드              | 예시                                                 | 설명                                                                   |
 | ----------------- | ---------------------------------------------------- | ---------------------------------------------------------------------- |
 | `fontFamily`      | Typekit 키트 URL 또는 `"돋움", Dotum, sans-serif`   | 폰트 CSS URL, Typekit `.js` URL, 또는 CSS `font-family` 스택. 아래 [폰트 프리셋](#5-폰트-프리셋) 참고 |
-| `baseFontSize`    | `"16px"`                                             | 기본 글자 크기                                                         |
+| `baseFontSize`    | `"20px"`                                             | 기본 글자 크기                                                         |
 | `baseFontWeight`  | `"400"`                                              | 기본 글자 굵기                                                         |
-| `baseLineHeight`  | `"1.5"`                                              | 기본 줄 간격                                                           |
+| `baseLineHeight`  | `"1.4"`                                              | 기본 줄 간격                                                           |
 | `baseTextColor`   | `"#1A1A1A"`                                          | 기본 텍스트 색상                                                       |
 | `prompt`          | `{ fontSize, fontWeight }`                           | 발문 텍스트 스타일 (미지정 시 공통값)                                  |
 | `exampleStimulus` | `{ fontSize, fontWeight, borderColor, borderWidth }` | 지문·보기 영역 텍스트/테두리 스타일                                    |
@@ -131,7 +131,7 @@ containerConfig: {
 | 필드               | 예시                   | 설명                                      |
 | ------------------ | ---------------------- | ----------------------------------------- |
 | `title`            | `{ fontSize: "20px" }` | 제목 텍스트 스타일                        |
-| `description`      | `{ fontSize: "14px" }` | 설명 텍스트 스타일                        |
+| `description`      | `{ fontSize: "20px" }` | 설명 텍스트 스타일                        |
 | `buttonWidth`      | `"100%"`               | 버튼 너비                                 |
 | `buttonHeight`     | `"44px"`               | 버튼 높이                                 |
 | `correctIconUrl`   | `"data:image/..."`     | 정답 뱃지 아이콘(미지정 시 기본 O 아이콘) |
@@ -182,7 +182,7 @@ containerConfig: {
   "name": "기본 테마",
   "containerConfig": {
     "maxWidth": "520px",
-    "padding": "20px",
+    "padding": "0px",
     "backgroundColor": "#FFFFFF"
   },
   "blankConfig": {
@@ -191,9 +191,9 @@ containerConfig: {
   },
   "typography": {
     "fontFamily": "https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap",
-    "baseFontSize": "16px",
+    "baseFontSize": "20px",
     "baseFontWeight": "400",
-    "baseLineHeight": "1.5",
+    "baseLineHeight": "1.4",
     "baseTextColor": "#1A1A1A"
   },
   "questionOptionConfig": {
@@ -252,7 +252,7 @@ containerConfig: {
   "feedbackConfig": {
     "common": {
       "title": { "fontSize": "20px" },
-      "description": { "fontSize": "14px" },
+      "description": { "fontSize": "20px" },
       "buttonWidth": "100%",
       "buttonHeight": "44px"
     },

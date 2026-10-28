@@ -99,6 +99,13 @@ export const FeedbackInline = ({
   themeVariables,
   matchItems,
 }: FeedbackInlineProps) => {
+  const inlineThemeVariables = {
+    ...themeVariables,
+    "--qti-feedback-inline-padding":
+      Number.parseFloat(String(themeVariables?.["--qti-container-padding"] ?? "")) === 0
+        ? "20px"
+        : undefined,
+  };
   const parserOptions = { token: token ?? undefined, baseUrl };
   const safeCorrectAnswer = correctAnswer ?? {};
 
@@ -199,7 +206,7 @@ export const FeedbackInline = ({
       aria-labelledby="feedback-inline-title"
       aria-describedby="feedback-inline-description"
       className="qti-ext-feedback-inline"
-      style={themeVariables as React.CSSProperties}
+      style={inlineThemeVariables as React.CSSProperties}
     >
       {correctAnswerSegments.length > 0 && (
         <div className="qti-ext-feedback-section pb-4">

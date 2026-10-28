@@ -42,6 +42,14 @@ export const FeedbackModal = ({
   buttons,
   themeVariables,
 }: FeedbackModalProps) => {
+  const modalThemeVariables = {
+    ...themeVariables,
+    "--qti-feedback-modal-padding":
+      Number.parseFloat(String(themeVariables?.["--qti-container-padding"] ?? "")) === 0
+        ? "20px"
+        : undefined,
+  };
+
   const renderButtons = () => (
     <div className="qti-ext-feedback-footer">
       <div className="qti-ext-feedback-buttons">
@@ -103,7 +111,7 @@ export const FeedbackModal = ({
           aria-describedby={description ? "feedback-description" : undefined}
           data-state={open ? "open" : "closed"}
           className={cn("qti-ext-feedback-modal", "qti-ext-feedback-explanation")}
-          style={themeVariables as React.CSSProperties}
+          style={modalThemeVariables as React.CSSProperties}
         >
           <div className="qti-ext-feedback-modal-content">
             <div className="rqti:flex-shrink-0">
@@ -137,29 +145,28 @@ export const FeedbackModal = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={cn("qti-ext-feedback-modal", "rqti:max-w-lg")}
-        style={themeVariables as React.CSSProperties}
+        className="qti-ext-feedback-modal"
+        style={modalThemeVariables as React.CSSProperties}
       >
-        <DialogHeader>
-          <DialogTitle className={cn("qti-ext-feedback-title")}>{title}</DialogTitle>
+        <div className="qti-ext-feedback-modal-content">
+          <DialogHeader>
+            <DialogTitle className={cn("qti-ext-feedback-title")}>{title}</DialogTitle>
 
-        {typeof description === "string" ? (
-          <DialogDescription
-            className="qti-ext-feedback-description"
-            asChild
-          >
-            <div
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{ __html: description || "해설 내용입니다." }}
-            />
-          </DialogDescription>
-        ) : (
-          <DialogDescription className="qti-ext-feedback-description">
-            {description ?? "해설 내용입니다."}
-          </DialogDescription>
-        )}
-        </DialogHeader>
-        {renderButtons()}
+            {typeof description === "string" ? (
+              <DialogDescription className="qti-ext-feedback-description" asChild>
+                <div
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{ __html: description || "해설 내용입니다." }}
+                />
+              </DialogDescription>
+            ) : (
+              <DialogDescription className="qti-ext-feedback-description">
+                {description ?? "해설 내용입니다."}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          {renderButtons()}
+        </div>
       </DialogContent>
     </Dialog>
   );

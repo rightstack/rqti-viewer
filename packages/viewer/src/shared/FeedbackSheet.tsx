@@ -146,7 +146,7 @@ export const FeedbackSheet = ({
         className={cn("qti-ext-feedback-sheet", `qti-ext-feedback-${typeClass}`)}
         style={themeVariables as React.CSSProperties}
       >
-        <div className="rqti:mx-auto rqti:w-full rqti:max-w-[520px] rqti:px-5">
+        <div className="qti-ext-feedback-sheet-content">
           <h2 className={cn("qti-ext-feedback-title", `qti-ext-feedback-title-${typeClass}`)}>
             {title}
           </h2>
@@ -180,7 +180,7 @@ export const FeedbackSheet = ({
         )}
         style={themeVariables as React.CSSProperties}
       >
-        <div className="rqti:mx-auto rqti:w-full rqti:max-w-[520px] rqti:px-5">
+        <div className="qti-ext-feedback-sheet-content">
           <SheetHeader
             className={cn("rqti:p-0!", "qti-ext-feedback-title", `qti-ext-feedback-title-${typeClass}`)}
           >

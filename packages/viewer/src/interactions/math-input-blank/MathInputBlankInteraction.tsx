@@ -315,6 +315,19 @@ function buildLabelMap(ids: string[], displayLabels: DisplayBlankLabel[]): Map<s
   return result;
 }
 
+/** 화면 getter가 읽는 칸 원문. 객체 식별이 아니라 이 문자열이 바뀔 때만 로컬을 맞춘다. */
+function externalBlankSignature(
+  ids: readonly string[],
+  source: Record<string, unknown> | undefined
+): string {
+  return ids
+    .map((id) => {
+      const raw = getResponseRawString(source, id);
+      return `${id.length}:${id}:${raw.length}:${raw}`;
+    })
+    .join("\n");
+}
+
 function MathInputBlankView({
   latex,
   options,
@@ -380,7 +393,7 @@ function MathInputBlankView({
   const isMathContext = isMathResponseId(responseId ?? "") || inVcqBlankCell || mergedColSpan >= 2;
   const mathKeyboardLevel = resolveMathKeyboardLevel(contextElement);
 
-  const answerSource = useMemo(
+  const externalAnswers = useMemo(
     () =>
       buildMathBlankAnswerSource(
         isPreview,
@@ -394,6 +407,15 @@ function MathInputBlankView({
   );
 
   const blankIds = useMemo(() => extractResponseIds(latex), [latex]);
+  // 세션 응답 prop은 타이핑 중에 그대로다. prop을 칸 value에 직접 묶으면 글자가 지워진다.
+  // 외부 칸 원문이 지난번과 다를 때만 로컬을 맞춘다. 빈 문자열과 다르다고 매 렌더 덮어쓰지 않는다.
+  const externalAnswerSig = externalBlankSignature(blankIds, externalAnswers);
+  const [answerSource, setAnswerSource] = useState(externalAnswers);
+  const [seenExternalAnswerSig, setSeenExternalAnswerSig] = useState(externalAnswerSig);
+  if (externalAnswerSig !== seenExternalAnswerSig) {
+    setSeenExternalAnswerSig(externalAnswerSig);
+    setAnswerSource(externalAnswers);
+  }
 
   const labelMap = useMemo(
     () => (displayOnly ? buildLabelMap(blankIds, displayLabels) : new Map<string, string>()),
@@ -435,7 +457,9 @@ function MathInputBlankView({
     blankIds.some((id) => slotContentEm[id]?.value !== getResponseString(answerSource, id));
 
   const handleChange = (id: string, value: string) => {
-    if (!isReadOnly) options.onResponseChange?.(id, value);
+    if (isReadOnly) return;
+    setAnswerSource((current) => ({ ...(current ?? {}), [id]: value }));
+    options.onResponseChange?.(id, value);
   };
 
   const answerRevealVariant: BlankVariant =

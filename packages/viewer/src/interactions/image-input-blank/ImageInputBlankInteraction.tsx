@@ -23,6 +23,16 @@ interface ImageInputBlankInteractionProps {
   index: number;
 }
 
+/** 화면 `valueOf`가 읽는 칸 원문. 객체 식별이 아니라 이 문자열이 바뀔 때만 로컬을 맞춘다. */
+function imageValueSignature(ids: readonly string[], values: Record<string, string>): string {
+  return ids
+    .map((id) => {
+      const value = values[id] ?? "";
+      return `${id.length}:${id}:${value.length}:${value}`;
+    })
+    .join("\n");
+}
+
 function toScalar(raw: unknown): string {
   if (raw === undefined || raw === null) return "";
   if (Array.isArray(raw)) return String(raw[0] ?? "");
@@ -122,11 +132,31 @@ function ImageInputBlankView({
   const fillEmptyWithCorrectAnswers = !options.isSubmit && isPreview;
   const showFractionAsLatex = options.answerKeyPreview === true;
 
-  const valueOf = (cellId: string) => {
-    const entered = readCell(responses, cellId);
-    if (entered !== "") return entered;
-    return fillEmptyWithCorrectAnswers ? readCell(correctAnswers, cellId) : "";
-  };
+  const externalValues = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const cellId of cellIds) {
+      const cellIndex = cellIds.indexOf(cellId);
+      const entered = readCellValue(responses, cellId, rootResponseIdentifier, cellIndex);
+      map[cellId] =
+        entered !== ""
+          ? entered
+          : fillEmptyWithCorrectAnswers
+            ? readCellValue(correctAnswers, cellId, rootResponseIdentifier, cellIndex)
+            : "";
+    }
+    return map;
+  }, [cellIds, correctAnswers, fillEmptyWithCorrectAnswers, responses, rootResponseIdentifier]);
+  // 세션 응답 prop은 타이핑 중에 그대로다. prop을 칸 value에 직접 묶으면 글자가 지워진다.
+  // 외부 칸 원문이 지난번과 다를 때만 로컬을 맞춘다. 빈 문자열과 다르다고 매 렌더 덮어쓰지 않는다.
+  const externalValueSig = imageValueSignature(cellIds, externalValues);
+  const [localValues, setLocalValues] = useState(externalValues);
+  const [seenExternalValueSig, setSeenExternalValueSig] = useState(externalValueSig);
+  if (externalValueSig !== seenExternalValueSig) {
+    setSeenExternalValueSig(externalValueSig);
+    setLocalValues(externalValues);
+  }
+
+  const valueOf = (cellId: string) => localValues[cellId] ?? "";
 
   /** 수식 빈칸 `getInputBlankStateClass`와 같은 순서: 정답키 → 채점 결과 → 값이 있으면 선택. */
   const stateClassOf = (cellId: string) => {
@@ -143,7 +173,8 @@ function ImageInputBlankView({
 
   const handleChange = (cellId: string, value: string) => {
     if (isReadOnly) return;
-    // 값은 문자열 그대로 둔다. trim·선행 0 제거를 하면 저작 정답과 어긋난다.
+    // 값은 문자열 그대로 둔다. trim·선행 0 제거·재포장을 하면 조판 폭과 제출 값이 갈라진다.
+    setLocalValues((current) => ({ ...current, [cellId]: value }));
     options.onResponseChange?.(cellId, value);
   };
 
@@ -157,9 +188,11 @@ function ImageInputBlankView({
         className="qti-ext-image-input-blank__image"
         src={src}
         alt={config.alt}
-        style={{
-          width: `${config.displayWidth ?? config.baseWidth}px`,
-        }}
+        style={
+          {
+            "--qti-image-input-blank-width": `${config.displayWidth ?? config.baseWidth}px`,
+          } as CSSProperties
+        }
       />
       {scale > 0 && (
         <div

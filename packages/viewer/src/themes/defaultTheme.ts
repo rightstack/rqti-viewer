@@ -8,7 +8,7 @@ export const DEFAULT_THEME: Theme = {
   // 전역 레이아웃 설정
   containerConfig: {
     maxWidth: "520px",
-    padding: "20px",
+    padding: "0px",
     backgroundColor: "#FFFFFF",
   },
   /** 빈칸 형태: underline(밑줄) | box(박스). 기본은 underline */
@@ -17,9 +17,9 @@ export const DEFAULT_THEME: Theme = {
   // 전역 타이포그래피
   typography: {
     fontFamily: FONT_PRESETS["noto-sans-kr"].url!,
-    baseFontSize: "16px",
+    baseFontSize: "20px",
     baseFontWeight: "400",
-    baseLineHeight: "1.5",
+    baseLineHeight: "1.4",
     baseTextColor: "#1A1A1A",
   },
   // 컴포넌트별 설정
@@ -137,7 +137,7 @@ export const DEFAULT_THEME: Theme = {
       },
       buttonWidth: "100%",
       description: {
-        fontSize: "14px",
+        fontSize: "20px",
       },
       buttonHeight: "44px",
     },
