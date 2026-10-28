@@ -29,14 +29,18 @@ export function MatchCorrectAnswerInteraction({
 }: MatchCorrectAnswerInteractionProps) {
   const element = useMemo(
     () => getMatchInteractionElementFromQtiXml(qtiXml, responseIdentifier),
-    [qtiXml, responseIdentifier]
+    [qtiXml, responseIdentifier],
   );
 
   if (!element) {
-    return <MatchAnswerView items={matchItems} correctResponse={matchStrings} />;
+    return (
+      <MatchAnswerView items={matchItems} correctResponse={matchStrings} />
+    );
   }
 
-  const feedbackItemKey = itemKey ? `feedback-${itemKey}-${responseIdentifier}` : undefined;
+  const feedbackItemKey = itemKey
+    ? `feedback-${itemKey}-${responseIdentifier}`
+    : undefined;
 
   return (
     <div className={cn("-my-4", className)}>

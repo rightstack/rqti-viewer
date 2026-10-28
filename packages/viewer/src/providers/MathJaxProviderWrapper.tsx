@@ -32,15 +32,19 @@ const mathJaxConfig = {
     load: [
       "input/tex",
       "output/chtml",
+      "[tex]/boldsymbol",
       "[tex]/cancel",
       "[tex]/ams",
+      "[tex]/textmacros",
       "[tex]/color",
       "[tex]/html",
       "[tex]/unicode",
     ],
   },
   tex: {
-    packages: { "[+]": ["base", "ams", "cancel", "color", "html", "unicode"] },
+    packages: {
+      "[+]": ["base", "ams", "boldsymbol", "cancel", "textmacros", "color", "html", "unicode"],
+    },
     inlineMath: [["\\(", "\\)"]],
     displayMath: [["\\[", "\\]"]],
     macros: {

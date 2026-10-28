@@ -111,7 +111,7 @@ export const OrderInteraction = ({ element, options, index }: OrderInteractionPr
   };
 
   return (
-    <div key={`order-${responseIdentifier}-${index}`} className="my-4">
+    <div key={`order-${responseIdentifier}-${index}`} className="rqti:my-4">
       {orderingMode === "click" ? (
         <OrderClickOption
           choices={displayChoices}

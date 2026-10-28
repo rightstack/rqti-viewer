@@ -11,11 +11,9 @@ interface ExtendedTextInteractionProps {
   index: number;
 }
 
-export const ExtendedTextInteraction: React.FC<ExtendedTextInteractionProps> = ({
-  element,
-  options,
-  index,
-}) => {
+export const ExtendedTextInteraction: React.FC<
+  ExtendedTextInteractionProps
+> = ({ element, options, index }) => {
   const responseIdentifier = element.getAttribute("response-identifier") || "";
   const placeholderText = element.getAttribute("placeholder-text");
   const maxStrings = element.getAttribute("max-strings");
@@ -32,7 +30,10 @@ export const ExtendedTextInteraction: React.FC<ExtendedTextInteractionProps> = (
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
-    options.onResponseChange?.(responseIdentifier, e.target.value as ResponseValue);
+    options.onResponseChange?.(
+      responseIdentifier,
+      e.target.value as ResponseValue,
+    );
   };
 
   const maxLength = maxStrings ? Number.parseInt(maxStrings, 10) : undefined;
@@ -53,7 +54,10 @@ export const ExtendedTextInteraction: React.FC<ExtendedTextInteractionProps> = (
   }
 
   return (
-    <div key={`extended-text-${responseIdentifier}-${index}`} className="my-4">
+    <div
+      key={`extended-text-${responseIdentifier}-${index}`}
+      className="rqti:my-4"
+    >
       <EssayTextArea
         value={value}
         onChange={handleChange}
