@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { renderQtiNode } from "../../parser";
+import { renderLaTeX, renderQtiNode } from "../../parser";
 import type { DropdownOptionType, QTIParserOptions, ResponseValue } from "../../types";
-import { extractTextFromElement } from "../../utils";
+import { extractTextFromElement, isMathLatexAnswer, isMathResponseId } from "../../utils";
 import { Dropdown } from "./components";
 
 interface InlineChoiceInteractionProps {
@@ -71,11 +71,20 @@ export const InlineChoiceInteraction: React.FC<InlineChoiceInteractionProps> = (
       result.push({
         identifier,
         text: text || undefined,
-        content: renderQtiNode(choice, options as QTIParserOptions),
+        content:
+          text &&
+          (isMathLatexAnswer(text) || isMathResponseId(responseIdentifier)) &&
+          !choice.querySelector(".qti-ext-mathfield") ? (
+            <span className="qti-ext-mathfield">
+              {renderLaTeX(text, `inline-choice-${identifier}`, false)}
+            </span>
+          ) : (
+            renderQtiNode(choice, options as QTIParserOptions)
+          ),
       });
     });
     return result;
-  }, [element, options]);
+  }, [element, options, responseIdentifier]);
 
   const dropdownEntry = options.dropdownEntries?.find(
     (entry) => entry.identifier === responseIdentifier

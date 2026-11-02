@@ -7,6 +7,7 @@ import { getListStyleLabel } from "../../../utils/listStyleLabel";
 interface OrderChoiceProps {
   choice: OrderChoiceType;
   index: number;
+  orderRank?: number | null;
   /** 순번 라벨 스타일 (qti-list-style-type-*) */
   listStyleType?: string | null;
   isSelected: boolean;
@@ -25,6 +26,7 @@ interface OrderChoiceProps {
 const OrderChoice = ({
   choice,
   index,
+  orderRank = null,
   listStyleType,
   isSelected: _isSelected,
   isCorrect,
@@ -113,6 +115,14 @@ const OrderChoice = ({
       numberText.style.color = selectedBorderColor;
     }
 
+    const rankBadge = dragElement.querySelector("[data-order-rank]");
+    if (rankBadge) {
+      (rankBadge as HTMLElement).style.backgroundColor =
+        computedStyle.getPropertyValue("--qti-option-bg");
+      (rankBadge as HTMLElement).style.borderColor = selectedBorderColor;
+      (rankBadge as HTMLElement).style.color = selectedBorderColor;
+    }
+
     // 이미지가 있으면 동일한 크기 유지
     const images = dragElement.querySelectorAll("img");
     images.forEach((img) => {
@@ -184,6 +194,17 @@ const OrderChoice = ({
     isSubmit && isIncorrect && "qti-ext-order-number-incorrect"
   );
 
+  const showRank = orderRank !== null && orderRank >= 1;
+  const rankBadgeClassName = cn(
+    "qti-ext-order-rank-badge",
+    !isSubmit && (isDragging || isDropped) && "qti-ext-order-rank-badge-selected",
+    isSubmit && isCorrect && "qti-ext-order-rank-badge-correct",
+    isSubmit && isIncorrect && "qti-ext-order-rank-badge-incorrect"
+  );
+
+  const choiceText = choice.element?.textContent?.trim() || choice.identifier;
+  const ariaLabel = showRank ? `${choiceText}, ${orderRank}순위` : choiceText;
+
   return (
     <div
       className={choiceClassName}
@@ -193,7 +214,7 @@ const OrderChoice = ({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       role="listitem"
-      aria-label={`${choice.text || ""}`}
+      aria-label={ariaLabel}
     >
       <div className="qti-ext-order-choice-content">
         {/* 순서 번호 */}
@@ -208,6 +229,13 @@ const OrderChoice = ({
           {choice.media && <MediaContent media={choice.media} token={token} />}
         </div>
       </div>
+      {showRank && (
+        <span className={rankBadgeClassName} data-order-rank="true">
+          {orderRank !== null && (
+            <span className="qti-ext-order-rank-badge-index">{orderRank}</span>
+          )}
+        </span>
+      )}
       {/* {isSubmit && <FeedbackIcon isCorrect={isCorrect} isIncorrect={isIncorrect} />} */}
     </div>
   );

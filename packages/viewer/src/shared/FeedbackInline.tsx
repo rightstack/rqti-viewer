@@ -21,9 +21,11 @@ import {
   extractMatchRowColIdentifiersFromQtiXml,
   formatCorrectAnswerValueForDisplay,
   buildOrderCorrectAnswerItems,
+  getGapMatchMathBlankAnswerParts,
   getMatchCorrectResponseStrings,
 } from "../utils/choiceAnswerDisplayFromQti";
 import { ChoiceCorrectAnswerPreview } from "./ChoiceCorrectAnswerPreview";
+import { GapMatchAnswerView } from "./GapMatchAnswerView";
 import { isMathLatexAnswer, isMathResponseId } from "../utils/isMathLatexAnswer";
 import type { CSSVariables } from "../utils/themeToCSS";
 import { MatchAnswerView } from "./MatchAnswerView";
@@ -225,6 +227,10 @@ export const FeedbackInline = ({
                   segment.kind === "default" && choiceAnswerItems === null
                     ? getMatchCorrectResponseStrings(qtiXml, segment.key, segment.value)
                     : null;
+                const gapMatchMathParts =
+                  segment.kind === "default" && matchStrings === null
+                    ? getGapMatchMathBlankAnswerParts(qtiXml, segment.key, segment.value)
+                    : null;
                 const orderAnswerItems =
                   segment.kind === "default" && choiceAnswerItems === null && matchStrings === null
                     ? buildOrderCorrectAnswerItems(qtiXml, segment.key, segment.value)
@@ -246,6 +252,7 @@ export const FeedbackInline = ({
                   segment.kind === "default" &&
                   choiceAnswerItems === null &&
                   matchStrings === null &&
+                  gapMatchMathParts === null &&
                   orderAnswerItems === null &&
                   !isMultiMath
                     ? formatCorrectAnswerValueForDisplay(
@@ -299,6 +306,8 @@ export const FeedbackInline = ({
                         <span className="qti-ext-mathfield align-middle">
                           {renderLaTeX(segment.latex, `fb-correct-${segment.key}`, false, false)}
                         </span>
+                      ) : gapMatchMathParts !== null ? (
+                        <GapMatchAnswerView parts={gapMatchMathParts} token={token} />
                       ) : matchStrings !== null ? (
                         <MatchAnswerView
                           items={resolvedMatchItems}

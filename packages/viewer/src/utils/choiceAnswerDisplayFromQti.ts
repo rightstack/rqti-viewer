@@ -7,6 +7,7 @@
  * - qti-order-interaction: label 속성 → 순번 마커(A·1 등, identifier=DOM 순서에 고정) → 본문 → identifier
  * - qti-inline-choice-interaction: label → 본문 → 미디어 → identifier (단일 문자열, 기존과 동일)
  * - qti-match-interaction 정답만: 쌍이 ROW_n / COL_m 형태면 `n-m` 또는 MatchAnswerView용 배열 (qtiXml으로 interaction 판별)
+ * - qti-gap-match-interaction: 레이블이 있으면 레이블만(끝 `.` 제외), 없으면 본문만. 수식빈칸 본문은 GapMatchAnswerView
  * - FeedbackInline 정답 나열 순서: extractInteractionResponseIdentifiersInDocumentOrder 로 본문 interaction 순서 확보
  *
  * @see qti-ext.css @counter-style (circled_number, hangul-* …)
@@ -942,31 +943,154 @@ export function isGapMatchInteractionResponse(
   );
 }
 
+const LABEL_STYLE = {
+  NUMBER: "number",
+  NUMBER_CIRCLE: "number_circle",
+  KOREAN_CONSONANT: "korean_consonant",
+  KOREAN_CONSONANT_PAREN: "korean_consonant_paren",
+  KOREAN_SYLLABLE: "korean_syllable",
+  ENGLISH: "english",
+  ENGLISH_UPPER: "english_upper",
+  NONE: "none",
+} as const;
+
+type LabelStyleType = (typeof LABEL_STYLE)[keyof typeof LABEL_STYLE];
+
+const GAP_CHOICE_LABEL_CLASS_PREFIX = "qti-ext-gap-label-";
+
+const GAP_CHOICE_LABEL_TYPES = new Set<LabelStyleType>([
+  LABEL_STYLE.NUMBER,
+  LABEL_STYLE.NUMBER_CIRCLE,
+  LABEL_STYLE.ENGLISH,
+  LABEL_STYLE.ENGLISH_UPPER,
+  LABEL_STYLE.KOREAN_CONSONANT,
+  LABEL_STYLE.KOREAN_CONSONANT_PAREN,
+  LABEL_STYLE.KOREAN_SYLLABLE,
+]);
+
+const CHOICE_LABEL_KOREAN_CONSONANTS = [
+  "ㄱ",
+  "ㄴ",
+  "ㄷ",
+  "ㄹ",
+  "ㅁ",
+  "ㅂ",
+  "ㅅ",
+  "ㅇ",
+  "ㅈ",
+  "ㅊ",
+  "ㅋ",
+  "ㅌ",
+  "ㅍ",
+  "ㅎ",
+];
+
+const CHOICE_LABEL_KOREAN_SYLLABLES = [
+  "가",
+  "나",
+  "다",
+  "라",
+  "마",
+  "바",
+  "사",
+  "아",
+  "자",
+  "차",
+  "카",
+  "타",
+  "파",
+  "하",
+];
+
+const CHOICE_LABEL_NUMBER_CIRCLE = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
+
+/** release-prd `labelUtils.getChoiceLabel`. 저작 모듈 의존 없이 함수만 옮긴다. */
+function getChoiceLabel(style: LabelStyleType, index: number): string {
+  switch (style) {
+    case LABEL_STYLE.NUMBER:
+      return `${(index + 1).toString()}.`;
+    case LABEL_STYLE.NUMBER_CIRCLE:
+      return CHOICE_LABEL_NUMBER_CIRCLE[index] || (index + 1).toString();
+    case LABEL_STYLE.KOREAN_CONSONANT:
+      return `${CHOICE_LABEL_KOREAN_CONSONANTS[index] || (index + 1).toString()}.`;
+    case LABEL_STYLE.KOREAN_CONSONANT_PAREN:
+      return `${CHOICE_LABEL_KOREAN_CONSONANTS[index] || (index + 1).toString()})`;
+    case LABEL_STYLE.KOREAN_SYLLABLE:
+      return `${CHOICE_LABEL_KOREAN_SYLLABLES[index] || (index + 1).toString()}.`;
+    case LABEL_STYLE.ENGLISH:
+      return `${String.fromCharCode(97 + index)}.`;
+    case LABEL_STYLE.ENGLISH_UPPER:
+      return `${String.fromCharCode(65 + index)}.`;
+    case LABEL_STYLE.NONE:
+      return "";
+    default:
+      return (index + 1).toString();
+  }
+}
+
 /**
- * qti-gap-match-interaction 정답 표시.
- * - 정답 쌍(gapId·choiceId)을 gap 문서 순서로 정렬해 `라벨 + 선택지 텍스트`로 표시 (예: `① 목성, ② 수성`)
- * - 라벨은 gap 라벨 스타일(qti-list-style-type-*, 미지정 시 decimal)을 따른다
- * - 쌍의 좌/우 순서는 gap/gap-text 식별자로 판별해 뒤바뀌어도 안전하게 처리
+ * interaction class의 `qti-ext-gap-label-*`를 읽는다.
+ * 접두 부분 일치는 쓰지 않고, 토큰 뒷부분을 enum과 완전 일치할 때만 인정한다.
+ * 없거나 `none`이거나 알 수 없는 값이면 null.
  */
-export function formatGapMatchCorrectAnswerForDisplay(
+function extractGapChoiceLabelType(className: string): LabelStyleType | null {
+  if (!className.trim()) return null;
+
+  for (const token of className.trim().split(/\s+/)) {
+    if (!token.startsWith(GAP_CHOICE_LABEL_CLASS_PREFIX)) continue;
+    const type = token.slice(GAP_CHOICE_LABEL_CLASS_PREFIX.length);
+    if (GAP_CHOICE_LABEL_TYPES.has(type as LabelStyleType)) {
+      return type as LabelStyleType;
+    }
+    return null;
+  }
+
+  return null;
+}
+
+const MATH_INPUT_BLANK_SELECTOR = ".qti-ext-input-blank, .qti-ext-math-input-blank";
+
+function hasMathInputBlank(el: Element): boolean {
+  if (el.querySelector(MATH_INPUT_BLANK_SELECTOR)) return true;
+  if ((el.textContent ?? "").includes("\\inputblank")) return true;
+  return Array.from(el.querySelectorAll("[data-latex]")).some((node) =>
+    (node.getAttribute("data-latex") ?? "").includes("\\inputblank")
+  );
+}
+
+type GapMatchChoiceDisplay = {
+  label: string;
+  text: string;
+  blankElement?: Element;
+};
+
+type GapMatchCorrectChoice = GapMatchChoiceDisplay & {
+  gapId: string;
+};
+
+function resolveGapMatchCorrectChoices(
   qtiXml: string | null | undefined,
   responseIdentifier: string,
-  value: unknown,
-): string | null {
-  const interaction = getGapMatchInteractionElementFromQtiXml(
-    qtiXml,
-    responseIdentifier,
-  );
+  value: unknown
+): GapMatchCorrectChoice[] | null {
+  const interaction = getGapMatchInteractionElementFromQtiXml(qtiXml, responseIdentifier);
   if (!interaction) return null;
 
-  // choiceId(gap-text) → 표시 텍스트
-  const choiceTextMap = new Map<string, string>();
-  interaction.querySelectorAll("qti-gap-text").forEach((el) => {
+  const choiceLabelType = extractGapChoiceLabelType(interaction.getAttribute("class") ?? "");
+  const choiceById = new Map<string, GapMatchChoiceDisplay>();
+  interaction.querySelectorAll("qti-gap-text").forEach((el, idx) => {
     const id = el.getAttribute("identifier")?.trim() ?? "";
-    if (id) choiceTextMap.set(id, bodyDisplayFromChoiceElement(el) || id);
+    if (!id) return;
+    const label = choiceLabelType
+      ? getChoiceLabel(choiceLabelType, idx).trim().replace(/\.$/, "")
+      : "";
+    choiceById.set(id, {
+      label,
+      text: bodyDisplayFromChoiceElement(el) || id,
+      ...(label === "" && hasMathInputBlank(el) ? { blankElement: el } : {}),
+    });
   });
 
-  // gap 문서 순서
   const gapIds: string[] = [];
   interaction.querySelectorAll("qti-gap").forEach((el) => {
     const id = el.getAttribute("identifier")?.trim() ?? "";
@@ -975,10 +1099,6 @@ export function formatGapMatchCorrectAnswerForDisplay(
   if (gapIds.length === 0) return null;
 
   const gapIdSet = new Set(gapIds);
-  const listStyleType =
-    extractListStyleType(interaction.getAttribute("class") ?? "") ?? "decimal";
-
-  // 정답 쌍 → { gapId: choiceId } (좌/우 순서 무관하게 gapId 기준으로 매핑)
   const gapToChoice = new Map<string, string>();
   for (const pair of matchPairsForDisplay(value)) {
     const a = typeof pair.leftId === "string" ? pair.leftId.trim() : "";
@@ -993,17 +1113,53 @@ export function formatGapMatchCorrectAnswerForDisplay(
   }
   if (gapToChoice.size === 0) return null;
 
-  const parts: string[] = [];
-  gapIds.forEach((gapId, idx) => {
+  const resolved: GapMatchCorrectChoice[] = [];
+  gapIds.forEach((gapId) => {
     const choiceId = gapToChoice.get(gapId);
     if (!choiceId) return;
-    const marker = listStyleMarkerForIndex(listStyleType, idx + 1);
-    const label = marker !== null ? marker.trim() : "";
-    const text = choiceTextMap.get(choiceId) ?? choiceId;
-    parts.push(label ? `${label} - ${text}` : text);
+    resolved.push({
+      gapId,
+      ...(choiceById.get(choiceId) ?? { label: "", text: choiceId }),
+    });
   });
-  if (parts.length === 0) return null;
-  return parts.join(", ");
+  return resolved.length > 0 ? resolved : null;
+}
+
+export type GapMatchAnswerDisplayPart =
+  | { gapId: string; text: string }
+  | { gapId: string; element: Element };
+
+/** 레이블이 없고 수식빈칸이 있을 때만. 그 외는 null → 문자열 포맷터. */
+export function getGapMatchMathBlankAnswerParts(
+  qtiXml: string | null | undefined,
+  responseIdentifier: string,
+  value: unknown
+): GapMatchAnswerDisplayPart[] | null {
+  const choices = resolveGapMatchCorrectChoices(qtiXml, responseIdentifier, value);
+  if (!choices?.some((choice) => choice.blankElement)) return null;
+  return choices.map((choice) =>
+    choice.blankElement
+      ? { gapId: choice.gapId, element: choice.blankElement }
+      : { gapId: choice.gapId, text: choice.label || choice.text }
+  );
+}
+
+/**
+ * qti-gap-match-interaction 정답 표시.
+ * - gap 문서 순. 레이블이 있으면 레이블만, 없으면 본문만 (`①, ③` 또는 `서울, 한강`)
+ * - 레이블 끝 `.`는 선택형과 같이 뺀다 (`A.` → `A`)
+ * - 레이블은 `qti-ext-gap-label-*`가 알려진 타입일 때만. 없거나 `none`이면 본문만
+ * - 빈칸 순번은 붙이지 않는다. 쌍의 좌/우는 gap 식별자로 판별한다
+ * - 레이블이 없고 본문에 수식빈칸이 있으면 GapMatchAnswerView가 그린다
+ */
+export function formatGapMatchCorrectAnswerForDisplay(
+  qtiXml: string | null | undefined,
+  responseIdentifier: string,
+  value: unknown
+): string | null {
+  const choices = resolveGapMatchCorrectChoices(qtiXml, responseIdentifier, value);
+  if (!choices) return null;
+  return choices.map((choice) => choice.label || choice.text).join(", ");
 }
 
 export function formatCorrectAnswerValueForDisplay(

@@ -2436,7 +2436,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
              ======================================== */
 
 .qti-ext-order-choice {
-  @apply rqti:relative rqti:mb-2 rqti:select-none;
+  @apply rqti:relative rqti:mb-2 rqti:flex rqti:items-center rqti:justify-between rqti:gap-2 rqti:select-none;
 }
 
 /* Order Choice Dragging State */
@@ -2507,6 +2507,50 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 }
 
 .qti-ext-order-number-incorrect .qti-ext-order-number-text {
+  color: var(--qti-option-border-incorrect);
+}
+
+/* 순위 뱃지 - 객관식 라디오와 같이 우측, 세로 중앙. 색·테두리는 옵션 테마 토큰 */
+.qti-ext-order-rank-badge {
+  box-sizing: border-box;
+  width: 1.5em;
+  height: 1.5em;
+
+  border-width: var(--qti-option-border-width);
+  border-style: solid;
+  border-color: var(--qti-option-border);
+
+  background-color: var(--qti-option-bg);
+
+  color: var(--qti-option-border);
+  line-height: 1;
+
+  pointer-events: none;
+
+  @apply rqti:flex rqti:items-center rqti:justify-center rqti:rounded-full;
+}
+
+.qti-ext-order-rank-badge-index {
+  display: block;
+
+  font-size: 0.75em;
+}
+
+.qti-ext-order-rank-badge-selected {
+  border-color: var(--qti-option-border-selected);
+
+  color: var(--qti-option-border-selected);
+}
+
+.qti-ext-order-rank-badge-correct {
+  border-color: var(--qti-option-border-correct);
+
+  color: var(--qti-option-border-correct);
+}
+
+.qti-ext-order-rank-badge-incorrect {
+  border-color: var(--qti-option-border-incorrect);
+
   color: var(--qti-option-border-incorrect);
 }
 

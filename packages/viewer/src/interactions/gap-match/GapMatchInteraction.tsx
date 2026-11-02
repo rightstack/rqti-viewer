@@ -75,6 +75,50 @@ const pairsToMap = (
   return selections;
 };
 
+/** 테마 정·오답 미리보기처럼 밖에서 응답이 바뀌면 빈칸 채움을 맞춘다. */
+function resolveGapSelections(
+  options: {
+    gapSelections?: Record<string, string>;
+    responses?: ResponseValueMap;
+    correctAnswers?: Record<string, ResponseValue>;
+    mode?: string;
+  },
+  responseIdentifier: string,
+  gapIdentifiers: ReadonlySet<string>,
+  choiceIdentifiers: ReadonlySet<string>
+): Record<string, string> {
+  if (options.gapSelections) {
+    const next: Record<string, string> = {};
+    Object.entries(options.gapSelections).forEach(([gapId, choiceId]) => {
+      if (gapIdentifiers.has(gapId) && choiceIdentifiers.has(choiceId)) next[gapId] = choiceId;
+    });
+    return next;
+  }
+  if (options.responses && responseIdentifier in options.responses) {
+    const fromResponses = pairsToMap(
+      options.responses[responseIdentifier],
+      gapIdentifiers,
+      choiceIdentifiers
+    );
+    if (Object.keys(fromResponses).length > 0) return fromResponses;
+  }
+  if (options.mode === "preview") {
+    const fromCorrect = pairsToMap(
+      options.correctAnswers?.[responseIdentifier],
+      gapIdentifiers,
+      choiceIdentifiers
+    );
+    if (Object.keys(fromCorrect).length > 0) return fromCorrect;
+  }
+  return {};
+}
+
+function sameGapSelections(a: Record<string, string>, b: Record<string, string>): boolean {
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  return aKeys.length === bKeys.length && bKeys.every((key) => a[key] === b[key]);
+}
+
 /** 선택지(gap-text) 패널 자리표시 요소 여부: <div class="qti-ext-gap-text-panel"/> */
 const isGapTextPanel = (el: Element): boolean =>
   el.tagName.toLowerCase() === "div" &&
@@ -154,30 +198,28 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
     [gapTexts]
   );
 
-  // 내부 상태 관리
-  const [gapSelections, setGapSelections] = useState<Record<string, string>>(() => {
-    if (options.gapSelections) {
-      return options.gapSelections;
-    }
-    if (options.responses && responseIdentifier in options.responses) {
-      const fromResponses = pairsToMap(
-        options.responses[responseIdentifier],
-        gapIdentifiers,
-        choiceIdentifiers
-      );
-      if (Object.keys(fromResponses).length > 0) return fromResponses;
-    }
-    // 정답 프리필은 preview(정답 확인) 모드에서만. practice·thumbnail은 빈 값으로 시작.
-    if (options.mode === "preview") {
-      const fromCorrect = pairsToMap(
-        options.correctAnswers?.[responseIdentifier],
-        gapIdentifiers,
-        choiceIdentifiers
-      );
-      if (Object.keys(fromCorrect).length > 0) return fromCorrect;
-    }
-    return {};
-  });
+  const externalSelections = resolveGapSelections(
+    {
+      gapSelections: options.gapSelections,
+      responses: options.responses,
+      correctAnswers: options.correctAnswers,
+      mode: options.mode,
+    },
+    responseIdentifier,
+    gapIdentifiers,
+    choiceIdentifiers
+  );
+  const externalSelectionsKey = JSON.stringify(externalSelections);
+
+  // 내부 상태. 테마 정·오답 mock처럼 외부 응답이 바뀌면 렌더 중에 맞춘다.
+  const [gapSelections, setGapSelections] = useState<Record<string, string>>(externalSelections);
+  const [prevExternalSelectionsKey, setPrevExternalSelectionsKey] = useState(externalSelectionsKey);
+  if (externalSelectionsKey !== prevExternalSelectionsKey) {
+    setPrevExternalSelectionsKey(externalSelectionsKey);
+    setGapSelections((prev) =>
+      sameGapSelections(prev, externalSelections) ? prev : externalSelections
+    );
+  }
 
   const isPreview = options.mode !== "practice";
   const [isSubmit, setIsSubmit] = useState(!!options.isSubmit);

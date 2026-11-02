@@ -3,6 +3,58 @@ import { cn } from "../../../lib/utils";
 import type { OrderChoiceType, QTIParserOptions } from "../../../types";
 import OrderChoice from "./OrderChoice";
 
+function isHorizontalStackingLayout(layoutClass?: string): boolean {
+  return /qti-choices-stacking-[2-5](?!\d)/.test(layoutClass ?? "");
+}
+
+function rectsOverlapVertically(a: DOMRect, b: DOMRect): boolean {
+  return a.top < b.bottom && b.top < a.bottom;
+}
+
+function calculateGridInsertIndex(
+  clientX: number,
+  clientY: number,
+  children: HTMLElement[]
+): number {
+  for (let i = 0; i < children.length; i++) {
+    const rect = children[i].getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+
+    if (clientY > rect.bottom) continue;
+
+    if (clientY < rect.top) {
+      const prev = i > 0 ? children[i - 1].getBoundingClientRect() : null;
+      const pointerInPrevRow = prev !== null && clientY >= prev.top && clientY <= prev.bottom;
+      if (pointerInPrevRow) return i;
+      if (clientX < centerX) return i;
+
+      const next = children[i + 1];
+      if (!next) return children.length;
+      if (!rectsOverlapVertically(rect, next.getBoundingClientRect())) return i + 1;
+      continue;
+    }
+
+    if (clientX < centerX) return i;
+  }
+
+  return children.length;
+}
+
+function calculateVerticalInsertIndex(clientY: number, children: HTMLElement[]): number {
+  const firstChildRect = children[0].getBoundingClientRect();
+  const firstChildMiddle = firstChildRect.top + firstChildRect.height / 2;
+
+  if (clientY < firstChildMiddle) return 0;
+
+  for (let i = 0; i < children.length; i++) {
+    const rect = children[i].getBoundingClientRect();
+    const elementMiddle = rect.top + rect.height / 2;
+    if (clientY < elementMiddle) return i;
+  }
+
+  return children.length;
+}
+
 interface OrderOptionProps {
   choices: OrderChoiceType[];
   selectedOrder: string[];
@@ -39,47 +91,29 @@ const OrderOption = ({
   const touchStartY = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 타겟 인덱스 계산
+  const isHorizontalStack = isHorizontalStackingLayout(layoutClass);
+
   const calculateTargetIndex = useCallback(
-    (clientY: number, container: HTMLElement) => {
-      const children = Array.from(container.children);
+    (clientX: number, clientY: number, container: HTMLElement) => {
+      const children = Array.from(container.children) as HTMLElement[];
       if (children.length === 0) return 0;
-
-      const firstChild = children[0] as HTMLElement;
-      const firstChildRect = firstChild.getBoundingClientRect();
-      const firstChildMiddle = firstChildRect.top + firstChildRect.height / 2;
-
-      if (clientY < firstChildMiddle) return 0;
-
-      for (let i = 0; i < children.length; i++) {
-        const child = children[i] as HTMLElement;
-        const rect = child.getBoundingClientRect();
-        const elementMiddle = rect.top + rect.height / 2;
-
-        if (clientY < elementMiddle) return i;
-      }
-
-      return children.length;
+      if (isHorizontalStack) return calculateGridInsertIndex(clientX, clientY, children);
+      return calculateVerticalInsertIndex(clientY, children);
     },
-    [],
+    [isHorizontalStack]
   );
 
-  // 순서 업데이트
+  // 카드는 DOM 순서를 유지한다. 놓은 시각적 위치의 순위만 selectedOrder에 반영한다.
   const updateOrder = useCallback(
     (choiceId: string, targetIndex: number) => {
-      const newOrder = [...selectedOrder];
-      const draggedIndex = newOrder.indexOf(choiceId);
-
-      if (draggedIndex === -1 || draggedIndex === targetIndex) return;
-
-      newOrder.splice(draggedIndex, 1);
+      const visualIndex = choices.findIndex((choice) => choice.identifier === choiceId);
       let insertIndex = targetIndex;
-
-      if (draggedIndex < targetIndex) {
-        insertIndex = targetIndex - 1;
+      if (visualIndex !== -1 && visualIndex < targetIndex) {
+        insertIndex -= 1;
       }
 
-      if (insertIndex === 0) {
+      const newOrder = selectedOrder.filter((id) => id !== choiceId);
+      if (insertIndex <= 0) {
         newOrder.unshift(choiceId);
       } else if (insertIndex >= newOrder.length) {
         newOrder.push(choiceId);
@@ -87,9 +121,16 @@ const OrderOption = ({
         newOrder.splice(insertIndex, 0, choiceId);
       }
 
+      if (
+        newOrder.length === selectedOrder.length &&
+        newOrder.every((id, index) => id === selectedOrder[index])
+      ) {
+        return;
+      }
+
       onOrderChange(newOrder);
     },
-    [selectedOrder, onOrderChange],
+    [choices, selectedOrder, onOrderChange]
   );
 
   // 드롭 완료 처리
@@ -106,7 +147,7 @@ const OrderOption = ({
       e.preventDefault();
       if (!containerRef.current) return;
 
-      const targetIndex = calculateTargetIndex(e.clientY, containerRef.current);
+      const targetIndex = calculateTargetIndex(e.clientX, e.clientY, containerRef.current);
       setDragOverIndex(targetIndex);
     },
     [calculateTargetIndex],
@@ -123,7 +164,7 @@ const OrderOption = ({
       if (!choiceId) return;
 
       const container = e.currentTarget as HTMLElement;
-      const targetIndex = calculateTargetIndex(e.clientY, container);
+      const targetIndex = calculateTargetIndex(e.clientX, e.clientY, container);
 
       updateOrder(choiceId, targetIndex);
       setDragOverIndex(null);
@@ -163,6 +204,7 @@ const OrderOption = ({
       e.preventDefault();
       const touch = e.touches[0];
       const targetIndex = calculateTargetIndex(
+        touch.clientX,
         touch.clientY,
         containerRef.current,
       );
@@ -182,6 +224,7 @@ const OrderOption = ({
 
       const touch = e.changedTouches[0];
       const targetIndex = calculateTargetIndex(
+        touch.clientX,
         touch.clientY,
         containerRef.current,
       );
@@ -228,18 +271,17 @@ const OrderOption = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {selectedOrder.map((choiceId, idx) => {
-        const choice = choices.find((c) => c.identifier === choiceId);
-        if (!choice) return null;
+      {choices.map((choice, domIndex) => {
+        const choiceId = choice.identifier;
+        const rankIndex = selectedOrder.indexOf(choiceId);
+        const orderRank = rankIndex >= 0 ? rankIndex + 1 : null;
 
-        const isDragOver = dragOverIndex === idx;
-        const isSelected =
-          draggedChoiceId === choiceId || droppedChoiceId === choiceId;
+        const isDragOver = dragOverIndex === domIndex;
+        const isSelected = draggedChoiceId === choiceId || droppedChoiceId === choiceId;
         const isDropped = droppedChoiceId === choiceId;
-        const isLastElement = idx === selectedOrder.length - 1;
-        const isDragOverLast =
-          dragOverIndex !== null && dragOverIndex >= selectedOrder.length;
-        const isCorrect = isSubmit && correctOrder[idx] === choiceId;
+        const isLastElement = domIndex === choices.length - 1;
+        const isDragOverLast = dragOverIndex !== null && dragOverIndex >= choices.length;
+        const isCorrect = isSubmit && rankIndex >= 0 && correctOrder[rankIndex] === choiceId;
 
         return (
           <div key={choice.identifier} className="rqti:relative">
@@ -256,7 +298,8 @@ const OrderOption = ({
             <div className="rqti:transition-all rqti:duration-200">
               <OrderChoice
                 choice={choice}
-                index={idx}
+                index={domIndex}
+                orderRank={orderRank}
                 listStyleType={listStyleType}
                 isSelected={isSelected}
                 isDropped={isDropped}

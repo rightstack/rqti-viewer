@@ -54,6 +54,27 @@ function isNonEmpty(value: unknown): boolean {
   return true;
 }
 
+/** GMQ는 응답 식별자 하나에 [gapId, choiceId]만 모은다. 비어 있는 빈칸은 배열에 없다. */
+function countFilledGapPairs(responses: ResponseValueMap): number {
+  let count = 0;
+  for (const value of Object.values(responses)) {
+    if (!Array.isArray(value)) continue;
+    for (const pair of value) {
+      if (
+        Array.isArray(pair) &&
+        pair.length === 2 &&
+        typeof pair[0] === "string" &&
+        pair[0].trim() !== "" &&
+        typeof pair[1] === "string" &&
+        pair[1].trim() !== ""
+      ) {
+        count += 1;
+      }
+    }
+  }
+  return count;
+}
+
 export function canSubmitUtil(responses: ResponseValueMap, options?: CanSubmitOptions): boolean {
   const { type, expectedResponseCount } = options ?? {};
 
@@ -64,7 +85,12 @@ export function canSubmitUtil(responses: ResponseValueMap, options?: CanSubmitOp
 
   if (type === ITEM_TYPE.ORDER || type === ITEM_TYPE.VCQ) return true;
 
-  if (type === ITEM_TYPE.DDQ || type === ITEM_TYPE.CLOZE || type === ITEM_TYPE.GMQ) {
+  // 채워진 directedPair 수가 qti-gap 개수와 같을 때만 제출. gap-text 개수는 보지 않는다.
+  if (type === ITEM_TYPE.GMQ) {
+    return countFilledGapPairs(responses) === (expectedResponseCount ?? 0);
+  }
+
+  if (type === ITEM_TYPE.DDQ || type === ITEM_TYPE.CLOZE) {
     const values = Object.values(responses);
     if (expectedResponseCount !== undefined && values.length < expectedResponseCount) return false;
     return values.every(isNonEmpty);
