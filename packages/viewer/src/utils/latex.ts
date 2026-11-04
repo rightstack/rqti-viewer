@@ -246,6 +246,16 @@ interface ParsedNestedTextStyle {
   sizeCommand?: string;
 }
 
+interface ParsedStandaloneTextStyle {
+  endIndex: number;
+  style: ParsedNestedTextStyle;
+}
+
+/**
+ * MathJax는 `\text{...}` 안의 명령을 TeX가 아닌 일반 문자열로 처리합니다.
+ * 국어 지문에서 사용하는 `\text{\LARGE\textsf{\textbf{...}}}` 같은 순수
+ * 스타일 체인을 MathJax가 해석할 수 있는 바깥 크기 명령 + CSS class 구조로 바꿉니다.
+ */
 const parseNestedTextStyle = (content: string): ParsedNestedTextStyle | null => {
   let current = content.trim();
   let sizeCommand: string | undefined;
@@ -281,18 +291,66 @@ const parseNestedTextStyle = (content: string): ParsedNestedTextStyle | null => 
   return { body: current, classes: [...new Set(classes)], sizeCommand };
 };
 
+const parseStandaloneTextStyle = (
+  latex: string,
+  startIndex: number
+): ParsedStandaloneTextStyle | null => {
+  let currentIndex = startIndex;
+
+  while (true) {
+    const commandMatch = latex.slice(currentIndex).match(/^\\([A-Za-z]+)\s*/);
+    if (!commandMatch || !TEXT_SIZE_COMMANDS.has(commandMatch[1])) break;
+    currentIndex += commandMatch[0].length;
+  }
+
+  const styleMatch = latex.slice(currentIndex).match(/^\\([A-Za-z]+)\s*/);
+  if (!styleMatch || !TEXT_STYLE_CLASSES[styleMatch[1]]) return null;
+
+  const openingIndex = currentIndex + styleMatch[0].length;
+  if (latex[openingIndex] !== "{") return null;
+  const closingIndex = findClosingLatexBrace(latex, openingIndex);
+  if (closingIndex < 0) return null;
+
+  const style = parseNestedTextStyle(latex.slice(startIndex, closingIndex + 1));
+  if (!style || style.classes.length === 0) return null;
+  return { endIndex: closingIndex + 1, style };
+};
+
+const formatTextStyleForMathJax = ({
+  body,
+  classes,
+  sizeCommand,
+}: ParsedNestedTextStyle): string => {
+  const text = `\\text{${body}}`;
+  const styledText = classes.length ? `\\class{${classes.join(" ")}}{${text}}` : text;
+  return sizeCommand ? `{\\${sizeCommand} ${styledText}}` : styledText;
+};
+
 export const normalizeNestedTextStylesForMathJax = (latex: string): string => {
   let result = "";
   let cursor = 0;
 
   while (cursor < latex.length) {
-    const commandIndex = latex.indexOf("\\text{", cursor);
+    const commandIndex = latex.indexOf("\\", cursor);
     if (commandIndex < 0) {
       result += latex.slice(cursor);
       break;
     }
 
     result += latex.slice(cursor, commandIndex);
+    if (!latex.startsWith("\\text{", commandIndex)) {
+      const standalone = parseStandaloneTextStyle(latex, commandIndex);
+      if (standalone) {
+        result += formatTextStyleForMathJax(standalone.style);
+        cursor = standalone.endIndex;
+        continue;
+      }
+
+      result += "\\";
+      cursor = commandIndex + 1;
+      continue;
+    }
+
     const openingIndex = commandIndex + "\\text".length;
     const closingIndex = findClosingLatexBrace(latex, openingIndex);
     if (closingIndex < 0) {
@@ -308,11 +366,7 @@ export const normalizeNestedTextStylesForMathJax = (latex: string): string => {
       continue;
     }
 
-    const text = `\\text{${parsed.body}}`;
-    const styledText = parsed.classes.length
-      ? `\\class{${parsed.classes.join(" ")}}{${text}}`
-      : text;
-    result += parsed.sizeCommand ? `{\\${parsed.sizeCommand} ${styledText}}` : styledText;
+    result += formatTextStyleForMathJax(parsed);
     cursor = closingIndex + 1;
   }
 
