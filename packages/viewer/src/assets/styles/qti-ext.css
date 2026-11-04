@@ -87,6 +87,14 @@
   @apply rqti:max-w-full;
 }
 
+.qti-ext-preview-container.qti-ext-preview-container-version .qti-ext-container {
+  padding-top: 0;
+}
+
+.qti-ext-preview-container.qti-ext-preview-container-version .qti-ext-passage {
+  padding: 0 var(--qti-container-padding) 30px;
+}
+
 .qti-ext-passage-wrapper {
   @apply rqti:flex rqti:min-h-full rqti:min-w-0 rqti:flex-1 rqti:flex-row;
 }
@@ -164,7 +172,19 @@
   margin-right: auto;
   margin-left: 0;
 
-  /* @apply rqti:p-1; */
+  @apply rqti:py-4;
+}
+
+.qti-ext-figure:first-child {
+  @apply rqti:pt-0;
+}
+
+.qti-ext-figure:last-child {
+  @apply rqti:pb-0;
+}
+
+.qti-ext-figure + .qti-ext-figure {
+  @apply rqti:pt-0;
 }
 
 .qti-ext-figure .qti-ext-image {
@@ -804,7 +824,7 @@
 
   border-color: var(--qti-option-border);
 
-  background-color: var(--qti-option-bg);
+  background-color: var(--qti-container-bg);
 
   color: inherit;
   font-size: calc(var(--qti-example-stimulus-font-size) * 0.7);
@@ -913,10 +933,9 @@
   );
   border-radius: var(--qti-blank-border-radius, 0);
 
+  font-size: var(--qti-blank-font-size, 1em);
   text-align: center;
-  vertical-align: middle;
-
-  font-size: var(--qti-blank-font-size);
+  vertical-align: baseline;
 }
 
 .qti-ext-blank-content::after {
@@ -2049,7 +2068,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   display: inline-block;
   display: inline-flex !important;
 
-  padding: 0 1px;
+  padding: 4px 1px;
 
   color: inherit;
   font-size: inherit;
@@ -2339,7 +2358,8 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   /* overflow:hidden 조상 아래 pseudo 밑줄 잘림 완화 */
 
   margin: 3px auto;
-  padding: 0.6em 0;
+
+  /* padding: 0.6em 0; */
 
   vertical-align: bottom;
 }
@@ -2479,7 +2499,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
 /* Order Choice Content */
 .qti-ext-order-choice-content {
-  @apply rqti:flex rqti:items-center rqti:gap-2;
+  @apply rqti:flex rqti:min-w-0 rqti:flex-1 rqti:items-center rqti:gap-2;
 }
 
 /* Order Number - 드래그형은 테두리/원 없이 라벨만 바로 표시 */
@@ -2487,14 +2507,14 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   border: none;
   background-color: transparent;
 
-  @apply rqti:flex rqti:h-5 rqti:w-5 rqti:shrink-0 rqti:items-center rqti:justify-center;
+  @apply rqti:flex rqti:shrink-0 rqti:items-center rqti:justify-center;
 }
 
 /* Order Number Text */
 .qti-ext-order-number-text {
   color: var(--qti-option-border);
 
-  @apply rqti:leading-none rqti:font-extrabold;
+  @apply rqti:leading-none;
 }
 
 /* Order Number 상태별: 테두리/배경 없이 라벨 색만 변경 */
@@ -2957,7 +2977,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 }
 
 .qti-ext-feedback-section-answer {
-  @apply rqti:ml-4 rqti:flex rqti:gap-1;
+  @apply rqti:ml-4 rqti:flex rqti:items-center rqti:gap-1;
 }
 
 .qti-ext-feedback-section-head:has(
@@ -3035,7 +3055,11 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
 .qti-ext-order-correct-answer img:not(.qti-ext-inline-image) {
   height: auto !important;
+  max-height: 10rem;
+  max-width: 100%;
   margin: 0;
+
+  object-fit: contain;
 }
 
 .qti-ext-feedback-section-content {
@@ -4148,7 +4172,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
 .qti-ext-grid-4 .qti-ext-grid-header,
 .qti-ext-grid-4 .qti-ext-grid-row {
-  @apply rqti:grid-cols-[repeat(4,_1fr)];
+  @apply rqti:grid-cols-[40px_repeat(4,_1fr)];
 }
 
 .qti-ext-grid-5 .qti-ext-grid-header,
@@ -6852,6 +6876,7 @@ img.qti-ext-inline-image,
    폭은 저작 px다. 이 PCI가 들어 있는 발문·보기·지문·단락·단·figure만 그 폭으로 늘어난다.
    넘치면 테마 컨테이너·지문 패널이 가로로 스크롤된다. 다른 문항 유형은 이 규칙을 타지 않는다.
    텍스트·분수 배경은 투명하다. 분수 테두리·선은 gray-200, 연필은 단답 입력 placeholder와 같은 gray-300 이다.
+   분수 칸은 글자 너비에 맞춰 영역 안에서만 커진다. 비어 있을 때 최소 너비는 본문 CLOZE 분수 1글자 칸에서 테두리를 뺀 1ch + 1rem 이다.
    ======================================== */
 
 .qti-ext-image-input-blank {
@@ -6976,12 +7001,8 @@ p:has(.qti-ext-image-input-blank) {
   min-height: 0;
   padding: 0;
 
-  /* 두께·색은 선택지 테마를 따른다 */
   border-width: var(--qti-option-border-width, 1px);
   border-style: solid;
-  border-color: var(--qti-option-border, #d4d4d8);
-
-  /* 라운드는 4px 고정. 테마의 8px는 낮은 칸에서 알약 모양이 된다 */
   border-radius: 4px;
   outline: none;
 
@@ -7013,7 +7034,7 @@ p:has(.qti-ext-image-input-blank) {
 .qti-ext-image-input-blank__region,
 .qti-ext-image-input-blank__input,
 .qti-ext-image-input-blank__pencil {
-  font-size: var(--qti-font-size-base, 16px);
+  font-size: var(--qti-font-size-base, 20px);
 }
 
 .qti-ext-image-input-blank__field > .qti-ext-image-input-blank__input {
@@ -7087,155 +7108,102 @@ p:has(.qti-ext-image-input-blank) {
   background-color: transparent;
 }
 
-.qti-ext-image-input-blank__fraction-part.qti-ext-image-input-blank__input,
-.qti-ext-image-input-blank__fraction-whole.qti-ext-image-input-blank__input,
-.qti-ext-image-input-blank__fraction-part > .qti-ext-image-input-blank__input,
-.qti-ext-image-input-blank__fraction-whole > .qti-ext-image-input-blank__input {
-  border-width: calc(var(--image-blank-calculated-font-size, 24px) * 0.06);
-  border-color: var(--color-gray-200, #e5e7eb);
-  border-radius: calc(var(--image-blank-calculated-font-size, 24px) * 0.08);
-
-  background-color: transparent;
-}
-
+/* 묶음은 글자 너비만큼 커지고, 영역(overflow: hidden) 안에서 멈춘다. 높이는 고정이라 낮은 영역에서는 위·아래가 잘린다. */
 .qti-ext-image-input-blank__fraction {
-  display: flex;
+  display: inline-flex;
   overflow: hidden;
 
   justify-content: center;
   align-items: center;
-  gap: 0.18em;
 
-  width: 100%;
+  box-sizing: border-box;
+  width: max-content;
   min-width: 0;
+  max-width: 100%;
   height: 100%;
   min-height: 0;
 
-  font-size: var(--image-blank-calculated-font-size, 24px);
   line-height: 1;
 }
 
+/* 좌우 패딩은 분수선만 칸보다 0.25em씩 길게 두기 위한 자리다. 선은 이 패딩 안에 있어 잘리지 않는다. */
 .qti-ext-image-input-blank__fraction-stack {
   display: grid;
 
-  align-items: stretch;
-  row-gap: max(1px, 0.12em);
-  grid-template-rows: minmax(0, 1fr) 0.08em minmax(0, 1fr);
+  justify-items: stretch;
+  gap: 0.15em;
+  grid-template-columns: minmax(0, max-content);
 
-  width: 100%;
+  box-sizing: border-box;
+  width: max-content;
   min-width: 0;
-  max-width: 2.6em;
-  height: 100%;
-  min-height: 0;
+  max-width: 100%;
+  height: auto;
+  padding-inline: 0.25em;
 }
 
-.qti-ext-image-input-blank__fraction-part {
-  width: 100%;
-  height: 100%;
+.qti-ext-image-input-blank__field.qti-ext-image-input-blank__fraction-part,
+.qti-ext-image-input-blank__field.qti-ext-image-input-blank__fraction-whole {
+  display: grid;
+  overflow: hidden;
+
+  box-sizing: border-box;
+  width: auto;
+  min-width: calc(1ch + 1rem);
+  height: 1.4em;
+  min-height: 1.4em;
+  max-height: 1.4em;
 }
 
-.qti-ext-image-input-blank__fraction-whole {
-  flex-shrink: 0;
+.qti-ext-image-input-blank__fraction-sizer {
+  visibility: hidden;
 
-  width: 32%;
-  height: 50%;
-}
+  box-sizing: border-box;
+  width: max-content;
 
-.qti-ext-image-input-blank__fraction--mixed
-  .qti-ext-image-input-blank__fraction-stack {
-  flex: 1;
+  border: 0.06em solid transparent;
 
-  max-width: 2.2em;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1;
+  white-space: pre;
 }
 
 .qti-ext-image-input-blank__fraction-line {
   display: block;
 
-  width: 100%;
-  min-height: 1px;
+  box-sizing: border-box;
+  width: calc(100% + 0.25rem);
+  height: 1px;
+  margin-inline: -0.125rem;
 
-  background-color: var(--qti-option-border, #d4d4d8);
+  background-color: #aaaaaa;
 }
 
-/* 분수 선도 칸 테두리와 같은 상태 색을 쓴다. 칸마다 상태가 다르면 JS에서 한쪽으로 합친다.
-   대분수는 정수부도 같은 분수로 보므로 세 칸을 함께 본다. */
-.qti-ext-image-input-blank__fraction-stack--selected
-  .qti-ext-image-input-blank__fraction-line {
-  background-color: var(
-    --qti-option-border-selected,
-    var(--qti-option-border, #d4d4d8)
-  );
+.qti-ext-image-input-blank__fraction-part.qti-ext-image-input-blank__input,
+.qti-ext-image-input-blank__fraction-whole.qti-ext-image-input-blank__input,
+.qti-ext-image-input-blank__fraction-part > .qti-ext-image-input-blank__input,
+.qti-ext-image-input-blank__fraction-whole > .qti-ext-image-input-blank__input {
+  overflow: hidden;
+
+  border-width: 0.06em;
+  border-color: var(--color-gray-200, #e5e7eb);
+  border-radius: 0.08em;
+
+  background-color: transparent;
+
+  line-height: calc(1.4em - 0.12em);
+  text-align: center;
 }
 
-.qti-ext-image-input-blank__fraction-stack--correct
-  .qti-ext-image-input-blank__fraction-line {
-  background-color: var(--qti-option-border-correct, #16a34a);
-}
-
-.qti-ext-image-input-blank__fraction-stack--incorrect
-  .qti-ext-image-input-blank__fraction-line {
-  background-color: var(--qti-option-border-incorrect, #dc2626);
-}
-
-/* hover는 분수를 한 덩어리로 본다. 대분수 정수부에 올려도 선이 같이 반응하도록
-   hover 대상은 스택이 아니라 분수 전체다. `:has(input:read-write)`로 입력 가능한 분수에서만 쓴다. */
-.qti-ext-image-input-blank__fraction:hover
-  .qti-ext-image-input-blank__fraction-stack:where(
-    :not(
-        .qti-ext-image-input-blank__fraction-stack--selected,
-        .qti-ext-image-input-blank__fraction-stack--correct,
-        .qti-ext-image-input-blank__fraction-stack--incorrect
-      )
-  ):has(:where(input:read-write))
-  .qti-ext-image-input-blank__fraction-line {
-  background-color: var(
-    --qti-option-border-hover,
-    var(--qti-option-border, #d4d4d8)
-  );
-}
-
-/* 선택지 hover 규칙과 같다: 값이 없고 입력 가능한 칸에서만 hover 색을 쓴다.
-   `:read-only`는 미리보기·시험지의 읽기 전용 input과 수식 표시용 span을 함께 걸러낸다. */
-.qti-ext-image-input-blank__input:hover:not(
-    :read-only,
-    .qti-ext-image-input-blank__input--selected,
-    .qti-ext-image-input-blank__input--correct,
-    .qti-ext-image-input-blank__input--incorrect
-  ) {
-  border-color: var(
-    --qti-option-border-hover,
-    var(--qti-option-border, #d4d4d8)
-  );
-}
-
-/* 값이 들어갔거나 포커스된 칸은 text-entry와 같이 선택 색을 쓴다. 채점된 칸은 정오답 색을 유지한다. */
-.qti-ext-image-input-blank__input--selected,
-.qti-ext-image-input-blank__input:focus:not(
-    .qti-ext-image-input-blank__input--correct,
-    .qti-ext-image-input-blank__input--incorrect
-  ) {
-  border-color: var(
-    --qti-option-border-selected,
-    var(--qti-option-border, #d4d4d8)
-  );
-}
-
-/* 정오답은 테두리색만 바꾼다. 배경은 흰색을 유지한다. */
-.qti-ext-image-input-blank__input--correct {
-  border-color: var(--qti-option-border-correct, #16a34a);
-  color: var(--qti-option-border-correct);
-}
-
+/* 제출 후 정오답은 글자색만 바꾼다. 테두리색을 글자에 써서 칸 안에서 구분되게 한다. */
+.qti-ext-image-input-blank__input--correct,
 .qti-ext-image-input-blank__field--correct,
 .qti-ext-image-input-blank__field--correct .qti-ext-image-input-blank__input {
   color: var(--qti-option-border-correct);
 }
 
-.qti-ext-image-input-blank__input--incorrect {
-  border-color: var(--qti-option-border-incorrect, #dc2626);
-  color: var(--qti-option-border-incorrect);
-}
-
+.qti-ext-image-input-blank__input--incorrect,
 .qti-ext-image-input-blank__field--incorrect,
 .qti-ext-image-input-blank__field--incorrect .qti-ext-image-input-blank__input {
   color: var(--qti-option-border-incorrect);

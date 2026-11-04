@@ -10,7 +10,7 @@ QTI 문항을 호스트 외부 API로 조회해 렌더링하고, 응시 결과 �
 
 > `mode`는 `Question`이 기본값 `"preview"`(읽기 전용)로 처리합니다. `toQuestionProps`는 `mode`를 지정하지 않으므로, 인터랙션이 필요하면 호출측에서 `mode="practice"`를 직접 전달하세요.
 
-현재 패키지 버전: <del>**0.4.0**</del> <del>**0.4.23**</del> <del>**0.4.24**</del> <del>**0.4.25**</del> <del>**0.4.26**</del> <del>**0.4.27**</del> <del>**0.4.28**</del> <del>**0.4.29**</del> <del>**0.4.30**</del> <del>**0.4.31**</del> <del>**0.4.32**</del> <del>**0.4.33**</del> <del>**0.4.34**</del> **0.4.35**
+현재 패키지 버전: <del>**0.4.0**</del> <del>**0.4.23**</del> <del>**0.4.24**</del> <del>**0.4.25**</del> <del>**0.4.26**</del> <del>**0.4.27**</del> <del>**0.4.28**</del> <del>**0.4.29**</del> <del>**0.4.30**</del> <del>**0.4.31**</del> <del>**0.4.32**</del> <del>**0.4.33**</del> <del>**0.4.34**</del> <del>**0.4.35**</del> **0.4.36**
 
 
 ---
@@ -194,6 +194,8 @@ const exampleTheme: Theme = {
 | `designWidth`        | <del>`fixed` 모드의 원본 기준 폭(px). 기본 `720`</del> 고정형 스케일의 원본 기준 폭(px). 호스트가 지정. 없으면 스케일 없음 |
 
 문항 전환 시 `key={props.itemKey}`를 권장합니다.
+
+빈칸 정오답 색은 `submitResponse`로 넘깁니다. 칸별 중복정답은 `alternativeAnswers`에 두고, 대표 정답은 `correctAnswer`에만 둡니다. 버전 미리보기 여백은 래퍼에 `qti-ext-preview-container qti-ext-preview-container-version`을 붙일 때 적용됩니다.
 
 취소선 중 `showInlineFeedback` / `correctAnswers` / `feedbacks`는 뷰어 피드백 표시용입니다. 피드백 표시는 호스트가 별도로 구현합니다. `sizing`은 없습니다.
 

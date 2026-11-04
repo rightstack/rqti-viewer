@@ -479,6 +479,7 @@ function MathInputBlankView({
       value: getResponseString(answerSource, id),
       isSubmit: options.isSubmit,
       correctAnswer: hasCorrect ? getResponseString(correctMap, id) : undefined,
+      alternativeAnswers: options.submitResponse?.alternativeAnswers?.[id],
       answerKey: options.answerKeyPreview === true,
       allowEmptySelected: isPreview && !options.answerKeyPreview && inVcqBlankCell,
     });

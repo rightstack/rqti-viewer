@@ -1,10 +1,6 @@
 /**
- * 이미지 빈칸 PCI 파싱 + 좌표·폰트 계산.
- *
- * 저작(`editor/utils/imageBlank.ts`, `ImageBlankOverlay`)의 계산을 복사한 것이다.
- * RQTI는 단독 라이브러리가 될 수 있어 `@/modules/editor`를 참조하지 않는다.
- * 계수(1.5 / 2.5 / 2.8 / 4)와 `screenFont = regionBaseFont * scale` 은 저작과 같아야 하며,
- * 저작 계수가 바뀌면 이 파일도 같이 고친다.
+ * 이미지 빈칸 PCI 파싱과 좌표 계산.
+ * 글자 크기는 테마 `--qti-font-size-base`를 쓰고, 없을 때 20px다.
  */
 
 export const IMAGE_INPUT_BLANK_TYPE = "image-input-blank";
@@ -47,27 +43,6 @@ export interface ImageBlankConfig {
   displayWidth?: number;
   fontSize: number;
   regions: ImageBlankRegion[];
-}
-
-const IMAGE_BLANK_FONT_FIT_EM = {
-  text: { width: 1.5, height: 1.5 },
-  fraction: { width: 2.5, height: 2.8 },
-  mixedFraction: { width: 4, height: 2.8 },
-} as const;
-
-/**
- * 영역 크기에 맞춘 이미지 원본 좌표계 기준 폰트 크기.
- * `fontSize`는 상한이므로 큰 영역에서 자동 확대하지 않는다.
- */
-export function getImageBlankRegionFontSize(
-  region: ImageBlankRegion,
-  defaultFontSize: number
-): number {
-  const preferredFontSize = Math.max(1, region.fontSize ?? defaultFontSize);
-  const fit = IMAGE_BLANK_FONT_FIT_EM[region.inputType];
-  const widthFittedFontSize = Math.max(1, region.width) / fit.width;
-  const heightFittedFontSize = Math.max(1, region.height) / fit.height;
-  return Math.max(1, Math.min(preferredFontSize, widthFittedFontSize, heightFittedFontSize));
 }
 
 /** 제출·선언에 쓰는 안쪽 응답 ID. 저작 표시 순서(정수 → 분자 → 분모)와 같다. */

@@ -14,12 +14,14 @@ export function getClozeFeedback({
   responses,
   correctAnswers,
   fallbackCorrectAnswers,
+  alternativeAnswers,
   ignoreAnswerOrder = false,
 }: {
   responseIds: string[];
   responses: AnswerMap;
   correctAnswers?: AnswerMap;
   fallbackCorrectAnswers?: AnswerMap;
+  alternativeAnswers?: AnswerMap;
   ignoreAnswerOrder?: boolean;
 }): Record<string, boolean | undefined> {
   const ids = [
@@ -29,12 +31,13 @@ export function getClozeFeedback({
       ...responseIds,
     ]),
   ];
-  const answers = ids.map((id) =>
-    [correctAnswers?.[id], fallbackCorrectAnswers?.[id]]
+  const answers = ids.map((id) => {
+    const primary = [correctAnswers?.[id], fallbackCorrectAnswers?.[id]]
       .map(strings)
-      .find((candidates) => candidates.length > 0)
-      ?.map(stripOuterMathDelimiters)
-  );
+      .find((candidates) => candidates.length > 0);
+    const candidates = [...(primary ?? []), ...strings(alternativeAnswers?.[id])];
+    return candidates.length > 0 ? candidates.map(stripOuterMathDelimiters) : undefined;
+  });
   const inputs = ids.map((id) => {
     const raw = responses[id];
     const value: unknown = Array.isArray(raw) ? raw[0] : raw;
@@ -76,14 +79,9 @@ export function getClozeFeedback({
     const raw = responses[id];
     const value: unknown = Array.isArray(raw) ? raw[0] : raw;
     const input = typeof value === "string" ? stripOuterMathDelimiters(value) : "";
-    const candidates = [correctAnswers?.[id], fallbackCorrectAnswers?.[id]]
-      .map(strings)
-      .find((candidatesForId) => candidatesForId.length > 0);
+    const candidates = answers[ids.indexOf(id)];
 
-    result[id] =
-      input !== "" && candidates
-        ? candidates.some((answer) => stripOuterMathDelimiters(answer) === input)
-        : undefined;
+    result[id] = input !== "" && candidates ? candidates.includes(input) : undefined;
   }
   return result;
 }

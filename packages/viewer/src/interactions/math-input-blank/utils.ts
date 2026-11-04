@@ -247,6 +247,7 @@ export function getInputBlankStateClass(options: {
   value: string;
   isSubmit?: boolean;
   correctAnswer?: string;
+  alternativeAnswers?: string[];
   answerKey?: boolean;
   allowEmptySelected?: boolean;
 }): string {
@@ -254,7 +255,9 @@ export function getInputBlankStateClass(options: {
   if (options.isSubmit && options.value.trim() === "") return "";
 
   if (options.isSubmit && options.correctAnswer !== undefined) {
-    const ok = options.value === options.correctAnswer;
+    const ok = [options.correctAnswer, ...(options.alternativeAnswers ?? [])].some(
+      (answer) => options.value === stripOuterMathDelimiters(answer)
+    );
     return ok ? "qti-ext-text-entry-input-correct" : "qti-ext-text-entry-input-incorrect";
   }
 

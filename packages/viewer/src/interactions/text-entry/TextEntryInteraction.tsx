@@ -16,7 +16,6 @@ import {
   firstTextEntryAnswer,
   isFractionPartId,
   resolveTextEntryMaxLength,
-  textEntryValueMatches,
 } from "./utils";
 
 function getTextEntryResponseString(
@@ -96,6 +95,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
         correct: options.correct ?? false,
         response: options.responses,
         correctAnswer: options.correctAnswers as FeedbackSubmitResponse["correctAnswer"],
+        alternativeAnswers: options.submitResponse?.alternativeAnswers,
       } as FeedbackSubmitResponse;
     }
     return options.submitResponse;
@@ -112,14 +112,8 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
   const layout = isSRQ ? "block" : "inline";
 
   const isCorrect = useMemo(() => {
-    if (!options.isSubmit) return undefined;
     const sr = effectiveSubmitResponse;
-    if (!isCLOZE) {
-      const perBlank =
-        sr?.correctAnswer?.[responseIdentifier] ?? options.correctAnswers?.[responseIdentifier];
-      if (perBlank !== undefined) return textEntryValueMatches(value, perBlank);
-      return sr?.correct;
-    }
+    if (!isCLOZE) return sr?.correct;
 
     const responses = { ...options.responses, ...sr?.response };
     if (responses[responseIdentifier] === undefined) responses[responseIdentifier] = [value];
@@ -129,12 +123,12 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
       ignoreAnswerOrder: options.ignoreAnswerOrder,
       responses,
       correctAnswers: sr?.correctAnswer,
+      alternativeAnswers: sr?.alternativeAnswers,
       fallbackCorrectAnswers: options.correctAnswers,
     })[responseIdentifier];
   }, [
     effectiveSubmitResponse,
     isCLOZE,
-    options.isSubmit,
     options.responses,
     options.correctAnswers,
     options.ignoreAnswerOrder,
@@ -207,7 +201,7 @@ export const TextEntryInteraction: React.FC<TextEntryInteractionProps> = ({
       content={content}
       isSubmit={showBlankFeedback && options.isSubmit}
       isPreview={isReadOnly}
-      isCorrect={isCorrect}
+      isCorrect={isCLOZE ? isCorrect : (isCorrect ?? false)}
       onAnswerChange={handleAnswerChange}
       pattern={pattern}
       placeholder={placeholder}

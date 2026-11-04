@@ -6,7 +6,6 @@ import { appendMediaToken, resolveMediaUrl } from "../../utils/urlUtils";
 import { ImageBlankRegionContent } from "./ImageBlankRegionContent";
 import {
   type ImageBlankConfig,
-  getImageBlankRegionFontSize,
   getImageBlankRegionResponseIds,
   imageBlankPercent,
   parseImageBlankConfig,
@@ -158,17 +157,6 @@ function ImageInputBlankView({
 
   const valueOf = (cellId: string) => localValues[cellId] ?? "";
 
-  /** 수식 빈칸 `getInputBlankStateClass`와 같은 순서: 정답키 → 채점 결과 → 값이 있으면 선택. */
-  const stateClassOf = (cellId: string) => {
-    if (options.answerKeyPreview === true) return "qti-ext-image-input-blank__input--correct";
-    const expected = readCell(correctAnswers, cellId);
-    if (options.isSubmit && expected !== "") {
-      return valueOf(cellId) === expected
-        ? "qti-ext-image-input-blank__input--correct"
-        : "qti-ext-image-input-blank__input--incorrect";
-    }
-    return valueOf(cellId) !== "" ? "qti-ext-image-input-blank__input--selected" : "";
-  };
   const correctAnswerOf = (cellId: string) => readCell(correctAnswers, cellId);
 
   const handleChange = (cellId: string, value: string) => {
@@ -199,9 +187,7 @@ function ImageInputBlankView({
           className="qti-ext-image-input-blank__overlay"
           style={{ width: imageSize.width, height: imageSize.height }}
         >
-          {config.regions.map((region, regionIndex) => {
-            const screenFontSize = getImageBlankRegionFontSize(region, config.fontSize) * scale;
-            return (
+          {config.regions.map((region, regionIndex) => (
               <div
                 key={region.id}
                 className="qti-ext-image-input-blank__region"
@@ -212,7 +198,6 @@ function ImageInputBlankView({
                     top: imageBlankPercent(region.y, config.baseHeight),
                     width: imageBlankPercent(region.width, config.baseWidth),
                     height: imageBlankPercent(region.height, config.baseHeight),
-                    "--image-blank-calculated-font-size": `${screenFontSize}px`,
                   } as CSSProperties
                 }
               >
@@ -224,15 +209,16 @@ function ImageInputBlankView({
                   showFractionAsLatex={showFractionAsLatex}
                   valueOf={valueOf}
                   correctAnswerOf={correctAnswerOf}
+                  alternativeAnswersOf={(cellId) =>
+                    options.submitResponse?.alternativeAnswers?.[cellId] ?? []
+                  }
                   historyScope={options.itemKey}
                   mathKeyboardLevel={region.isMath ? schoolLevel : null}
-                  stateClassOf={stateClassOf}
                   isSubmit={options.isSubmit === true}
                   onChange={handleChange}
                 />
               </div>
-            );
-          })}
+          ))}
         </div>
       )}
     </div>

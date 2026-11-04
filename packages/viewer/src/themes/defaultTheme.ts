@@ -21,6 +21,9 @@ export const DEFAULT_THEME: Theme = {
     baseFontWeight: "400",
     baseLineHeight: "1.4",
     baseTextColor: "#1A1A1A",
+    prompt: {
+      fontWeight: "500",
+    },
   },
   // 컴포넌트별 설정
   questionOptionConfig: {

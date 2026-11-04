@@ -23,12 +23,12 @@ interface ImageBlankInputProps {
   numeric?: boolean;
   partClassName: string;
   value: string;
-  stateClassName: string;
   readOnly: boolean;
   /** 값을 보여주기만 하는 화면(미리보기·채점)인지 */
   showMath: boolean;
   /** 이 칸의 정답 문자열. `$$...$$` 정답이면 저장값도 같은 형태로 감싼다. */
   correctAnswer?: string;
+  alternativeAnswers?: string[];
   /** 제출(채점)일 때만 칸 글자색으로 정오답을 표시한다. */
   isSubmit?: boolean;
   historyScope?: string;
@@ -37,8 +37,9 @@ interface ImageBlankInputProps {
 }
 
 /**
- * 학습자 입력 칸. 값 길이·IME·테마로 칸이 커지면 저작 좌표와 어긋나므로
- * 크기는 전부 상위 영역이 정한다. `autocomplete`·`spellcheck`는 건드리지 않는다.
+ * 학습자 입력 칸. 텍스트 칸의 크기는 상위 영역이 정한다.
+ * 분수 파트는 숨은 sizer가 글자 너비를 재고, 그 칸은 영역 안에서만 커진다.
+ * `autocomplete`·`spellcheck`는 건드리지 않는다.
  */
 function ImageBlankInput({
   responseIdentifier,
@@ -46,10 +47,10 @@ function ImageBlankInput({
   numeric,
   partClassName,
   value,
-  stateClassName,
   readOnly,
   showMath,
   correctAnswer,
+  alternativeAnswers,
   isSubmit,
   historyScope,
   mathKeyboardLevel,
@@ -58,7 +59,7 @@ function ImageBlankInput({
   // 제출 후에만. 정답 문자열이 없으면 색을 매기지 않는다. 선택 상태에는 쓰지 않는다.
   const gradeClass =
     isSubmit === true && correctAnswer !== undefined
-      ? textEntryValueMatches(value, correctAnswer)
+      ? textEntryValueMatches(value, [correctAnswer, ...(alternativeAnswers ?? [])])
         ? "correct"
         : "incorrect"
       : undefined;
@@ -77,7 +78,6 @@ function ImageBlankInput({
           "qti-ext-image-input-blank__input",
           "qti-ext-image-input-blank__math",
           partClassName,
-          stateClassName,
           inputGradeClass
         )}
         data-response-identifier={responseIdentifier}
@@ -123,10 +123,15 @@ function ImageBlankInput({
 
   return (
     <span className={clsx("qti-ext-image-input-blank__field", partClassName, fieldGradeClass)}>
+      {numeric ? (
+        <span className="qti-ext-image-input-blank__fraction-sizer" aria-hidden="true">
+          {value || "\u00a0"}
+        </span>
+      ) : null}
       <input
         type="text"
         inputMode={numeric ? "numeric" : undefined}
-        className={clsx("qti-ext-image-input-blank__input", stateClassName)}
+        className="qti-ext-image-input-blank__input"
         data-response-identifier={responseIdentifier}
         aria-label={label}
         value={value}
@@ -149,9 +154,9 @@ interface ImageBlankRegionContentProps {
   /** 정답 영역에서 분수·대분수를 LaTeX 하나로 그린다. */
   showFractionAsLatex: boolean;
   valueOf: (responseIdentifier: string) => string;
-  stateClassOf: (responseIdentifier: string) => string;
   /** 칸의 정답 문자열. `$$...$$` 정답이면 저장값도 같은 형태로 감싼다. */
   correctAnswerOf?: (responseIdentifier: string) => string;
+  alternativeAnswersOf?: (responseIdentifier: string) => string[];
   /** 제출(채점)일 때만 칸 글자색으로 정오답을 표시한다. */
   isSubmit?: boolean;
   historyScope?: string;
@@ -159,59 +164,34 @@ interface ImageBlankRegionContentProps {
   onChange: (responseIdentifier: string, value: string) => void;
 }
 
-/** 분수 선 색을 정할 때 여러 칸 상태 중 먼저 걸리는 쪽을 쓴다. */
-const FRACTION_LINE_STATE_PRIORITY = ["incorrect", "correct", "selected"] as const;
-
-function fractionStackStateClass(...cellStates: string[]): string {
-  const state = FRACTION_LINE_STATE_PRIORITY.find((name) =>
-    cellStates.includes(`qti-ext-image-input-blank__input--${name}`)
-  );
-  return state ? `qti-ext-image-input-blank__fraction-stack--${state}` : "";
-}
-
 /** 분수·대분수 공통 스택. em 레이아웃은 저작 영역 내부와 같다. */
 function ImageBlankFractionStack({
-  wholeId,
   numeratorId,
   denominatorId,
   displayIndex,
   readOnly,
   showMath,
   valueOf,
-  stateClassOf,
   correctAnswerOf,
+  alternativeAnswersOf,
   isSubmit,
   onChange,
 }: {
-  /** 대분수 정수부. 칸은 스택 밖에 있지만 분수 선 색에는 함께 반영한다. */
-  wholeId?: string;
   numeratorId: string;
   denominatorId: string;
 } & Omit<ImageBlankRegionContentProps, "region" | "showFractionAsLatex">) {
-  const numeratorState = stateClassOf(numeratorId);
-  const denominatorState = stateClassOf(denominatorId);
-
   return (
-    <span
-      className={clsx(
-        "qti-ext-image-input-blank__fraction-stack",
-        fractionStackStateClass(
-          wholeId ? stateClassOf(wholeId) : "",
-          numeratorState,
-          denominatorState
-        )
-      )}
-    >
+    <span className="qti-ext-image-input-blank__fraction-stack">
       <ImageBlankInput
         responseIdentifier={numeratorId}
         label={`이미지 빈칸 ${displayIndex} 분자`}
         numeric
         partClassName="qti-ext-image-input-blank__fraction-part"
         value={valueOf(numeratorId)}
-        stateClassName={numeratorState}
         readOnly={readOnly}
         showMath={showMath}
         correctAnswer={correctAnswerOf?.(numeratorId)}
+        alternativeAnswers={alternativeAnswersOf?.(numeratorId)}
         isSubmit={isSubmit}
         onChange={onChange}
       />
@@ -222,10 +202,10 @@ function ImageBlankFractionStack({
         numeric
         partClassName="qti-ext-image-input-blank__fraction-part"
         value={valueOf(denominatorId)}
-        stateClassName={denominatorState}
         readOnly={readOnly}
         showMath={showMath}
         correctAnswer={correctAnswerOf?.(denominatorId)}
+        alternativeAnswers={alternativeAnswersOf?.(denominatorId)}
         isSubmit={isSubmit}
         onChange={onChange}
       />
@@ -240,8 +220,8 @@ export function ImageBlankRegionContent({
   showMath,
   showFractionAsLatex,
   valueOf,
-  stateClassOf,
   correctAnswerOf,
+  alternativeAnswersOf,
   isSubmit,
   historyScope,
   mathKeyboardLevel,
@@ -252,8 +232,8 @@ export function ImageBlankRegionContent({
     readOnly,
     showMath,
     valueOf,
-    stateClassOf,
     correctAnswerOf,
+    alternativeAnswersOf,
     isSubmit,
     onChange,
   };
@@ -283,10 +263,10 @@ export function ImageBlankRegionContent({
         label={`이미지 빈칸 ${displayIndex}`}
         partClassName="qti-ext-image-input-blank__text"
         value={valueOf(region.responseIdentifier)}
-        stateClassName={stateClassOf(region.responseIdentifier)}
         readOnly={readOnly}
         showMath={showMath}
         correctAnswer={correctAnswerOf?.(region.responseIdentifier)}
+        alternativeAnswers={alternativeAnswersOf?.(region.responseIdentifier)}
         isSubmit={isSubmit}
         historyScope={historyScope}
         mathKeyboardLevel={mathKeyboardLevel}
@@ -304,15 +284,14 @@ export function ImageBlankRegionContent({
           numeric
           partClassName="qti-ext-image-input-blank__fraction-whole"
           value={valueOf(region.wholeId)}
-          stateClassName={stateClassOf(region.wholeId)}
           readOnly={readOnly}
           showMath={showMath}
           correctAnswer={correctAnswerOf?.(region.wholeId)}
+          alternativeAnswers={alternativeAnswersOf?.(region.wholeId)}
           isSubmit={isSubmit}
           onChange={onChange}
         />
         <ImageBlankFractionStack
-          wholeId={region.wholeId}
           numeratorId={region.numeratorId}
           denominatorId={region.denominatorId}
           {...shared}

@@ -191,14 +191,16 @@ function addBlankVariables(variables: CSSVariables, config: Theme["blankConfig"]
     variables["--qti-blank-border-radius"] = "0";
     variables["--qti-blank-padding"] = "0 5px";
     variables["--qti-blank-min-height"] = "0";
+    variables["--qti-blank-font-size"] = "1em";
   } else {
     variables["--qti-blank-border"] = borderValue;
     variables["--qti-blank-border-bottom"] = borderValue;
     variables["--qti-blank-underline-line"] = "none";
     variables["--qti-blank-underline-shift"] = "0";
     variables["--qti-blank-border-radius"] = "4px";
-    variables["--qti-blank-padding"] = "2px 8px";
+    variables["--qti-blank-padding"] = "0 8px";
     variables["--qti-blank-min-height"] = "1.5em";
+    variables["--qti-blank-font-size"] = "0.9em";
   }
 }
 

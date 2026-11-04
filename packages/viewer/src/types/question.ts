@@ -11,6 +11,8 @@ export interface FeedbackSubmitResponse {
   correct: boolean;
   response?: ResponseValueMap;
   correctAnswer?: ResponseValueMap;
+  /** 빈칸 ID별 만점 인정 중복정답. 대표 정답은 포함하지 않는다. */
+  alternativeAnswers?: ResponseValueMap;
 }
 
 /**

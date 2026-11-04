@@ -3,6 +3,7 @@ import { getNodeKey } from "../utils/getNodeKey";
 import { AudioPlayer } from "../components/AudioPlayer";
 import type { QTIParserOptions } from "../types";
 import { resolveMediaUrl } from "../utils/urlUtils";
+import { parseTextIndent } from "../themes/utils";
 import { buildImageStyle, buildInlineImageStyle, getQtiInlineImageHeight } from "./imageUtils";
 import { parseTextWithLaTeX, renderLaTeX } from "./parseLatexToReact";
 
@@ -170,6 +171,14 @@ export function renderQtiNode(node: ChildNode, options?: QTIParserOptions): Reac
       props[attr.name] = attr.value;
       if (attr.name === "identifier") {
         props.className = [props.className, "rqti:w-full rqti:min-w-0"].filter(Boolean).join(" ");
+      }
+    }
+
+    if (tagName === "p") {
+      // 선지·선잇기 문단에도 발문과 동일한 들여쓰기 변환을 적용한다.
+      const { style } = parseTextIndent(className);
+      if (Object.keys(style).length > 0) {
+        props.style = { ...(props.style as React.CSSProperties | undefined), ...style };
       }
     }
 
