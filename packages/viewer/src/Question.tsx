@@ -51,6 +51,7 @@ import {
   getFeedbackTitle,
 } from "./utils/questionUtils";
 import { getThemeCSSVariables } from "./utils/themeToCSS";
+import { recordViewerVersion } from "./utils/version";
 
 export type { QuestionMode } from "./types";
 
@@ -221,6 +222,10 @@ function Question({
       : themeProp ?? THEME_MAP["default"];
 
   const themeVariables = getThemeCSSVariables(theme);
+
+  useEffect(() => {
+    recordViewerVersion();
+  }, []);
 
   useEffect(() => {
     loadThemeFont(theme.typography?.fontFamily);

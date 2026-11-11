@@ -7,6 +7,7 @@
 
 // 메인 Viewer
 export { default as Question } from "./Question";
+export { VERSION, VERSION_STORAGE_KEY } from "./utils/version";
 export type { QuestionProps, QuestionMode } from "./Question";
 
 // 고정폭(Scale) 컨테이너 — 화이트보드 등 오버레이 정합용 (Question 내부에서도 사용)
