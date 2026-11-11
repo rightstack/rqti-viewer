@@ -112,8 +112,17 @@
   padding: 24px var(--qti-container-padding) 0 var(--qti-container-padding) !important;
 }
 
+/* 연결지문 분할: 가로 스크롤은 문항 패널만. 지문 패널은 세로만 스크롤한다. */
 .qti-ext-passage-panel {
+  overflow-x: clip;
+
   @apply rqti:min-h-0 rqti:min-w-0 rqti:flex-1 rqti:basis-0 rqti:overflow-y-auto;
+}
+
+.qti-ext-question-panel {
+  overflow: auto;
+
+  @apply rqti:min-h-0 rqti:min-w-0 rqti:flex-1 rqti:basis-0;
 }
 
 .qti-ext-passage-divider {
@@ -6900,6 +6909,7 @@ img.qti-ext-inline-image,
 /* 정답도 문항과 같은 저작 폭이다. 넘치면 이 영역만 가로로 스크롤한다. */
 .qti-ext-image-input-blank-answer {
   overflow-x: auto;
+  overflow-y: hidden;
 
   max-width: 100%;
 }
@@ -6910,6 +6920,25 @@ img.qti-ext-inline-image,
 
 .qti-ext-passage:has(.qti-ext-image-input-blank) {
   overflow-x: auto;
+}
+
+.qti-ext-passage-panel > .qti-ext-wrapper {
+  overflow: visible;
+
+  height: auto;
+  min-height: 0;
+}
+
+.qti-ext-passage-panel .qti-ext-passage:has(.qti-ext-image-input-blank) {
+  overflow-x: clip;
+}
+
+.qti-ext-question-panel > .qti-ext-wrapper {
+  overflow: visible;
+}
+
+.qti-ext-question-panel .qti-ext-container:has(.qti-ext-image-input-blank) {
+  overflow-x: visible;
 }
 
 /* 이미지가 들어 있는 영역만 저작 폭까지 늘린다. 작은 이미지는 영역 너비를 줄이지 않는다. */
@@ -7034,7 +7063,7 @@ p:has(.qti-ext-image-input-blank) {
 .qti-ext-image-input-blank__region,
 .qti-ext-image-input-blank__input,
 .qti-ext-image-input-blank__pencil {
-  font-size: var(--qti-font-size-base, 20px);
+  font-size: 20px;
 }
 
 .qti-ext-image-input-blank__field > .qti-ext-image-input-blank__input {

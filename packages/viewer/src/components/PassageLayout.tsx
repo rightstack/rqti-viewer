@@ -10,6 +10,7 @@ export interface PassageLayoutProps {
 /**
  * mqti-frontend `ItemPassageQuestionSplitPreview` 가로 분할과 동일.
  * 지문도 문항과 같이 `.qti-ext-wrapper` 안에 두어 패딩·줄바꿈·배경이 맞는다.
+ * 가로 스크롤은 문항 패널만 가진다.
  */
 export function PassageLayout({ passage, children }: PassageLayoutProps) {
   return (
@@ -24,7 +25,7 @@ export function PassageLayout({ passage, children }: PassageLayoutProps) {
         </div>
       </div>
       <div className="qti-ext-passage-divider" aria-hidden />
-      <div className="qti-ext-passage-panel">{children}</div>
+      <div className="qti-ext-question-panel">{children}</div>
     </div>
   );
 }
