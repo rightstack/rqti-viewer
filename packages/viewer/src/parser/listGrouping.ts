@@ -1,5 +1,5 @@
 import React from "react";
-import { INDENT_UNIT_EM, parseTextIndent } from "../themes/utils";
+import { INDENT_UNIT_EM, LIST_INDENT_UNIT_EM, parseTextIndent } from "../themes/utils";
 
 const LIST_STYLE_TYPE_RE = /qti-list-style-type-([a-z-]+)/;
 const TEXT_INDENT_RE = /qti-text-indent-(\d+)/;
@@ -63,6 +63,7 @@ function buildList(
   }): React.ReactNode => {
     const className = itemProps.className ?? "";
     const style = parseTextIndent(className).style;
+    // 문단 변환에서 계산한 여백을 제거하고, 목록 자체에서 중첩 간격을 적용한다.
     const blockIndent = sumBlockIndentLevel(className) * INDENT_UNIT_EM;
 
     if (typeof style.marginLeft === "string" && style.marginLeft.endsWith("em")) {
@@ -139,7 +140,7 @@ function nestGroup(items: React.ReactElement[], keyBase: number): React.ReactEle
       const frame = stack.pop()!;
       const parentIndent = stack.length > 0 ? stack[stack.length - 1].indent : indent;
       const diff = frame.indent - parentIndent;
-      const ml = diff > 0 ? `${diff * INDENT_UNIT_EM}em` : undefined;
+      const ml = diff > 0 ? `${diff * LIST_INDENT_UNIT_EM}em` : undefined;
       listKeySeq += 1;
       const listEl = buildList(frame, keyBase, listKeySeq, ml);
       if (stack.length > 0) {
@@ -166,13 +167,13 @@ function nestGroup(items: React.ReactElement[], keyBase: number): React.ReactEle
     if (stack.length > 0) {
       const parentIndent = stack[stack.length - 1].indent;
       const diff = frame.indent - parentIndent;
-      const ml = diff > 0 ? `${diff * INDENT_UNIT_EM}em` : undefined;
+      const ml = diff > 0 ? `${diff * LIST_INDENT_UNIT_EM}em` : undefined;
       listKeySeq += 1;
       const listEl = buildList(frame, keyBase, listKeySeq, ml);
       const parentItems = stack[stack.length - 1].items;
       parentItems[parentItems.length - 1].subList = listEl;
     } else {
-      const ml = frame.indent > 0 ? `${frame.indent * INDENT_UNIT_EM}em` : undefined;
+      const ml = frame.indent > 0 ? `${frame.indent * LIST_INDENT_UNIT_EM}em` : undefined;
       listKeySeq += 1;
       const listEl = buildList(frame, keyBase, listKeySeq, ml);
       result.push(listEl);

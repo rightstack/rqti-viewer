@@ -59,7 +59,10 @@ function sumIndentEmFromClass(classAttr: string, re: RegExp): number {
 }
 
 /** 들여쓰기/내어쓰기 레벨당 em 단위 (레벨 × 이 값). */
-export const INDENT_UNIT_EM = 1.2;
+export const INDENT_UNIT_EM = 1;
+
+/** 목록 중첩 레벨당 간격. 문단의 들여쓰기/내어쓰기 단위와 별도로 유지한다. */
+export const LIST_INDENT_UNIT_EM = 1.2;
 
 function emMargin(n: number): string | undefined {
   if (n === 0) return undefined;
