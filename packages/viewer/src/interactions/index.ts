@@ -8,5 +8,6 @@ export { parseOrderInteraction } from "./order/OrderParser";
 export { parseUploadInteraction } from "./upload/UploadParser";
 export { parseGapMatchInteraction } from "./gap-match/GapMatchParser";
 export { parseHotspotInteraction } from "./hotspot/HotspotParser";
+export { parseHottextInteraction } from "./hottext/HottextParser";
 export { parseMathInputBlankInteraction } from "./math-input-blank";
 export { parseImageInputBlankInteraction } from "./image-input-blank/ImageInputBlankParser";

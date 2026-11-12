@@ -9,6 +9,7 @@ import "./assets/styles/index.css";
 import { FixedScaleContainer } from "./components/FixedScaleContainer";
 import { PassageLayout } from "./components/PassageLayout";
 import { QuestionNumber } from "./components/QuestionNumber";
+import { readHottextSubmitRequirements } from "./interactions/hottext/hottextRules";
 import { ITEM_TYPE, type ItemsType } from "./constants/itemType";
 import { cn } from "./lib/utils";
 import {
@@ -311,6 +312,10 @@ function Question({
 
   const canSubmitOptions = useMemo<CanSubmitOptions>(() => {
     if (!data || !type) return { type };
+
+    if (type === ITEM_TYPE.HTQ) {
+      return { type, hottextRequirements: readHottextSubmitRequirements(data) };
+    }
 
     let expectedResponseCount: number | undefined;
 

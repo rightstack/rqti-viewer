@@ -12,6 +12,13 @@ import {
 } from "lucide-react";
 import { Separator } from "../components/ui/separator";
 import { cn } from "../lib/utils";
+import { HottextCorrectAnswer } from "../interactions/hottext/HottextCorrectAnswer";
+import {
+  HOTTEXT_SHAPES_RESPONSE_ID,
+  groupHottextCorrectAnswers,
+  hottextExpectedShapeValue,
+  hottextXmlUsesShapeMode,
+} from "../interactions/hottext/hottextRules";
 import { parseFeedbackContentToReact, parseTextWithLaTeX, renderLaTeX } from "../parser";
 import type { FeedbackItem, FeedbackType, ResponseValue } from "../types";
 import {
@@ -23,6 +30,7 @@ import {
   buildOrderCorrectAnswerItems,
   getGapMatchMathBlankAnswerParts,
   getMatchCorrectResponseStrings,
+  isHottextInteractionResponse,
 } from "../utils/choiceAnswerDisplayFromQti";
 import { ChoiceCorrectAnswerPreview } from "./ChoiceCorrectAnswerPreview";
 import { GapMatchAnswerView } from "./GapMatchAnswerView";
@@ -264,8 +272,10 @@ export const FeedbackInline = ({
                         qtiXml
                       )
                     : null;
+                const hottextDisplay =
+                  segment.kind === "default" && isHottextInteractionResponse(qtiXml, segment.key);
 
-                const Wrap = choiceAnswerItems !== null ? "div" : "span";
+                const Wrap = choiceAnswerItems !== null || hottextDisplay ? "div" : "span";
 
                 return (
                   <React.Fragment key={`${segment.kind}-${segment.key}`}>
@@ -324,6 +334,29 @@ export const FeedbackInline = ({
                         />
                       ) : orderAnswerItems !== null ? (
                         <OrderCorrectAnswerPreview items={orderAnswerItems} token={token} />
+                      ) : hottextDisplay ? (
+                        <HottextCorrectAnswer
+                          groups={groupHottextCorrectAnswers(
+                            segment.kind === "default"
+                              ? Array.isArray(segment.value)
+                                ? segment.value.filter((item): item is string => typeof item === "string")
+                                : typeof segment.value === "string" && segment.value
+                                  ? [segment.value]
+                                  : []
+                              : [],
+                            hottextExpectedShapeValue(
+                              safeCorrectAnswer[HOTTEXT_SHAPES_RESPONSE_ID],
+                              qtiXml,
+                              segment.key
+                            ),
+                            hottextXmlUsesShapeMode(qtiXml, segment.key)
+                          )}
+                          displayOf={(id) => choiceDisplayMaps?.get(segment.key)?.get(id) ?? id}
+                          keyPrefix={`fb-correct-${segment.key}`}
+                          qtiXml={qtiXml}
+                          responseIdentifier={segment.key}
+                          token={token}
+                        />
                       ) : isMultiMath ? (
                         (Array.isArray(segment.value) ? segment.value : [segment.value]).map(
                           (text, vi, values) => {

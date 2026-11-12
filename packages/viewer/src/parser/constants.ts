@@ -9,6 +9,7 @@ export const QTI_INTERACTION_TAGS = [
   "qti-upload-interaction",
   "qti-gap-match-interaction",
   "qti-hotspot-interaction",
+  "qti-hottext-interaction",
   "qti-portable-custom-interaction",
 ] as const;
 

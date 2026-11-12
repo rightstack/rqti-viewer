@@ -2170,6 +2170,23 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   display: block;
 }
 
+/* MathJax inline 래퍼가 display:inline 이라 줄높이가 한 번 더 붙는다. */
+.qti-ext-hottext .qti-ext-mathfield {
+  display: inline-block !important;
+
+  line-height: 0;
+}
+
+/* 선택 영역 블록 안에서는 수식 높이만 남기고, 상자 정렬은 아래 플렉스가 맡는다. */
+.qti-ext-hottext--choice-block .qti-ext-mathfield {
+  display: inline-flex !important;
+
+  align-items: center;
+
+  line-height: 0;
+  vertical-align: middle;
+}
+
 .qti-ext-mathfield::after {
   content: "";
 
@@ -2991,14 +3008,21 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
 .qti-ext-feedback-section-head:has(
     .qti-ext-order-correct-answer,
-    .qti-ext-choice-correct-answer
+    .qti-ext-choice-correct-answer,
+    .qti-ext-hottext-correct-answer
   ) {
   min-width: 0;
 }
 
+.qti-ext-feedback-section-head:has(.qti-ext-hottext-correct-answer),
+.qti-ext-feedback-section-answer:has(.qti-ext-hottext-correct-answer) {
+  align-items: flex-start;
+}
+
 .qti-ext-feedback-section-answer:has(
     .qti-ext-order-correct-answer,
-    .qti-ext-choice-correct-answer
+    .qti-ext-choice-correct-answer,
+    .qti-ext-hottext-correct-answer
   ) {
   flex: 1 1 auto;
 
@@ -7462,4 +7486,268 @@ p:has(.qti-ext-image-input-blank) {
 
 .qti-ext-float-toolbar__tool[aria-pressed="true"] {
   @apply rqti:bg-gray-100;
+}
+
+.qti-ext-hottext-correct-answer {
+  display: flex;
+
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+
+  min-width: 0;
+  max-width: 100%;
+}
+
+.qti-ext-hottext-correct-answer-row {
+  display: flex;
+
+  align-items: center;
+  gap: 0.375rem;
+
+  min-width: 0;
+  max-width: 100%;
+}
+
+.qti-ext-hottext-correct-answer-shape {
+  display: inline-flex;
+
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+
+  color: var(--qti-option-border-correct, currentColor);
+}
+
+.qti-ext-hottext-correct-answer-shape svg {
+  width: 1.5em;
+  height: 1.5em;
+}
+
+.qti-ext-hottext-correct-answer-items {
+  min-width: 0;
+
+  overflow-wrap: anywhere;
+}
+
+.qti-ext-hottext-correct-answer--surface,
+.qti-ext-hottext-correct-answer-flow {
+  width: 100%;
+}
+
+.qti-ext-hottext-correct-answer--surface .qti-ext-stimulus {
+  margin: 0;
+  padding: 0;
+
+  border: none;
+}
+
+/* 괄호 묶음은 한 덩어리다. 남은 줄에 안 들어가면 그룹 앞에서 줄을 바꾼다. */
+.qti-ext-hottext-group {
+  display: inline-block;
+
+  max-width: 100%;
+
+  vertical-align: baseline;
+}
+
+.qti-ext-hottext {
+  --qti-hottext-mark-size: calc(var(--qti-font-size-base, 20px) * 1.5);
+  --qti-hottext-mark-stroke: 2px;
+
+  position: relative;
+
+  display: inline-block;
+
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  vertical-align: baseline;
+
+  cursor: inherit;
+
+  appearance: none;
+}
+
+.qti-ext-hottext-correct-answer--surface .qti-ext-hottext {
+  pointer-events: none;
+}
+
+.qti-ext-hottext:disabled {
+  opacity: 1;
+
+  color: inherit;
+
+  -webkit-text-fill-color: currentcolor;
+}
+
+.qti-ext-hottext--interactive {
+  cursor: pointer;
+}
+
+/* 테두리 블록. 그룹이 있으면 묶음에, 없으면 문단 너비의 interaction에 붙는다. */
+.qti-ext-hottext-group--block {
+  overflow: visible;
+
+  box-sizing: border-box;
+  margin: 2px;
+  padding: 2px 5px;
+
+  border: var(--qti-option-border-width, 1px) solid var(--qti-option-border, #e5e7eb);
+  border-radius: 0.35em;
+
+  background-color: transparent;
+}
+
+.qti-ext-hottext-interaction--block {
+  margin: 0;
+}
+
+/* 선택 영역 블록. 점선과 그 여백은 여기에만 있다. 선택·정오답 색은 O에만 둔다. */
+.qti-ext-hottext--choice-block {
+  display: inline-flex;
+
+  align-items: center;
+
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 2px;
+  padding: 2px 5px;
+
+  border: var(--qti-option-border-width, 1px) solid var(--qti-option-border, #e5e7eb);
+  border-radius: 0.35em;
+
+  background-color: transparent;
+
+  font-size: inherit;
+  line-height: inherit;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* 글자 줄 높이를 최소 높이로 두고, 더 낮은 수식은 그 한가운데에 둔다. */
+.qti-ext-hottext--choice-block .qti-ext-hottext-label {
+  display: inline-flex;
+
+  align-items: center;
+
+  min-height: 1lh;
+
+  line-height: inherit;
+}
+
+/* 이미지는 플렉스 항목이라 자기 vertical-align이 무시된다. 상자 가운데를 글줄 middle에 맞춘다. */
+.qti-ext-hottext--choice-block.qti-ext-hottext--image {
+  vertical-align: middle;
+}
+
+.qti-ext-hottext--choice-block:hover,
+.qti-ext-hottext--choice-block:disabled {
+  border-color: var(--qti-option-border, #e5e7eb);
+
+  background-color: transparent;
+}
+
+/* 선택 영역 밑줄. 글자에 붙는 선이고 상자 여백은 없다. */
+.qti-ext-hottext--choice-underline {
+  display: inline;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+
+  background-color: transparent;
+
+  color: inherit;
+  line-height: inherit;
+  text-decoration: 1px underline solid var(--qti-base-text-color, #1a1a1a);
+  text-underline-offset: 0.25em;
+  white-space: normal;
+}
+
+/* 선택 영역 투명. 앞뒤 문장과 같은 글자이고 줄 높이를 밀지 않는다. */
+.qti-ext-hottext--choice-transparent {
+  display: inline;
+
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+
+  background-color: transparent;
+
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  white-space: normal;
+  vertical-align: baseline;
+}
+
+.qti-ext-hottext--choice-transparent:hover,
+.qti-ext-hottext--choice-transparent:disabled {
+  background-color: transparent;
+
+  color: inherit;
+}
+
+.qti-ext-hottext--interactive:focus-visible {
+  outline: 0.125em solid var(--qti-option-border-selected);
+  outline-offset: 0.125em;
+}
+
+.qti-ext-hottext-mark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+
+  width: var(--qti-hottext-mark-size);
+  height: var(--qti-hottext-mark-size);
+
+  color: var(--qti-option-border-selected);
+
+  transform: translate(-50%, -50%);
+
+  pointer-events: none;
+}
+
+.qti-ext-hottext-mark-icon {
+  display: block;
+  overflow: visible;
+
+  width: 100%;
+  height: 100%;
+
+  stroke: currentcolor;
+  stroke-width: var(--qti-hottext-mark-stroke);
+  vector-effect: non-scaling-stroke;
+}
+
+.qti-ext-hottext-mark--selected {
+  color: var(--qti-option-border-selected);
+}
+
+.qti-ext-hottext-mark--correct {
+  color: var(--qti-option-border-correct);
+}
+
+.qti-ext-hottext-mark--incorrect {
+  color: var(--qti-option-border-incorrect);
+}
+
+.qti-ext-hottext-mark--expected {
+  z-index: 0;
 }

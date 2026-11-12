@@ -486,6 +486,62 @@ const HSQ_XML = `<?xml version="1.0" encoding="UTF-8"?>
   </qti-item-body>
 </qti-assessment-item>`;
 
+const HTQ_GROUP_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-item xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="htq-group" title="철 막대와 나무 막대" adaptive="false" time-dependent="false">
+  <qti-response-declaration identifier="RESPONSE" cardinality="multiple" base-type="identifier">
+    <qti-correct-response>
+      <qti-value>G1_A</qti-value>
+      <qti-value>G2_B</qti-value>
+    </qti-correct-response>
+  </qti-response-declaration>
+  <qti-item-body>
+    <div class="qti-ext-prompt"><p>다음은 철 막대와 나무 막대를 서로 긁어 봤을 때에 대한 설명입니다.</p><p>(     ) 안의 알맞은 말에 O표를 해 봅시다.</p></div>
+    <div class="qti-ext-stimulus">
+      <qti-hottext-interaction response-identifier="RESPONSE" min-choices="2" max-choices="0" data-group-style="block" data-choice-style="transparent">
+        <p>철 막대로 나무 막대를 긁으면 나무 막대가 <span class="hottext-group" data-group="1" data-max-choices="1">( <qti-hottext identifier="G1_A">긁히고</qti-hottext>, <qti-hottext identifier="G1_B">긁히지 않고</qti-hottext> )</span>, 나무 막대로 철 막대를 긁으면 철 막대가 <span class="hottext-group" data-group="2" data-max-choices="1">( <qti-hottext identifier="G2_A">긁힌다</qti-hottext>, <qti-hottext identifier="G2_B">긁히지 않는다</qti-hottext> )</span>.</p>
+      </qti-hottext-interaction>
+    </div>
+  </qti-item-body>
+</qti-assessment-item>`;
+
+const HTQ_FREE_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-item xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="htq-free" title="문법에 맞지 않는 말" adaptive="false" time-dependent="false">
+  <qti-response-declaration identifier="RESPONSE" cardinality="multiple" base-type="identifier">
+    <qti-correct-response>
+      <qti-value>H1</qti-value>
+      <qti-value>H3</qti-value>
+      <qti-value>H4</qti-value>
+    </qti-correct-response>
+  </qti-response-declaration>
+  <qti-item-body>
+    <div class="qti-ext-prompt"><p>다음은 Tom과 Mary가 과학관에 간 글입니다.</p><p>문법에 맞지 않는 말에 O표를 해 봅시다.</p></div>
+    <div class="qti-ext-stimulus">
+      <qti-hottext-interaction response-identifier="RESPONSE" min-choices="1" max-choices="0">
+        <p>Last weekend, Tom and Mary visited the science museum with their class. Tom <qti-hottext identifier="H1">don't</qti-hottext> enjoy crowded places, but he <qti-hottext identifier="H2">doesn't</qti-hottext> complain when his friends are with him. After they saw the dinosaur show, Mary <qti-hottext identifier="H3">go</qti-hottext> to the gift shop and <qti-hottext identifier="H5">bought</qti-hottext> a book that was <qti-hottext identifier="H4">interesting than</qti-hottext> the one she had at home.</p>
+      </qti-hottext-interaction>
+    </div>
+  </qti-item-body>
+</qti-assessment-item>`;
+
+const HTQ_SHAPE_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-item xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="htq-shape" title="문법에 맞지 않는 말" adaptive="false" time-dependent="false">
+  <qti-response-declaration identifier="RESPONSE" cardinality="multiple" base-type="identifier">
+    <qti-correct-response>
+      <qti-value>H1</qti-value>
+      <qti-value>H3</qti-value>
+      <qti-value>H4</qti-value>
+    </qti-correct-response>
+  </qti-response-declaration>
+  <qti-item-body>
+    <div class="qti-ext-prompt"><p>문법에 맞지 않는 말에 도형을 표시해 봅시다.</p></div>
+    <div class="qti-ext-stimulus">
+      <qti-hottext-interaction response-identifier="RESPONSE" min-choices="1" max-choices="0" data-marker-mode="shape">
+        <p>Last weekend, Tom <qti-hottext identifier="H1" data-marker-shape="circle">don't</qti-hottext> enjoy crowded places, but he <qti-hottext identifier="H2" data-marker-shape="circle">doesn't</qti-hottext> complain. Mary <qti-hottext identifier="H3" data-marker-shape="triangle">go</qti-hottext> to the gift shop and <qti-hottext identifier="H5" data-marker-shape="circle">bought</qti-hottext> a book that was <qti-hottext identifier="H4" data-marker-shape="triangle">interesting than</qti-hottext> the one she had at home.</p>
+      </qti-hottext-interaction>
+    </div>
+  </qti-item-body>
+</qti-assessment-item>`;
+
 export const LOCAL_ITEMS: Record<string, QuestionItem> = {
   "hsq-local": {
     id: -20,
@@ -494,6 +550,36 @@ export const LOCAL_ITEMS: Record<string, QuestionItem> = {
     type: ITEM_TYPE.HSQ,
     qtiXml: HSQ_XML,
     correctAnswer: { RESPONSE: ["REGION_A"] },
+    settings: null,
+    feedbacks: [CORRECT_FEEDBACK],
+  },
+  "htq-group": {
+    id: -21,
+    qtiIdentifier: "htq-group",
+    title: "핫텍스트 · 그룹 (HTQ)",
+    type: ITEM_TYPE.HTQ,
+    qtiXml: HTQ_GROUP_XML,
+    correctAnswer: { RESPONSE: ["G1_A", "G2_B"] },
+    settings: null,
+    feedbacks: [CORRECT_FEEDBACK],
+  },
+  "htq-free": {
+    id: -22,
+    qtiIdentifier: "htq-free",
+    title: "핫텍스트 · 자유형 (HTQ)",
+    type: ITEM_TYPE.HTQ,
+    qtiXml: HTQ_FREE_XML,
+    correctAnswer: { RESPONSE: ["H1", "H3", "H4"] },
+    settings: null,
+    feedbacks: [CORRECT_FEEDBACK],
+  },
+  "htq-shape": {
+    id: -23,
+    qtiIdentifier: "htq-shape",
+    title: "핫텍스트 · 도형 (HTQ)",
+    type: ITEM_TYPE.HTQ,
+    qtiXml: HTQ_SHAPE_XML,
+    correctAnswer: { RESPONSE: ["H1", "H3", "H4"] },
     settings: null,
     feedbacks: [CORRECT_FEEDBACK],
   },
@@ -838,6 +924,21 @@ export const LOCAL_SAMPLE_ITEMS: SampleItem[] = [
     type: ITEM_TYPE.HSQ,
     label: "핫스팟 (HSQ)",
     qtiIdentifier: "hsq-local",
+  },
+  {
+    type: ITEM_TYPE.HTQ,
+    label: "핫텍스트 · 그룹 (HTQ)",
+    qtiIdentifier: "htq-group",
+  },
+  {
+    type: ITEM_TYPE.HTQ,
+    label: "핫텍스트 · 자유형 (HTQ)",
+    qtiIdentifier: "htq-free",
+  },
+  {
+    type: ITEM_TYPE.HTQ,
+    label: "핫텍스트 · 도형 (HTQ)",
+    qtiIdentifier: "htq-shape",
   },
   {
     type: ITEM_TYPE.DDQ,

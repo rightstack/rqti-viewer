@@ -12,6 +12,7 @@ import {
   parseExtendedTextInteraction,
   parseGapMatchInteraction,
   parseHotspotInteraction,
+  parseHottextInteraction,
   parseInlineChoiceInteraction,
   parseMatchInteraction,
   parseImageInputBlankInteraction,
@@ -37,6 +38,7 @@ const QTI_SPECIFIC_ELEMENTS: Record<string, string[]> = {
   "qti-upload-interaction": ["qti-prompt"],
   "qti-gap-match-interaction": ["qti-gap", "qti-gap-text", "qti-prompt"],
   "qti-hotspot-interaction": ["qti-hotspot-choice", "img", "object", "qti-object", "qti-prompt"],
+  "qti-hottext-interaction": ["qti-hottext", "qti-prompt"],
   "qti-portable-custom-interaction": ["qti-interaction-markup", "qti-prompt"],
 };
 
@@ -94,6 +96,9 @@ export const parseNode = (
     case "qti-hotspot-interaction":
       parsedInteraction = parseHotspotInteraction(element, options, index);
       break;
+    case "qti-hottext-interaction":
+      parsedInteraction = parseHottextInteraction(element, options, index);
+      break;
     case "qti-portable-custom-interaction":
       // 각 parser가 custom-interaction-type-identifier를 보고 자기 유형만 처리한다.
       parsedInteraction =
@@ -109,8 +114,8 @@ export const parseNode = (
     return null;
   }
 
-  // gap-match-interaction은 내부에서 HTML과 gap을 직접 처리하므로 추가 처리 불필요
-  if (tagName === "qti-gap-match-interaction") {
+  // gap-match, hottext는 내부에서 본문 HTML을 직접 처리하므로 자식을 다시 그리지 않는다.
+  if (tagName === "qti-gap-match-interaction" || tagName === "qti-hottext-interaction") {
     // prompt만 별도로 처리
     if (promptText) {
       return (

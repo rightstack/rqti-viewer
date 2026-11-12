@@ -1,4 +1,8 @@
 import { ITEM_TYPE, type ItemsType } from "../constants/itemType";
+import {
+  type HottextSubmitRequirement,
+  canSubmitHottext,
+} from "../interactions/hottext/hottextRules";
 import type { FeedbackType, ResponseValue, ResponseValueMap, Theme } from "../types";
 
 /**
@@ -45,6 +49,7 @@ export function checkAnswerUtil(
 export interface CanSubmitOptions {
   type?: ItemsType;
   expectedResponseCount?: number;
+  hottextRequirements?: HottextSubmitRequirement[];
 }
 
 function isNonEmpty(value: unknown): boolean {
@@ -76,7 +81,11 @@ function countFilledGapPairs(responses: ResponseValueMap): number {
 }
 
 export function canSubmitUtil(responses: ResponseValueMap, options?: CanSubmitOptions): boolean {
-  const { type, expectedResponseCount } = options ?? {};
+  const { type, expectedResponseCount, hottextRequirements } = options ?? {};
+
+  if (type === ITEM_TYPE.HTQ) {
+    return canSubmitHottext(responses, hottextRequirements ?? []);
+  }
 
   // 다중 선택형은 정답 개수와 관계없이 하나 이상 선택하면 제출할 수 있다.
   if (type === ITEM_TYPE.MCQ) {

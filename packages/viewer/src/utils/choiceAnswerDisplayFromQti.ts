@@ -6,6 +6,7 @@
  *   `qti-list-style-type-none`이면 buildChoiceCorrectAnswerItems로 원본 본문을 렌더
  * - qti-order-interaction: label 속성 → 순번 마커(A·1 등, identifier=DOM 순서에 고정) → 본문 → identifier
  * - qti-inline-choice-interaction: label → 본문 → 미디어 → identifier (단일 문자열, 기존과 동일)
+ * - qti-hottext-interaction: identifier 대신 qti-hottext 본문. 수식은 `$...$`로 감싸 표시 단계에서 렌더
  * - qti-match-interaction 정답만: 쌍이 ROW_n / COL_m 형태면 `n-m` 또는 MatchAnswerView용 배열 (qtiXml으로 interaction 판별)
  * - qti-gap-match-interaction: 레이블이 있으면 레이블만(끝 `.` 제외), 없으면 본문만. 수식빈칸 본문은 GapMatchAnswerView
  * - FeedbackInline 정답 나열 순서: extractInteractionResponseIdentifiersInDocumentOrder 로 본문 interaction 순서 확보
@@ -321,6 +322,37 @@ function choiceDisplayStringForElement(
   return identifier;
 }
 
+/** 수식 노드가 아니면 그대로, 수식이면 `$...$`로 감싸 parseTextWithLaTeX가 그리게 한다. */
+function delimitHottextLatex(latex: string): string {
+  const trimmed = latex.trim();
+  if (trimmed.startsWith("$") || trimmed.startsWith("\\(") || trimmed.startsWith("\\[")) {
+    return trimmed;
+  }
+  return `$${trimmed}$`;
+}
+
+/** qti-hottext 본문. 글자는 텍스트, qti-ext-mathfield는 data-latex를 수식으로 남긴다. */
+function hottextContentForDisplay(el: Element): string {
+  let out = "";
+  const walk = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      out += node.textContent ?? "";
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const element = node as Element;
+    const className = element.getAttribute("class") ?? "";
+    if (className.includes("qti-ext-mathfield")) {
+      const latex = (element.getAttribute("data-latex") ?? element.textContent ?? "").trim();
+      if (latex) out += delimitHottextLatex(latex);
+      return;
+    }
+    element.childNodes.forEach(walk);
+  };
+  el.childNodes.forEach(walk);
+  return out.trim();
+}
+
 export function buildChoiceIdentifierDisplayMapsFromQtiXml(
   qtiXml: string,
 ): Map<string, Map<string, string>> | null {
@@ -405,6 +437,22 @@ export function buildChoiceIdentifierDisplayMapsFromQtiXml(
     });
   };
 
+  const addHottextChoices = (interaction: Element) => {
+    const respId = interaction.getAttribute("response-identifier")?.trim();
+    if (!respId) return;
+    let map = result.get(respId);
+    if (!map) {
+      map = new Map();
+      result.set(respId, map);
+    }
+    interaction.querySelectorAll("qti-hottext").forEach((el) => {
+      const id = el.getAttribute("identifier")?.trim() ?? "";
+      if (!id) return;
+      const display = hottextContentForDisplay(el);
+      map.set(id, display !== "" ? display : id);
+    });
+  };
+
   doc.querySelectorAll("qti-choice-interaction").forEach((el) => {
     addBlockChoices(el);
   });
@@ -414,13 +462,16 @@ export function buildChoiceIdentifierDisplayMapsFromQtiXml(
   doc.querySelectorAll("qti-inline-choice-interaction").forEach((el) => {
     addInlineChoices(el);
   });
+  doc.querySelectorAll("qti-hottext-interaction").forEach((el) => {
+    addHottextChoices(el);
+  });
 
   return result;
 }
 
 /** 쉼표 선택자로 문서 순서 유지 (다중 TFQ·빈칸·인라인 선택·매칭 혼합) */
 const INTERACTION_ORDER_SELECTOR =
-  "qti-choice-interaction, qti-order-interaction, qti-inline-choice-interaction, qti-text-entry-interaction, qti-match-interaction, qti-gap-match-interaction, qti-portable-custom-interaction, qti-hotspot-interaction";
+  "qti-choice-interaction, qti-order-interaction, qti-inline-choice-interaction, qti-text-entry-interaction, qti-match-interaction, qti-gap-match-interaction, qti-portable-custom-interaction, qti-hotspot-interaction, qti-hottext-interaction";
 
 /**
  * 복습 정답 표시 순서용: 위 interaction들의 response-identifier를 XML 트리 순으로 수집.
@@ -653,6 +704,7 @@ export function buildCorrectAnswerFeedbackSegments(
       }
       continue;
     }
+    if (rid === "RESPONSE_SHAPES") continue;
     if (!Object.prototype.hasOwnProperty.call(correctAnswer, rid)) continue;
     if (mathBlankIds.has(rid) || imageBlankIds.has(rid)) continue;
     const seg = segmentForId(rid);
@@ -851,6 +903,20 @@ export function buildOrderCorrectAnswerItems(
     if (bodyDisplayFromChoiceElement(choice.element) === "") return { kind: "text", key, text: id };
     return { kind: "body", key, html: serializeElementChildren(choice.element) };
   });
+}
+
+/** 해당 응답이 문항 XML 안의 qti-hottext-interaction 인지 */
+export function isHottextInteractionResponse(
+  qtiXml: string | null | undefined,
+  responseIdentifier: string,
+): boolean {
+  const rid = responseIdentifier.trim();
+  if (!rid || !qtiXml?.trim()) return false;
+  const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
+  if (doc.querySelector("parsererror")) return false;
+  return Array.from(doc.querySelectorAll("qti-hottext-interaction")).some(
+    (el) => el.getAttribute("response-identifier")?.trim() === rid,
+  );
 }
 
 /** 해당 응답이 문항 XML 안의 qti-match-interaction 인지 */
