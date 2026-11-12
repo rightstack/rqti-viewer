@@ -2,6 +2,8 @@ export { MediaContent } from "./MediaContent";
 export { FeedbackIcon } from "./FeedbackIcon";
 export { CorrectIcon } from "./CorrectIcon";
 export { IncorrectIcon } from "./IncorrectIcon";
+export { FloatToolbar } from "./FloatToolbar";
+export type { FloatToolbarTool } from "./FloatToolbar";
 export { SubmitButton } from "./SubmitButton";
 export { FeedbackSheet } from "./FeedbackSheet";
 export type { ButtonConfigType, FeedbackStyleVariant } from "./FeedbackSheet";

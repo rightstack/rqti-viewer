@@ -466,7 +466,37 @@ const VCQ_N_BLANKS_XML = String.raw`<?xml version="1.0" encoding="UTF-8"?>
 
 const DROPDOWN_LATEX_XML = `<qti-assessment-item xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="i_uwns0ub393c7rtfs" title="맞춤온1_5_형성(기본)_주제5_01" time-dependent="false" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqtiasi_v3p0 /assessment/xml-catalog/purl.imsglobal.org/spec/qti/v3p0/schema/xsd/imsqti_asiv3p0_v1p0.xsd"><qti-response-declaration identifier="DROPDOWN_1" cardinality="single" base-type="identifier"><qti-correct-response><qti-value>DROPDOWN_1_1</qti-value></qti-correct-response></qti-response-declaration><qti-response-declaration identifier="DROPDOWN_3" cardinality="single" base-type="identifier"><qti-correct-response><qti-value>DROPDOWN_3_2</qti-value></qti-correct-response></qti-response-declaration><qti-outcome-declaration identifier="SCORE" cardinality="single" base-type="float"><qti-default-value><qti-value>0.0</qti-value></qti-default-value></qti-outcome-declaration><qti-outcome-declaration identifier="MAXSCORE" cardinality="single" base-type="float"><qti-default-value><qti-value>1.0</qti-value></qti-default-value></qti-outcome-declaration><qti-outcome-declaration identifier="PASSED" cardinality="single" base-type="float"><qti-default-value><qti-value>2.0</qti-value></qti-default-value></qti-outcome-declaration><qti-item-body><div class="qti-ext-question"><div class="qti-ext-prompt"><p>다음은 선분 <span class="qti-ext-mathfield" data-latex="\\mathrm{AB}">\\mathrm{AB}</span>를 한 변으로 하는 정삼각형을 작도하는 과정이다. ㈎, ㈏에 알맞은 것을 구하시오.</p></div><div class="qti-ext-stimulus"><figure class="qti-ext-figure qti-align-center"><img src="/api/v3/assessment-resource/object/temp/selvas_ocr/MATH/MIDDLE/REFERENCE_BOOK/260526/21e375a3-ef94-4724-befb-8580b2881293/output/meta_0035.png" alt="/api/v3/assessment-resource/object/temp/selvas_ocr/MATH/MIDDLE/REFERENCE_BOOK/260526/21e375a3-ef94-4724-befb-8580b2881293/output/meta_0035.png" width="158"/></figure><p class="qti-text-indent-1 qti-align-left qti-text-indent-first-1">① 두 점 <span class="qti-ext-mathfield" data-latex="\\mathrm{A}">\\mathrm{A}</span>, <span class="qti-ext-mathfield" data-latex="\\mathrm{B}">\\mathrm{B}</span>를 각각 중심으로 반지름의 길이가 <span class="qti-ext-mathfield" data-latex="\\boxed{\\text{㈎}}">\\boxed{\\text{㈎}}</span>인 원을 그려 두 원의 교점을 <span class="qti-ext-mathfield" data-latex="\\mathrm{C}">\\mathrm{C}</span>라 한다.</p><p class="qti-text-indent-1 qti-align-left qti-text-indent-first-1">② <span class="qti-ext-mathfield" data-latex="\\overline{\\mathrm{AC}}">\\overline{\\mathrm{AC}}</span>, <span class="qti-ext-mathfield" data-latex="\\overline{\\mathrm{BC}}">\\overline{\\mathrm{BC}}</span>를 각각 그으면 <span class="qti-ext-mathfield" data-latex="\\overline{\\mathrm{AC}}=\\overline{\\mathrm{BC}}=\\overline{\\mathrm{AB}}">\\overline{\\mathrm{AC}}=\\overline{\\mathrm{BC}}=\\overline{\\mathrm{AB}}</span>이므로 삼각형 <span class="qti-ext-mathfield" data-latex="\\mathrm{ABC}">\\mathrm{ABC}</span>는 <span class="qti-ext-mathfield" data-latex="\\boxed{\\text{㈏}}">\\boxed{\\text{㈏}}</span>이다.</p></div><p class="qti-text-indent-1 qti-align-right">㈎: <qti-inline-choice-interaction response-identifier="DROPDOWN_1" shuffle="false" min-choices="0"><qti-label>선택</qti-label><qti-inline-choice identifier="DROPDOWN_1_1">\\overline {\\mathrm{AB}}</qti-inline-choice><qti-inline-choice identifier="DROPDOWN_1_3">\\overline {\\mathrm{AC}}</qti-inline-choice></qti-inline-choice-interaction></p><p class="qti-text-indent-1 qti-align-right">㈏: <qti-inline-choice-interaction response-identifier="DROPDOWN_3" shuffle="false" min-choices="0"><qti-label>선택</qti-label><qti-inline-choice identifier="DROPDOWN_3_1">직각삼각형</qti-inline-choice><qti-inline-choice identifier="DROPDOWN_3_2">정삼각형</qti-inline-choice></qti-inline-choice-interaction></p></div></qti-item-body><qti-response-processing><qti-response-condition><qti-response-if><qti-and><qti-match><qti-variable identifier="DROPDOWN_1"/><qti-correct identifier="DROPDOWN_1"/></qti-match><qti-match><qti-variable identifier="DROPDOWN_3"/><qti-correct identifier="DROPDOWN_3"/></qti-match></qti-and><qti-set-outcome-value identifier="SCORE"><qti-base-value base-type="float">1.0</qti-base-value></qti-set-outcome-value></qti-response-if></qti-response-condition></qti-response-processing></qti-assessment-item>`;
 
+const HSQ_IMAGE_SRC =
+  "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22180%22%3E%3Crect width=%22320%22 height=%22180%22 fill=%22%23f4f4f5%22/%3E%3Ccircle cx=%2290%22 cy=%2290%22 r=%2236%22 fill=%22%23fecaca%22/%3E%3Crect x=%22190%22 y=%2250%22 width=%2280%22 height=%2280%22 fill=%22%23bfdbfe%22/%3E%3C/svg%3E";
+
+const HSQ_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-item xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="hsq-local" title="핫스팟" adaptive="false" time-dependent="false">
+  <qti-response-declaration identifier="RESPONSE" cardinality="multiple" base-type="identifier">
+    <qti-correct-response>
+      <qti-value>REGION_A</qti-value>
+    </qti-correct-response>
+  </qti-response-declaration>
+  <qti-item-body>
+    <p>빨간 원에 표시하세요.</p>
+    <qti-hotspot-interaction max-choices="0" response-identifier="RESPONSE" data-answer-marker-size="40" data-marker-shapes="circle rect">
+      <img src="${HSQ_IMAGE_SRC}" width="320" height="180" data-display-width="320" alt="원과 사각형" />
+      <qti-hotspot-choice identifier="REGION_A" shape="circle" coords="90,90,48" hotspot-label="원" data-marker-shape="circle" data-marker-coords="90,90,36" />
+      <qti-hotspot-choice identifier="REGION_B" shape="rect" coords="190,50,270,130" hotspot-label="사각형" data-marker-shape="rect" data-marker-coords="190,50,270,130" />
+    </qti-hotspot-interaction>
+  </qti-item-body>
+</qti-assessment-item>`;
+
 export const LOCAL_ITEMS: Record<string, QuestionItem> = {
+  "hsq-local": {
+    id: -20,
+    qtiIdentifier: "hsq-local",
+    title: "핫스팟 (HSQ)",
+    type: ITEM_TYPE.HSQ,
+    qtiXml: HSQ_XML,
+    correctAnswer: { RESPONSE: ["REGION_A"] },
+    settings: null,
+    feedbacks: [CORRECT_FEEDBACK],
+  },
   ORDER_CLICK_HANSEL: {
     id: -1,
     qtiIdentifier: "ORDER_CLICK_HANSEL",
@@ -804,6 +834,11 @@ export const LOCAL_ITEMS: Record<string, QuestionItem> = {
 };
 
 export const LOCAL_SAMPLE_ITEMS: SampleItem[] = [
+  {
+    type: ITEM_TYPE.HSQ,
+    label: "핫스팟 (HSQ)",
+    qtiIdentifier: "hsq-local",
+  },
   {
     type: ITEM_TYPE.DDQ,
     label: "드롭다운 · 수식 선택지",

@@ -29,6 +29,7 @@ import { GapMatchAnswerView } from "./GapMatchAnswerView";
 import { isMathLatexAnswer, isMathResponseId } from "../utils/isMathLatexAnswer";
 import type { CSSVariables } from "../utils/themeToCSS";
 import { MatchAnswerView } from "./MatchAnswerView";
+import { HotspotCorrectAnswerPreview } from "./HotspotCorrectAnswerPreview";
 import { ImageInputBlankCorrectAnswerPreview } from "./ImageInputBlankCorrectAnswerPreview";
 import { MathInputBlankCorrectAnswerPreview } from "./MathInputBlankCorrectAnswerPreview";
 import { VcqCorrectAnswerPreview } from "./VcqCorrectAnswerPreview";
@@ -239,7 +240,8 @@ export const FeedbackInline = ({
                   matchStrings !== null ||
                   segment.kind === "vcqGrid" ||
                   segment.kind === "mathInputBlank" ||
-                  segment.kind === "imageInputBlank";
+                  segment.kind === "imageInputBlank" ||
+                  segment.kind === "hotspot";
                 const isMultiMath =
                   segment.kind === "default" &&
                   choiceAnswerItems === null &&
@@ -300,6 +302,13 @@ export const FeedbackInline = ({
                           correctAnswer={segment.correctAnswer}
                           token={token}
                           baseUrl={baseUrl}
+                          responseIdentifier={segment.key}
+                        />
+                      ) : segment.kind === "hotspot" ? (
+                        <HotspotCorrectAnswerPreview
+                          qtiXml={qtiXml ?? ""}
+                          correctAnswer={segment.correctAnswer}
+                          token={token}
                           responseIdentifier={segment.key}
                         />
                       ) : segment.kind === "fractionLatex" ? (

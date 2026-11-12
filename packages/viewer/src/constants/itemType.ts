@@ -9,6 +9,7 @@ export const ITEM_TYPE = {
   CLOZE: "cloze",
   DDQ: "ddq",
   HTQ: "htq",
+  HSQ: "hsq",
   GMQ: "gmq",
   MATCH: "match",
   VCQ: "vcq",

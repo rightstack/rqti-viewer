@@ -11,6 +11,7 @@ import {
   parseChoiceInteraction,
   parseExtendedTextInteraction,
   parseGapMatchInteraction,
+  parseHotspotInteraction,
   parseInlineChoiceInteraction,
   parseMatchInteraction,
   parseImageInputBlankInteraction,
@@ -35,6 +36,7 @@ const QTI_SPECIFIC_ELEMENTS: Record<string, string[]> = {
   "qti-extended-text-interaction": ["qti-prompt"],
   "qti-upload-interaction": ["qti-prompt"],
   "qti-gap-match-interaction": ["qti-gap", "qti-gap-text", "qti-prompt"],
+  "qti-hotspot-interaction": ["qti-hotspot-choice", "img", "object", "qti-object", "qti-prompt"],
   "qti-portable-custom-interaction": ["qti-interaction-markup", "qti-prompt"],
 };
 
@@ -88,6 +90,9 @@ export const parseNode = (
       break;
     case "qti-gap-match-interaction":
       parsedInteraction = parseGapMatchInteraction(element, options, index);
+      break;
+    case "qti-hotspot-interaction":
+      parsedInteraction = parseHotspotInteraction(element, options, index);
       break;
     case "qti-portable-custom-interaction":
       // 각 parser가 custom-interaction-type-identifier를 보고 자기 유형만 처리한다.

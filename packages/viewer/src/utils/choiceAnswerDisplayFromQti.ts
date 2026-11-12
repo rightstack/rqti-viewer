@@ -420,7 +420,7 @@ export function buildChoiceIdentifierDisplayMapsFromQtiXml(
 
 /** 쉼표 선택자로 문서 순서 유지 (다중 TFQ·빈칸·인라인 선택·매칭 혼합) */
 const INTERACTION_ORDER_SELECTOR =
-  "qti-choice-interaction, qti-order-interaction, qti-inline-choice-interaction, qti-text-entry-interaction, qti-match-interaction, qti-gap-match-interaction, qti-portable-custom-interaction";
+  "qti-choice-interaction, qti-order-interaction, qti-inline-choice-interaction, qti-text-entry-interaction, qti-match-interaction, qti-gap-match-interaction, qti-portable-custom-interaction, qti-hotspot-interaction";
 
 /**
  * 복습 정답 표시 순서용: 위 interaction들의 response-identifier를 XML 트리 순으로 수집.
@@ -481,6 +481,7 @@ export type CorrectAnswerFeedbackSegment =
   | { kind: "vcqGrid"; key: string; correctAnswer: ResponseValueMap }
   | { kind: "mathInputBlank"; key: string; correctAnswer: ResponseValueMap }
   | { kind: "imageInputBlank"; key: string; correctAnswer: ResponseValueMap }
+  | { kind: "hotspot"; key: string; correctAnswer: ResponseValueMap }
   | { kind: "default"; key: string; value: unknown };
 
 function getPciElementsByType(qtiXml: string | null | undefined, type: string): Element[] {
@@ -502,6 +503,15 @@ export function getImageInputBlankPciElementsFromQtiXml(
   qtiXml: string | null | undefined
 ): Element[] {
   return getPciElementsByType(qtiXml, IMAGE_INPUT_BLANK_TYPE);
+}
+
+export function getHotspotInteractionElementsFromQtiXml(
+  qtiXml: string | null | undefined,
+): Element[] {
+  if (!qtiXml?.trim()) return [];
+  const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
+  if (doc.querySelector("parsererror")) return [];
+  return Array.from(doc.querySelectorAll("qti-hotspot-interaction"));
 }
 
 function collectMathInputBlankIds(pciElements: Element[]): Set<string> {
@@ -561,6 +571,11 @@ export function buildCorrectAnswerFeedbackSegments(
       .filter((id) => id.length > 0)
   );
   const imageBlankIds = new Set(imagePciElements.flatMap(collectImageBlankCellIds));
+  const hotspotResponseIds = new Set(
+    getHotspotInteractionElementsFromQtiXml(qtiXml)
+      .map((el) => el.getAttribute("response-identifier")?.trim() ?? "")
+      .filter((id) => id.length > 0),
+  );
 
   const entries = Object.entries(correctAnswer);
   const order = extractInteractionResponseIdentifiersInDocumentOrder(qtiXml);
@@ -626,6 +641,16 @@ export function buildCorrectAnswerFeedbackSegments(
         key: rid,
         correctAnswer: correctAnswer as ResponseValueMap,
       });
+      continue;
+    }
+    if (hotspotResponseIds.has(rid)) {
+      if (Object.prototype.hasOwnProperty.call(correctAnswer, rid)) {
+        out.push({
+          kind: "hotspot",
+          key: rid,
+          correctAnswer: correctAnswer as ResponseValueMap,
+        });
+      }
       continue;
     }
     if (!Object.prototype.hasOwnProperty.call(correctAnswer, rid)) continue;

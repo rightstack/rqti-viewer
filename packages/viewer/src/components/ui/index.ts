@@ -12,6 +12,7 @@ export {
   SheetDescription,
 } from "./sheet";
 export { Textarea } from "./textarea";
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "./tooltip";
 export {
   Dialog,
   DialogTrigger,

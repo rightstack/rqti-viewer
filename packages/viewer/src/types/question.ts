@@ -66,7 +66,7 @@ export interface ResponseByInteraction {
   "inline-choice": string; // single only
   "text-entry": string; // single string
   "extended-text": string; // single string
-  hotspot: string | string[]; // single or multiple
+  hotspot: string[]; // 영역 ID. 도형은 RESPONSE_SHAPES, 좌표는 RESPONSE_GEOMETRY
   order: string[]; // ordered
   match: Array<[string, string]>; // directedPair/pair
   "gap-match": Array<[string, string]>; // directedPair
