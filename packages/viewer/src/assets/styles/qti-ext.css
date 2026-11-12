@@ -87,7 +87,8 @@
   @apply rqti:max-w-full;
 }
 
-.qti-ext-preview-container.qti-ext-preview-container-version .qti-ext-container {
+.qti-ext-preview-container.qti-ext-preview-container-version
+  .qti-ext-container {
   padding-top: 0;
 }
 
@@ -7602,7 +7603,8 @@ p:has(.qti-ext-image-input-blank) {
   margin: 2px;
   padding: 2px 5px;
 
-  border: var(--qti-option-border-width, 1px) solid var(--qti-option-border, #e5e7eb);
+  border: var(--qti-option-border-width, 1px) solid
+    var(--qti-option-border, #e5e7eb);
   border-radius: 0.35em;
 
   background-color: transparent;
@@ -7623,7 +7625,8 @@ p:has(.qti-ext-image-input-blank) {
   margin: 2px;
   padding: 2px 5px;
 
-  border: var(--qti-option-border-width, 1px) solid var(--qti-option-border, #e5e7eb);
+  border: var(--qti-option-border-width, 1px) solid
+    var(--qti-option-border, #e5e7eb);
   border-radius: 0.35em;
 
   background-color: transparent;
@@ -7657,10 +7660,11 @@ p:has(.qti-ext-image-input-blank) {
   background-color: transparent;
 }
 
-/* 선택 영역 밑줄. 글자에 붙는 선이고 상자 여백은 없다. */
+/* 선택 영역 밑줄. 글자·수식·이미지 상자 하단에 두는 선이고 줄 높이를 밀지 않는다. */
 .qti-ext-hottext--choice-underline {
-  display: inline;
+  display: inline-block;
 
+  max-width: 100%;
   margin: 0;
   padding: 0;
 
@@ -7670,9 +7674,23 @@ p:has(.qti-ext-image-input-blank) {
 
   color: inherit;
   line-height: inherit;
-  text-decoration: 1px underline solid var(--qti-base-text-color, #1a1a1a);
-  text-underline-offset: 0.25em;
   white-space: normal;
+  vertical-align: baseline;
+}
+
+.qti-ext-hottext--choice-underline::after {
+  content: "";
+
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  height: 1px;
+
+  background-color: var(--qti-base-text-color, #1a1a1a);
+
+  pointer-events: none;
 }
 
 /* 선택 영역 투명. 앞뒤 문장과 같은 글자이고 줄 높이를 밀지 않는다. */
