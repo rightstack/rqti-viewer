@@ -1,7 +1,16 @@
-import React, { type ReactNode, useCallback, useMemo, useRef, useState } from "react";
+import React, {
+  type ReactNode,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Circle, Triangle } from "lucide-react";
 import { groupListItems } from "../../parser/listGrouping";
-import { isFormattingWhitespace, parseHTMLElement } from "../../parser/parseHtmlElement";
+import {
+  isFormattingWhitespace,
+  parseHTMLElement,
+} from "../../parser/parseHtmlElement";
 import { parseTextWithLaTeX } from "../../parser/parseLatexToReact";
 import { FloatToolbar, type FloatToolbarTool } from "../../shared/FloatToolbar";
 import type { QTIParserOptions } from "../../types";
@@ -41,8 +50,16 @@ interface HottextInteractionProps {
 }
 
 const HOTTEXT_MARKER_TOOLS: readonly FloatToolbarTool[] = [
-  { id: "circle", label: "원형", icon: <Circle className="rqti:size-6" aria-hidden="true" /> },
-  { id: "triangle", label: "삼각형", icon: <Triangle className="rqti:size-6" aria-hidden="true" /> },
+  {
+    id: "circle",
+    label: "원형",
+    icon: <Circle className="rqti:size-6" aria-hidden="true" />,
+  },
+  {
+    id: "triangle",
+    label: "삼각형",
+    icon: <Triangle className="rqti:size-6" aria-hidden="true" />,
+  },
 ];
 
 interface RenderContext {
@@ -68,7 +85,11 @@ function renderText(text: string, keyPrefix: string): ReactNode[] {
   return parseTextWithLaTeX(text, keyPrefix).map((part) => {
     if (typeof part !== "string") return part;
     textCount += 1;
-    return <React.Fragment key={`${keyPrefix}-text-${textCount}`}>{part}</React.Fragment>;
+    return (
+      <React.Fragment key={`${keyPrefix}-text-${textCount}`}>
+        {part}
+      </React.Fragment>
+    );
   });
 }
 
@@ -76,7 +97,7 @@ function renderHottextNodes(
   nodes: NodeListOf<ChildNode> | readonly ChildNode[],
   parentTag: string | undefined,
   context: RenderContext,
-  keyPrefix: string
+  keyPrefix: string,
 ): ReactNode[] {
   const rendered: ReactNode[] = [];
 
@@ -97,7 +118,9 @@ function renderHottextNodes(
     if (tagName === "qti-prompt") return;
 
     if (tagName === "qti-hottext-interaction") {
-      rendered.push(...renderHottextNodes(element.childNodes, undefined, context, key));
+      rendered.push(
+        ...renderHottextNodes(element.childNodes, undefined, context, key),
+      );
       return;
     }
 
@@ -108,25 +131,32 @@ function renderHottextNodes(
       const fitsOneCharacter = hottextTextFitsOneCharacter(element);
       const answerShapes = context.answerShapes;
       const answerKey = answerShapes !== null;
-      const answerShape = answerKey ? (answerShapes.get(identifier) ?? null) : null;
+      const answerShape = answerKey
+        ? answerShapes.get(identifier) ?? null
+        : null;
       const tone = answerKey
         ? null
         : hottextMarkTone(identifier, context.selected, context.feedback);
       const studentShape = answerKey
         ? null
         : context.shapeMode
-          ? (context.feedback?.studentShapes[identifier] ??
-            (context.feedback ? null : (context.shapes[identifier] ?? null)))
-          : tone
-            ? "circle"
-            : null;
-      const body = renderHottextNodes(element.childNodes, tagName, context, key);
+        ? context.feedback?.studentShapes[identifier] ??
+          (context.feedback ? null : context.shapes[identifier] ?? null)
+        : tone
+        ? "circle"
+        : null;
+      const body = renderHottextNodes(
+        element.childNodes,
+        tagName,
+        context,
+        key,
+      );
 
       if (!identifier) {
         rendered.push(
           <span key={key} className="qti-ext-hottext-label">
             {body}
-          </span>
+          </span>,
         );
         return;
       }
@@ -141,18 +171,24 @@ function renderHottextNodes(
             answerKey
               ? answerShape
               : context.options.mode === "practice"
-                ? null
-                : hottextExpectedShape(identifier, context.feedback)
+              ? null
+              : hottextExpectedShape(identifier, context.feedback)
           }
-          expectedTone={answerKey || context.options.isSubmit ? "correct" : "selected"}
+          expectedTone={
+            answerKey || context.options.isSubmit ? "correct" : "selected"
+          }
           pressed={
             answerKey
               ? false
-              : (context.feedback?.submittedIds ?? context.selected).includes(identifier)
+              : (context.feedback?.submittedIds ?? context.selected).includes(
+                  identifier,
+                )
           }
           interactive={context.interactive}
           answerKey={answerKey}
-          markName={answerShape ? HOTTEXT_MARKER_SHAPE_NAME[answerShape] : undefined}
+          markName={
+            answerShape ? HOTTEXT_MARKER_SHAPE_NAME[answerShape] : undefined
+          }
           hasMath={hasMath}
           hasImage={hasImage}
           fitsOneCharacter={fitsOneCharacter}
@@ -160,7 +196,7 @@ function renderHottextNodes(
           onToggle={context.onToggle}
         >
           {body}
-        </HottextChoice>
+        </HottextChoice>,
       );
       return;
     }
@@ -176,26 +212,43 @@ function renderHottextNodes(
       rendered.push(
         <span key={key} className={className}>
           {renderHottextNodes(element.childNodes, "span", context, key)}
-        </span>
+        </span>,
       );
       return;
     }
 
     const className = element.getAttribute("class") ?? "";
-    if (className.includes("qti-ext-mathfield") || !containsHottextMarkup(element)) {
-      const parsed = parseHTMLElement(element, context.options, index, parentTag);
+    if (
+      className.includes("qti-ext-mathfield") ||
+      !containsHottextMarkup(element)
+    ) {
+      const parsed = parseHTMLElement(
+        element,
+        context.options,
+        index,
+        parentTag,
+      );
       if (parsed) rendered.push(parsed);
       return;
     }
 
     const base = parseHTMLElement(element, context.options, index, parentTag);
     if (!base || !React.isValidElement<{ className?: string }>(base)) return;
-    const children = renderHottextNodes(element.childNodes, tagName, context, key);
+    const children = renderHottextNodes(
+      element.childNodes,
+      tagName,
+      context,
+      key,
+    );
     const paragraphClassName =
       tagName === "p"
-        ? [base.props.className, "qti-ext-hottext-paragraph"].filter(Boolean).join(" ")
+        ? [base.props.className, "qti-ext-hottext-paragraph"]
+            .filter(Boolean)
+            .join(" ")
         : base.props.className;
-    rendered.push(React.cloneElement(base, { className: paragraphClassName }, children));
+    rendered.push(
+      React.cloneElement(base, { className: paragraphClassName }, children),
+    );
   });
 
   return groupListItems(rendered as Array<React.ReactElement | string>);
@@ -205,7 +258,7 @@ function resolveFeedback(
   options: QTIParserOptions,
   interaction: Element,
   responseIdentifier: string,
-  shapeMode: boolean
+  shapeMode: boolean,
 ): HottextFeedback | null {
   const isPreview = options.mode === "preview";
   const allowColors = isPreview || options.submissionMode !== "SIMULTANEOUS";
@@ -214,15 +267,22 @@ function resolveFeedback(
   const submit = options.submitResponse;
   if (!isPreview && !submit) return null;
 
-  const response = isPreview ? undefined : (submit?.response ?? options.responses);
+  // 문항 상세 미리보기는 정답만 그린다. 응시 리뷰는 제출 responses로 학생 도형을 맞춘다.
+  const response =
+    isPreview && !options.isSubmit
+      ? undefined
+      : submit?.response ?? options.responses;
   const correct = isPreview
-    ? (options.correctAnswers ?? options.responses)
-    : (submit?.correctAnswer ?? options.correctAnswers);
+    ? options.correctAnswers ?? options.responses
+    : submit?.correctAnswer ?? options.correctAnswers;
   let correctIds = readResponseIdentifiers(correct?.[responseIdentifier]);
   const expectedShapes = shapeMode
     ? readExpectedShapes(correct?.[HOTTEXT_SHAPES_RESPONSE_ID])
     : new Map<string, HottextMarkerShape>();
-  if (isPreview && (correctIds.length === 0 || (shapeMode && expectedShapes.size === 0))) {
+  if (
+    isPreview &&
+    (correctIds.length === 0 || (shapeMode && expectedShapes.size === 0))
+  ) {
     const xmlShapes = readXmlHottextMarkerShapes(interaction);
     if (correctIds.length === 0) correctIds = [...xmlShapes.keys()];
     if (shapeMode && expectedShapes.size === 0) {
@@ -236,32 +296,49 @@ function resolveFeedback(
     submittedIds: readResponseIdentifiers(response?.[responseIdentifier]),
     correctIds,
     shapeMode,
-    studentShapes: shapeMode ? readStudentShapes(response?.[HOTTEXT_SHAPES_RESPONSE_ID]) : {},
+    studentShapes: shapeMode
+      ? readStudentShapes(response?.[HOTTEXT_SHAPES_RESPONSE_ID])
+      : {},
     expectedShapes,
   };
 }
 
-function shapeRecordKey(shapes: Readonly<Record<string, HottextMarkerShape>>): string {
+function shapeRecordKey(
+  shapes: Readonly<Record<string, HottextMarkerShape>>,
+): string {
   return Object.entries(shapes)
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([identifier, shape]) => `${identifier}:${shape}`)
     .join("\u0000");
 }
 
-export function HottextInteraction({ element, options, index }: HottextInteractionProps) {
-  const responseIdentifier = element.getAttribute("response-identifier") || "RESPONSE";
+export function HottextInteraction({
+  element,
+  options,
+  index,
+}: HottextInteractionProps) {
+  const responseIdentifier =
+    element.getAttribute("response-identifier") || "RESPONSE";
   const choiceIndex = useMemo(() => indexHottextChoices(element), [element]);
-  const displayStyles = useMemo(() => readHottextDisplayStyles(element), [element]);
+  const displayStyles = useMemo(
+    () => readHottextDisplayStyles(element),
+    [element],
+  );
   const shapeMode = readHottextMarkerMode(element) === "shape";
   const markerTools = shapeMode ? HOTTEXT_MARKER_TOOLS : [];
   const itemMaxChoices = readHottextItemMaxChoices(element);
   const groupBorderOnInteraction =
-    displayStyles.groupStyle === "block" && !hottextInteractionHasGroups(element);
-  const restored = readResponseIdentifiers(options.responses?.[responseIdentifier]);
+    displayStyles.groupStyle === "block" &&
+    !hottextInteractionHasGroups(element);
+  const restored = readResponseIdentifiers(
+    options.responses?.[responseIdentifier],
+  );
   const restoredShapes = shapeMode
     ? readStudentShapes(options.responses?.[HOTTEXT_SHAPES_RESPONSE_ID])
     : {};
-  const restoredKey = `${restored.join("\u0000")}::${shapeRecordKey(restoredShapes)}`;
+  const restoredKey = `${restored.join("\u0000")}::${shapeRecordKey(
+    restoredShapes,
+  )}`;
   const [selected, setSelected] = useState(restored);
   const [shapes, setShapes] = useState(restoredShapes);
   const [selectionSource, setSelectionSource] = useState(restoredKey);
@@ -285,14 +362,25 @@ export function HottextInteraction({ element, options, index }: HottextInteracti
     options.mode === "thumbnail" ||
     !!options.isSubmit;
   const interactive = !selectionLocked;
-  const feedback = resolveFeedback(options, element, responseIdentifier, shapeMode);
+  const feedback = resolveFeedback(
+    options,
+    element,
+    responseIdentifier,
+    shapeMode,
+  );
 
-  const publish = (next: string[], nextShapes: Record<string, HottextMarkerShape>) => {
+  const publish = (
+    next: string[],
+    nextShapes: Record<string, HottextMarkerShape>,
+  ) => {
     setSelected(next);
     setShapes(nextShapes);
     options.onResponseChange?.(responseIdentifier, hottextResponseValue(next));
     if (!shapeMode) return;
-    options.onResponseChange?.(HOTTEXT_SHAPES_RESPONSE_ID, buildHottextShapes(next, nextShapes));
+    options.onResponseChange?.(
+      HOTTEXT_SHAPES_RESPONSE_ID,
+      buildHottextShapes(next, nextShapes),
+    );
   };
 
   const handleToggle = (identifier: string) => {
@@ -325,7 +413,7 @@ export function HottextInteraction({ element, options, index }: HottextInteracti
       choiceStyle: displayStyles.choiceStyle,
       answerShapes: null,
     },
-    `hottext-${index}`
+    `hottext-${index}`,
   );
 
   const className = [
@@ -337,7 +425,11 @@ export function HottextInteraction({ element, options, index }: HottextInteracti
     .join(" ");
 
   return (
-    <div key={`hottext-${responseIdentifier}-${index}`} ref={attachAnchor} className={className}>
+    <div
+      key={`hottext-${responseIdentifier}-${index}`}
+      ref={attachAnchor}
+      className={className}
+    >
       {interactive && markerTools.length > 0 ? (
         <FloatToolbar
           tools={markerTools}
@@ -368,8 +460,14 @@ export function HottextAnswerSurface({
   shapes: ReadonlyMap<string, HottextMarkerShape>;
   token?: string;
 }) {
-  const displayStyles = useMemo(() => readHottextDisplayStyles(interaction), [interaction]);
-  const options = useMemo<QTIParserOptions>(() => ({ mode: "preview", token }), [token]);
+  const displayStyles = useMemo(
+    () => readHottextDisplayStyles(interaction),
+    [interaction],
+  );
+  const options = useMemo<QTIParserOptions>(
+    () => ({ mode: "preview", token }),
+    [token],
+  );
   const content = renderHottextNodes(
     nodes,
     undefined,
@@ -386,7 +484,7 @@ export function HottextAnswerSurface({
       choiceStyle: displayStyles.choiceStyle,
       answerShapes: shapes,
     },
-    "hottext-answer"
+    "hottext-answer",
   );
 
   return <div className="qti-ext-hottext-correct-answer-flow">{content}</div>;
