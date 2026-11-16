@@ -6,7 +6,8 @@ export const HOTTEXT_MAX_CHOICES = {
   MULTIPLE: 0,
 } as const;
 
-export type HottextMaxChoices = (typeof HOTTEXT_MAX_CHOICES)[keyof typeof HOTTEXT_MAX_CHOICES];
+export type HottextMaxChoices =
+  (typeof HOTTEXT_MAX_CHOICES)[keyof typeof HOTTEXT_MAX_CHOICES];
 
 export interface HottextChoiceContext {
   identifier: string;
@@ -61,7 +62,11 @@ export interface HottextFeedback {
 export type HottextMarkTone = "selected" | "correct" | "incorrect";
 
 export const HOTTEXT_GROUP_STYLES = ["transparent", "block"] as const;
-export const HOTTEXT_CHOICE_STYLES = ["block", "underline", "transparent"] as const;
+export const HOTTEXT_CHOICE_STYLES = [
+  "block",
+  "underline",
+  "transparent",
+] as const;
 
 export type HottextGroupStyle = (typeof HOTTEXT_GROUP_STYLES)[number];
 export type HottextChoiceStyle = (typeof HOTTEXT_CHOICE_STYLES)[number];
@@ -75,7 +80,9 @@ function isHottextGroupStyle(value: string | null): value is HottextGroupStyle {
   return value === "transparent" || value === "block";
 }
 
-function isHottextChoiceStyle(value: string | null): value is HottextChoiceStyle {
+function isHottextChoiceStyle(
+  value: string | null,
+): value is HottextChoiceStyle {
   return value === "block" || value === "underline" || value === "transparent";
 }
 
@@ -84,21 +91,30 @@ function isHottextChoiceStyle(value: string | null): value is HottextChoiceStyle
  * 테두리 블록과 선택 영역 블록은 테두리 블록, 선택 영역 투명으로 보정한다.
  * 허용값 밖은 그 필드만 기본값으로 본다.
  */
-export function readHottextDisplayStyles(interaction: Element): HottextDisplayStyles {
+export function readHottextDisplayStyles(
+  interaction: Element,
+): HottextDisplayStyles {
   const groupAttribute = interaction.getAttribute("data-group-style");
   const choiceAttribute = interaction.getAttribute("data-choice-style");
-  const groupStyle = isHottextGroupStyle(groupAttribute) ? groupAttribute : "transparent";
-  const choiceStyle = isHottextChoiceStyle(choiceAttribute) ? choiceAttribute : "block";
+  const groupStyle = isHottextGroupStyle(groupAttribute)
+    ? groupAttribute
+    : "transparent";
+  const choiceStyle = isHottextChoiceStyle(choiceAttribute)
+    ? choiceAttribute
+    : "block";
 
   return {
     groupStyle,
-    choiceStyle: groupStyle === "block" && choiceStyle === "block" ? "transparent" : choiceStyle,
+    choiceStyle:
+      groupStyle === "block" && choiceStyle === "block"
+        ? "transparent"
+        : choiceStyle,
   };
 }
 
 export function hottextInteractionHasGroups(interaction: Element): boolean {
   return Array.from(interaction.querySelectorAll("span.hottext-group")).some(
-    (group) => group.closest("qti-hottext-interaction") === interaction
+    (group) => group.closest("qti-hottext-interaction") === interaction,
   );
 }
 
@@ -119,7 +135,9 @@ export function hottextTextFitsOneCharacter(element: Element): boolean {
 
 export function isHottextGroupElement(element: Element): boolean {
   if (element.tagName.toLowerCase() !== "span") return false;
-  return (element.getAttribute("class") ?? "").split(/\s+/).includes("hottext-group");
+  return (element.getAttribute("class") ?? "")
+    .split(/\s+/)
+    .includes("hottext-group");
 }
 
 /** 그룹 상한은 span.hottext-group의 data-max-choices만 읽는다. 없으면 1, 0은 제한 없음. */
@@ -143,11 +161,16 @@ export function readHottextItemMaxChoices(interaction: Element): number {
   const raw = interaction.getAttribute("max-choices");
   if (raw === null || raw.trim() === "") return HOTTEXT_MAX_CHOICES.MULTIPLE;
   const value = Number(raw);
-  return Number.isFinite(value) && value > 0 ? value : HOTTEXT_MAX_CHOICES.MULTIPLE;
+  return Number.isFinite(value) && value > 0
+    ? value
+    : HOTTEXT_MAX_CHOICES.MULTIPLE;
 }
 
 /** 속성이 없으면 자유형은 1, 그룹형은 그룹마다 1개 규칙에 맡긴다. */
-export function readHottextItemMinChoices(interaction: Element, groupCount: number): number {
+export function readHottextItemMinChoices(
+  interaction: Element,
+  groupCount: number,
+): number {
   const raw = interaction.getAttribute("min-choices");
   if (raw === null || raw.trim() === "") return groupCount > 0 ? 0 : 1;
   const value = Number(raw);
@@ -155,13 +178,18 @@ export function readHottextItemMinChoices(interaction: Element, groupCount: numb
 }
 
 /** 누락과 selection은 일반 선택이다. triangle 속성으로 shape를 만들지 않는다. */
-export function readHottextMarkerMode(interaction: Element): "selection" | "shape" {
-  return interaction.getAttribute("data-marker-mode")?.trim().toLowerCase() === "shape"
+export function readHottextMarkerMode(
+  interaction: Element,
+): "selection" | "shape" {
+  return interaction.getAttribute("data-marker-mode")?.trim().toLowerCase() ===
+    "shape"
     ? "shape"
     : "selection";
 }
 
-export function isHottextMarkerShape(value: unknown): value is HottextMarkerShape {
+export function isHottextMarkerShape(
+  value: unknown,
+): value is HottextMarkerShape {
   return value === "circle" || value === "triangle";
 }
 
@@ -171,7 +199,9 @@ export function hottextChoiceHasImage(element: Element): boolean {
 
 export function readResponseIdentifiers(value: unknown): string[] {
   if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === "string" && item !== "");
+    return value.filter(
+      (item): item is string => typeof item === "string" && item !== "",
+    );
   }
   if (typeof value === "string" && value.trim() !== "") return [value];
   return [];
@@ -187,7 +217,9 @@ function hottextIdentifiersInGroup(group: Element): string[] {
   return identifiers;
 }
 
-export function indexHottextChoices(interaction: Element): Map<string, HottextChoiceContext> {
+export function indexHottextChoices(
+  interaction: Element,
+): Map<string, HottextChoiceContext> {
   const map = new Map<string, HottextChoiceContext>();
   const groupIdentifiers = new Map<Element, string[]>();
   const freeMaxChoices = readFreeHottextMaxChoices(interaction);
@@ -207,12 +239,15 @@ export function indexHottextChoices(interaction: Element): Map<string, HottextCh
 
     const group = node.closest("span.hottext-group");
     if (!group || !interaction.contains(group)) {
-      if (freeMaxChoices === HOTTEXT_MAX_CHOICES.SINGLE) freeIdentifiers.push(identifier);
+      if (freeMaxChoices === HOTTEXT_MAX_CHOICES.SINGLE)
+        freeIdentifiers.push(identifier);
       map.set(identifier, {
         identifier,
         maxChoices: freeMaxChoices,
         groupIdentifiers: null,
-        ...(freeMaxChoices === HOTTEXT_MAX_CHOICES.SINGLE ? { freeIdentifiers } : {}),
+        ...(freeMaxChoices === HOTTEXT_MAX_CHOICES.SINGLE
+          ? { freeIdentifiers }
+          : {}),
       });
       return;
     }
@@ -231,15 +266,18 @@ function toggleGroupSelection(
   selected: readonly string[],
   identifier: string,
   groupIdentifiers: readonly string[],
-  maxChoices: number
+  maxChoices: number,
 ): string[] {
-  if (selected.includes(identifier)) return selected.filter((id) => id !== identifier);
+  if (selected.includes(identifier))
+    return selected.filter((id) => id !== identifier);
 
   const groupIds = new Set(groupIdentifiers);
   const outside = selected.filter((id) => !groupIds.has(id));
   const inside = selected.filter((id) => groupIds.has(id));
-  if (maxChoices === HOTTEXT_MAX_CHOICES.MULTIPLE) return [...selected, identifier];
-  if (maxChoices === HOTTEXT_MAX_CHOICES.SINGLE) return [...outside, identifier];
+  if (maxChoices === HOTTEXT_MAX_CHOICES.MULTIPLE)
+    return [...selected, identifier];
+  if (maxChoices === HOTTEXT_MAX_CHOICES.SINGLE)
+    return [...outside, identifier];
   if (inside.length >= maxChoices) return [...selected];
   return [...selected, identifier];
 }
@@ -248,12 +286,17 @@ export function toggleHottextSelection(
   selected: readonly string[],
   identifier: string,
   choice: HottextChoiceContext | undefined,
-  itemMaxChoices: number = HOTTEXT_MAX_CHOICES.MULTIPLE
+  itemMaxChoices: number = HOTTEXT_MAX_CHOICES.MULTIPLE,
 ): string[] {
   if (!choice) return [...selected];
 
   if (choice.groupIdentifiers !== null) {
-    return toggleGroupSelection(selected, identifier, choice.groupIdentifiers, choice.maxChoices);
+    return toggleGroupSelection(
+      selected,
+      identifier,
+      choice.groupIdentifiers,
+      choice.maxChoices,
+    );
   }
 
   const alreadySelected = selected.includes(identifier);
@@ -261,7 +304,11 @@ export function toggleHottextSelection(
     const next = alreadySelected
       ? selected.filter((id) => id !== identifier)
       : [...selected, identifier];
-    if (itemMaxChoices > 0 && next.length > itemMaxChoices && next.length > selected.length) {
+    if (
+      itemMaxChoices > 0 &&
+      next.length > itemMaxChoices &&
+      next.length > selected.length
+    ) {
       return [...selected];
     }
     return next;
@@ -279,7 +326,7 @@ export function hottextResponseValue(selected: readonly string[]): string[] {
 
 function keepShapes(
   shapes: Readonly<Record<string, HottextMarkerShape>>,
-  ids: readonly string[]
+  ids: readonly string[],
 ): Record<string, HottextMarkerShape> {
   const next: Record<string, HottextMarkerShape> = {};
   for (const id of ids) {
@@ -310,26 +357,58 @@ export function applyHottextMarker(input: {
       return { selected, shapes: keepShapes(input.shapes, selected) };
     }
     if (input.shapes[identifier]) {
-      return { selected: [...input.selected], shapes: { ...input.shapes, [identifier]: tool } };
+      return {
+        selected: [...input.selected],
+        shapes: { ...input.shapes, [identifier]: tool },
+      };
     }
   }
 
-  const selected = toggleHottextSelection(input.selected, identifier, choice, itemMaxChoices);
+  const selected = toggleHottextSelection(
+    input.selected,
+    identifier,
+    choice,
+    itemMaxChoices,
+  );
   if (!shapeMode || !selected.includes(identifier)) {
-    return { selected, shapes: shapeMode ? keepShapes(input.shapes, selected) : {} };
+    return {
+      selected,
+      shapes: shapeMode ? keepShapes(input.shapes, selected) : {},
+    };
   }
-  return { selected, shapes: { ...keepShapes(input.shapes, selected), [identifier]: tool } };
+  return {
+    selected,
+    shapes: { ...keepShapes(input.shapes, selected), [identifier]: tool },
+  };
 }
 
-/** 학생 복원 중첩 쌍. `"H2 circle"` 정답 문자열은 읽지 않는다. */
-export function readStudentShapes(value: unknown): Record<string, HottextMarkerShape> {
+/** 학생 복원. 플레이어 저장값은 `[id, shape]`이고, 조회 API는 `"id shape"` 문자열이다. */
+export function readStudentShapes(
+  value: unknown,
+): Record<string, HottextMarkerShape> {
   const shapes: Record<string, HottextMarkerShape> = {};
   if (!Array.isArray(value)) return shapes;
   for (const item of value) {
+    if (typeof item === "string") {
+      const splitAt = item.lastIndexOf(" ");
+      if (splitAt <= 0) continue;
+      const identifier = item.slice(0, splitAt).trim();
+      const shape = item
+        .slice(splitAt + 1)
+        .trim()
+        .toLowerCase();
+      if (!identifier || !isHottextMarkerShape(shape)) continue;
+      shapes[identifier] = shape;
+      continue;
+    }
     if (!Array.isArray(item) || item.length < 2) continue;
     const identifier: unknown = item[0];
     const shape: unknown = item[1];
-    if (typeof identifier !== "string" || identifier === "" || !isHottextMarkerShape(shape)) {
+    if (
+      typeof identifier !== "string" ||
+      identifier === "" ||
+      !isHottextMarkerShape(shape)
+    ) {
       continue;
     }
     shapes[identifier] = shape;
@@ -338,7 +417,9 @@ export function readStudentShapes(value: unknown): Record<string, HottextMarkerS
 }
 
 /** 정답 API의 공백 구분 문자열. 학생 중첩 쌍과 섞지 않는다. */
-export function readExpectedShapes(value: unknown): Map<string, HottextMarkerShape> {
+export function readExpectedShapes(
+  value: unknown,
+): Map<string, HottextMarkerShape> {
   const shapes = new Map<string, HottextMarkerShape>();
   if (!Array.isArray(value)) return shapes;
   for (const item of value) {
@@ -358,7 +439,7 @@ export function readExpectedShapes(value: unknown): Map<string, HottextMarkerSha
 
 export function buildHottextShapes(
   ids: readonly string[],
-  shapes: Readonly<Record<string, HottextMarkerShape>>
+  shapes: Readonly<Record<string, HottextMarkerShape>>,
 ): Array<[string, HottextMarkerShape]> {
   return ids.flatMap((id) => {
     const shape = shapes[id];
@@ -376,7 +457,7 @@ export interface HottextCorrectAnswerGroup {
 export function groupHottextCorrectAnswers(
   ids: readonly string[],
   expectedValue: unknown,
-  shapeMode: boolean
+  shapeMode: boolean,
 ): HottextCorrectAnswerGroup[] {
   if (!shapeMode) {
     return ids.length > 0 ? [{ shape: null, ids: [...ids] }] : [];
@@ -396,22 +477,26 @@ export function groupHottextCorrectAnswers(
     else grouped.set(shape, [id]);
   }
 
-  const groups: HottextCorrectAnswerGroup[] = HOTTEXT_MARKER_SHAPES.flatMap((shape) => {
-    const shapeIds = grouped.get(shape);
-    return shapeIds && shapeIds.length > 0 ? [{ shape, ids: shapeIds }] : [];
-  });
+  const groups: HottextCorrectAnswerGroup[] = HOTTEXT_MARKER_SHAPES.flatMap(
+    (shape) => {
+      const shapeIds = grouped.get(shape);
+      return shapeIds && shapeIds.length > 0 ? [{ shape, ids: shapeIds }] : [];
+    },
+  );
   if (unshaped.length > 0) groups.push({ shape: null, ids: unshaped });
   return groups;
 }
 
 export function hottextCorrectAnswerUsesSurface(
-  groups: readonly HottextCorrectAnswerGroup[]
+  groups: readonly HottextCorrectAnswerGroup[],
 ): boolean {
   return groups.length >= 2 && groups.every((group) => group.shape !== null);
 }
 
 /** 저작 도구가 정답 선택지에 넣은 data-marker-shape. */
-export function readXmlHottextMarkerShapes(interaction: Element): Map<string, HottextMarkerShape> {
+export function readXmlHottextMarkerShapes(
+  interaction: Element,
+): Map<string, HottextMarkerShape> {
   const shapes = new Map<string, HottextMarkerShape>();
   interaction.querySelectorAll("qti-hottext").forEach((node) => {
     if (node.closest("qti-hottext-interaction") !== interaction) return;
@@ -425,23 +510,30 @@ export function readXmlHottextMarkerShapes(interaction: Element): Map<string, Ho
 
 export function readXmlHottextExpectedShapeValue(
   qtiXml: string | null | undefined,
-  responseIdentifier: string
+  responseIdentifier: string,
 ): string[] {
   if (!qtiXml?.trim() || typeof DOMParser === "undefined") return [];
   const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
   if (doc.querySelector("parsererror")) return [];
-  const interaction = Array.from(doc.querySelectorAll("qti-hottext-interaction")).find(
-    (node) => (node.getAttribute("response-identifier") || "RESPONSE") === responseIdentifier
+  const interaction = Array.from(
+    doc.querySelectorAll("qti-hottext-interaction"),
+  ).find(
+    (node) =>
+      (node.getAttribute("response-identifier") || "RESPONSE") ===
+      responseIdentifier,
   );
   if (!interaction) return [];
-  return Array.from(readXmlHottextMarkerShapes(interaction), ([id, shape]) => `${id} ${shape}`);
+  return Array.from(
+    readXmlHottextMarkerShapes(interaction),
+    ([id, shape]) => `${id} ${shape}`,
+  );
 }
 
 /** 정답 API 도형이 없으면 저작 XML의 data-marker-shape를 쓴다. */
 export function hottextExpectedShapeValue(
   apiValue: unknown,
   qtiXml: string | null | undefined,
-  responseIdentifier: string
+  responseIdentifier: string,
 ): unknown {
   if (readExpectedShapes(apiValue).size > 0) return apiValue;
   const fromXml = readXmlHottextExpectedShapeValue(qtiXml, responseIdentifier);
@@ -450,39 +542,48 @@ export function hottextExpectedShapeValue(
 
 export function hottextXmlUsesShapeMode(
   qtiXml: string | null | undefined,
-  responseIdentifier: string
+  responseIdentifier: string,
 ): boolean {
   if (!qtiXml?.trim() || typeof DOMParser === "undefined") return false;
   const doc = new DOMParser().parseFromString(qtiXml, "text/xml");
   if (doc.querySelector("parsererror")) return false;
   return Array.from(doc.querySelectorAll("qti-hottext-interaction")).some(
     (interaction) =>
-      (interaction.getAttribute("response-identifier") || "RESPONSE") === responseIdentifier &&
-      readHottextMarkerMode(interaction) === "shape"
+      (interaction.getAttribute("response-identifier") || "RESPONSE") ===
+        responseIdentifier && readHottextMarkerMode(interaction) === "shape",
   );
 }
 
-export function readHottextSubmitRequirements(xml: string): HottextSubmitRequirement[] {
+export function readHottextSubmitRequirements(
+  xml: string,
+): HottextSubmitRequirement[] {
   if (!xml || typeof DOMParser === "undefined") return [];
 
   const doc = new DOMParser().parseFromString(xml, "text/xml");
   if (doc.querySelector("parsererror")) return [];
 
-  return Array.from(doc.querySelectorAll("qti-hottext-interaction")).map((interaction) => {
-    const groups = Array.from(interaction.querySelectorAll("span.hottext-group"))
-      .filter((group) => group.closest("qti-hottext-interaction") === interaction)
-      .map((group) => ({
-        identifiers: hottextIdentifiersInGroup(group),
-        maxChoices: readHottextMaxChoices(group),
-      }));
-    return {
-      responseIdentifier: interaction.getAttribute("response-identifier") || "RESPONSE",
-      minChoices: readHottextItemMinChoices(interaction, groups.length),
-      maxChoices: readHottextItemMaxChoices(interaction),
-      shapeMode: readHottextMarkerMode(interaction) === "shape",
-      groups,
-    };
-  });
+  return Array.from(doc.querySelectorAll("qti-hottext-interaction")).map(
+    (interaction) => {
+      const groups = Array.from(
+        interaction.querySelectorAll("span.hottext-group"),
+      )
+        .filter(
+          (group) => group.closest("qti-hottext-interaction") === interaction,
+        )
+        .map((group) => ({
+          identifiers: hottextIdentifiersInGroup(group),
+          maxChoices: readHottextMaxChoices(group),
+        }));
+      return {
+        responseIdentifier:
+          interaction.getAttribute("response-identifier") || "RESPONSE",
+        minChoices: readHottextItemMinChoices(interaction, groups.length),
+        maxChoices: readHottextItemMaxChoices(interaction),
+        shapeMode: readHottextMarkerMode(interaction) === "shape",
+        groups,
+      };
+    },
+  );
 }
 
 export function emptyHottextSubmit(xml: string): ResponseValueMap {
@@ -492,7 +593,8 @@ export function emptyHottextSubmit(xml: string): ResponseValueMap {
     body.RESPONSE = [];
     return body;
   }
-  for (const requirement of requirements) body[requirement.responseIdentifier] = [];
+  for (const requirement of requirements)
+    body[requirement.responseIdentifier] = [];
   if (requirements.some((requirement) => requirement.shapeMode)) {
     body[HOTTEXT_SHAPES_RESPONSE_ID] = [];
   }
@@ -501,27 +603,37 @@ export function emptyHottextSubmit(xml: string): ResponseValueMap {
 
 export function canSubmitHottext(
   responses: ResponseValueMap,
-  requirements: readonly HottextSubmitRequirement[]
+  requirements: readonly HottextSubmitRequirement[],
 ): boolean {
   if (requirements.length === 0) return false;
 
   return requirements.every((requirement) => {
-    const selected = readResponseIdentifiers(responses[requirement.responseIdentifier]);
+    const selected = readResponseIdentifiers(
+      responses[requirement.responseIdentifier],
+    );
     const grouped = requirement.groups.length > 0;
     if (grouped) {
       const groupsMatch = requirement.groups.every((group) => {
         const count = group.identifiers.filter((identifier) =>
-          selected.includes(identifier)
+          selected.includes(identifier),
         ).length;
         if (count < 1) return false;
-        return group.maxChoices === HOTTEXT_MAX_CHOICES.MULTIPLE || count <= group.maxChoices;
+        return (
+          group.maxChoices === HOTTEXT_MAX_CHOICES.MULTIPLE ||
+          count <= group.maxChoices
+        );
       });
       if (!groupsMatch) return false;
     } else {
-      if (requirement.maxChoices > 0 && selected.length > requirement.maxChoices) return false;
+      if (
+        requirement.maxChoices > 0 &&
+        selected.length > requirement.maxChoices
+      )
+        return false;
       if (selected.length < requirement.minChoices) return false;
     }
-    if (!requirement.shapeMode) return selected.length > 0 || requirement.minChoices === 0;
+    if (!requirement.shapeMode)
+      return selected.length > 0 || requirement.minChoices === 0;
     const shapes = readStudentShapes(responses[HOTTEXT_SHAPES_RESPONSE_ID]);
     return selected.every((identifier) => shapes[identifier] !== undefined);
   });
@@ -535,7 +647,7 @@ export function canSubmitHottext(
 export function hottextMarkTone(
   identifier: string,
   selected: readonly string[],
-  feedback: HottextFeedback | null
+  feedback: HottextFeedback | null,
 ): HottextMarkTone | null {
   if (!feedback) return selected.includes(identifier) ? "selected" : null;
   if (!feedback.submittedIds.includes(identifier)) return null;
@@ -543,13 +655,15 @@ export function hottextMarkTone(
   if (!feedback.correctIds.includes(identifier)) return "incorrect";
   if (!feedback.shapeMode) return "correct";
   const expected = feedback.expectedShapes.get(identifier);
-  return expected && feedback.studentShapes[identifier] === expected ? "correct" : "incorrect";
+  return expected && feedback.studentShapes[identifier] === expected
+    ? "correct"
+    : "incorrect";
 }
 
 /** 정답 공개가 허용된 정답 ID의 기대 도형. selection은 원형이다. */
 export function hottextExpectedShape(
   identifier: string,
-  feedback: HottextFeedback | null
+  feedback: HottextFeedback | null,
 ): HottextMarkerShape | null {
   if (!feedback || !feedback.correctIds.includes(identifier)) return null;
   if (!feedback.shapeMode) return "circle";

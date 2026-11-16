@@ -12,11 +12,24 @@ export interface HotspotImage {
 export type HotspotShape =
   | { kind: "rect"; x: number; y: number; width: number; height: number }
   | { kind: "circle"; cx: number; cy: number; r: number }
-  | { kind: "ellipse"; cx: number; cy: number; rx: number; ry: number; rotation: number }
+  | {
+      kind: "ellipse";
+      cx: number;
+      cy: number;
+      rx: number;
+      ry: number;
+      rotation: number;
+    }
   | { kind: "poly"; points: string };
 
 /** 학생이 찍는 표시 도형. 클릭 영역 `shape`와 별개다. triangle은 삼각형, poly는 다각형이다. */
-export const HOTSPOT_MARKER_KINDS = ["circle", "rect", "triangle", "poly", "check"] as const;
+export const HOTSPOT_MARKER_KINDS = [
+  "circle",
+  "rect",
+  "triangle",
+  "poly",
+  "check",
+] as const;
 export type HotspotMarkerKind = (typeof HOTSPOT_MARKER_KINDS)[number];
 
 export function isHotspotMarkerKind(value: string): value is HotspotMarkerKind {
@@ -79,7 +92,8 @@ function parseCoordList(raw: string | null): number[] | null {
     .split(/[\s,]+/)
     .filter(Boolean);
   const nums = parts.map((part) => Number(part));
-  if (nums.length === 0 || nums.some((value) => !Number.isFinite(value))) return null;
+  if (nums.length === 0 || nums.some((value) => !Number.isFinite(value)))
+    return null;
   return nums;
 }
 
@@ -105,25 +119,37 @@ function readMaxChoices(element: Element): number {
   return Math.floor(value);
 }
 
-function readDisplaySize(media: Element, interaction: Element, name: string): number | undefined {
-  return readPositive(media, name) ?? readPositive(interaction, name) ?? undefined;
+function readDisplaySize(
+  media: Element,
+  interaction: Element,
+  name: string,
+): number | undefined {
+  return (
+    readPositive(media, name) ?? readPositive(interaction, name) ?? undefined
+  );
 }
 
 /**
  * 화면에 그릴 크기. 리사이즈 값이 있으면 그것을 쓰고, 한 축만 있으면 기준 비율로 나머지를 맞춘다.
  * 영역 좌표의 기준 크기는 바꾸지 않는다.
  */
-export function hotspotRenderedSize(image: HotspotImage): { width: number; height: number } {
+export function hotspotRenderedSize(image: HotspotImage): {
+  width: number;
+  height: number;
+} {
   const { width, height, displayWidth, displayHeight } = image;
-  if (displayWidth && displayHeight) return { width: displayWidth, height: displayHeight };
-  if (displayWidth) return { width: displayWidth, height: (displayWidth * height) / width };
-  if (displayHeight) return { width: (displayHeight * width) / height, height: displayHeight };
+  if (displayWidth && displayHeight)
+    return { width: displayWidth, height: displayHeight };
+  if (displayWidth)
+    return { width: displayWidth, height: (displayWidth * height) / width };
+  if (displayHeight)
+    return { width: (displayHeight * width) / height, height: displayHeight };
   return { width, height };
 }
 
 function readImage(element: Element): HotspotImage | null {
   const media = Array.from(element.children).find((child) =>
-    MEDIA_TAGS.has(child.tagName.toLowerCase())
+    MEDIA_TAGS.has(child.tagName.toLowerCase()),
   );
   if (!media) return null;
 
@@ -131,7 +157,9 @@ function readImage(element: Element): HotspotImage | null {
   const src =
     tag === "img"
       ? media.getAttribute("src") || media.getAttribute("data-src")
-      : media.getAttribute("data") || media.getAttribute("src") || media.getAttribute("data-src");
+      : media.getAttribute("data") ||
+        media.getAttribute("src") ||
+        media.getAttribute("data-src");
   const width = readPositive(media, "width");
   const height = readPositive(media, "height");
   if (!src || !width || !height) return null;
@@ -171,7 +199,14 @@ function readShape(element: Element): HotspotShape | null {
   if (shape === "ellipse" && coords.length === 4) {
     const [cx, cy, rx, ry] = coords;
     if (rx <= 0 || ry <= 0) return null;
-    return { kind: "ellipse", cx, cy, rx, ry, rotation: readEllipseRotation(element) };
+    return {
+      kind: "ellipse",
+      cx,
+      cy,
+      rx,
+      ry,
+      rotation: readEllipseRotation(element),
+    };
   }
 
   if (shape === "poly" && coords.length >= 6 && coords.length % 2 === 0) {
@@ -196,7 +231,7 @@ function pairCoords(coords: number[]): string {
 
 function readMarkerShape(
   shapeName: string | null | undefined,
-  coords: number[] | null
+  coords: number[] | null,
 ): HotspotMarkerShape | null {
   const shape = shapeName?.trim().toLowerCase();
   if (!shape || !coords) return null;
@@ -239,14 +274,14 @@ function readMarker(element: Element): HotspotMarkerShape | undefined {
   return (
     readMarkerShape(
       element.getAttribute("data-marker-shape"),
-      parseCoordList(element.getAttribute("data-marker-coords"))
+      parseCoordList(element.getAttribute("data-marker-coords")),
     ) ?? undefined
   );
 }
 
 /** `identifier|markerShape|coords`. `|`는 앞에서 두 번만 나눈다. */
 export function parseHotspotGeometryValue(
-  raw: string
+  raw: string,
 ): { identifier: string; shape: HotspotMarkerShape } | null {
   const first = raw.indexOf("|");
   if (first <= 0) return null;
@@ -255,28 +290,38 @@ export function parseHotspotGeometryValue(
   const identifier = raw.slice(0, first).trim();
   const shape = readMarkerShape(
     raw.slice(first + 1, second),
-    parseCoordList(raw.slice(second + 1))
+    parseCoordList(raw.slice(second + 1)),
   );
   if (!identifier || !shape) return null;
   return { identifier, shape };
 }
 
-export function formatHotspotGeometry(identifier: string, marker: HotspotMarkerShape): string {
+export function formatHotspotGeometry(
+  identifier: string,
+  marker: HotspotMarkerShape,
+): string {
   const coords =
     marker.kind === "circle"
       ? `${marker.cx},${marker.cy},${marker.r}`
       : marker.kind === "rect"
-        ? `${marker.x},${marker.y},${marker.x + marker.width},${marker.y + marker.height}`
-        : marker.points.split(" ").join(",");
+      ? `${marker.x},${marker.y},${marker.x + marker.width},${
+          marker.y + marker.height
+        }`
+      : marker.points.split(" ").join(",");
   return `${identifier}|${marker.kind}|${coords}`;
 }
 
-export function markerStampSize(marker: HotspotMarkerShape | undefined, fallback: number): number {
+export function markerStampSize(
+  marker: HotspotMarkerShape | undefined,
+  fallback: number,
+): number {
   if (marker?.kind === "circle") return marker.r;
-  if (marker?.kind === "rect") return marker.width > 0 ? marker.width / 2 : fallback;
+  if (marker?.kind === "rect")
+    return marker.width > 0 ? marker.width / 2 : fallback;
   if (marker?.kind === "triangle" || marker?.kind === "check") {
     const [x1, , x2] = marker.points.split(/[\s,]+/).map(Number);
-    const span = marker.kind === "check" ? Math.abs(x2 - x1) / 2 : Math.abs(x2 - x1);
+    const span =
+      marker.kind === "check" ? Math.abs(x2 - x1) / 2 : Math.abs(x2 - x1);
     if (Number.isFinite(span) && span > 0) return span;
   }
   if (marker?.kind === "poly") {
@@ -297,13 +342,15 @@ function markerAt(
   kind: Exclude<HotspotMarkerKind, "poly">,
   x: number,
   y: number,
-  size: number
+  size: number,
 ): HotspotMarkerShape {
   const radius = Math.max(1, size);
   if (kind === "triangle") {
     return {
       kind: "triangle",
-      points: `${x},${y - radius} ${x + radius},${y + radius} ${x - radius},${y + radius}`,
+      points: `${x},${y - radius} ${x + radius},${y + radius} ${x - radius},${
+        y + radius
+      }`,
     };
   }
   if (kind === "rect") {
@@ -319,7 +366,9 @@ function markerAt(
     const third = Math.round(radius / 3);
     return {
       kind: "check",
-      points: `${x - radius},${y} ${x - third},${y + radius} ${x + radius},${y - radius}`,
+      points: `${x - radius},${y} ${x - third},${y + radius} ${x + radius},${
+        y - radius
+      }`,
     };
   }
   return { kind: "circle", cx: x, cy: y, r: radius };
@@ -337,7 +386,12 @@ function roundPointList(points: string): string {
 
 function roundHotspotMarker(marker: HotspotMarkerShape): HotspotMarkerShape {
   if (marker.kind === "circle") {
-    return { kind: "circle", cx: Math.round(marker.cx), cy: Math.round(marker.cy), r: marker.r };
+    return {
+      kind: "circle",
+      cx: Math.round(marker.cx),
+      cy: Math.round(marker.cy),
+      r: marker.r,
+    };
   }
   if (marker.kind === "rect") {
     const left = Math.round(marker.x);
@@ -361,16 +415,21 @@ export function placeHotspotMarker(
   x: number,
   y: number,
   size: number,
-  polyPoints?: string
+  polyPoints?: string,
 ): HotspotMarkerShape {
   if (kind === "poly") {
-    return roundHotspotMarker(movePoly({ kind: "poly", points: polyPoints ?? "" }, x, y));
+    return roundHotspotMarker(
+      movePoly({ kind: "poly", points: polyPoints ?? "" }, x, y),
+    );
   }
   return roundHotspotMarker(markerAt(kind, x, y, size));
 }
 
 /** 표시의 중심. */
-export function hotspotMarkerCenter(marker: HotspotMarkerShape): { x: number; y: number } {
+export function hotspotMarkerCenter(marker: HotspotMarkerShape): {
+  x: number;
+  y: number;
+} {
   const placement = markerPlacement(marker);
   return { x: placement.x, y: placement.y };
 }
@@ -418,7 +477,12 @@ function inflateMarker(marker: HotspotMarkerShape, padding: number) {
   if (marker.kind === "poly") return scalePoly(marker, padding);
   const placement = markerPlacement(marker);
   if (placement.kind === "poly") return marker;
-  return markerAt(placement.kind, placement.x, placement.y, placement.size + padding);
+  return markerAt(
+    placement.kind,
+    placement.x,
+    placement.y,
+    placement.size + padding,
+  );
 }
 
 function readPointList(points: string): Point[] {
@@ -471,7 +535,7 @@ export function hotspotMarkerOverflow(
   width: number,
   height: number,
   strokePadX: number,
-  strokePadY = strokePadX
+  strokePadY = strokePadX,
 ): { left: number; top: number; right: number; bottom: number } {
   let minX = 0;
   let minY = 0;
@@ -494,9 +558,13 @@ export function hotspotMarkerOverflow(
 }
 
 function onSegment(point: Point, start: Point, end: Point) {
-  const cross = (point.y - start.y) * (end.x - start.x) - (point.x - start.x) * (end.y - start.y);
+  const cross =
+    (point.y - start.y) * (end.x - start.x) -
+    (point.x - start.x) * (end.y - start.y);
   if (Math.abs(cross) > 1e-6) return false;
-  const dot = (point.x - start.x) * (end.x - start.x) + (point.y - start.y) * (end.y - start.y);
+  const dot =
+    (point.x - start.x) * (end.x - start.x) +
+    (point.y - start.y) * (end.y - start.y);
   if (dot < -1e-6) return false;
   const length2 = (end.x - start.x) ** 2 + (end.y - start.y) ** 2;
   return dot <= length2 + 1e-6;
@@ -504,13 +572,18 @@ function onSegment(point: Point, start: Point, end: Point) {
 
 function pointInPolygon(point: Point, polygon: Point[]) {
   let inside = false;
-  for (let index = 0, previous = polygon.length - 1; index < polygon.length; previous = index++) {
+  for (
+    let index = 0, previous = polygon.length - 1;
+    index < polygon.length;
+    previous = index++
+  ) {
     const start = polygon[previous];
     const end = polygon[index];
     if (onSegment(point, start, end)) return true;
     if (
       start.y > point.y !== end.y > point.y &&
-      point.x < ((end.x - start.x) * (point.y - start.y)) / (end.y - start.y) + start.x
+      point.x <
+        ((end.x - start.x) * (point.y - start.y)) / (end.y - start.y) + start.x
     ) {
       inside = !inside;
     }
@@ -525,7 +598,10 @@ function distanceToSegment(point: Point, start: Point, end: Point) {
   if (length2 === 0) return Math.hypot(point.x - start.x, point.y - start.y);
   const t = Math.min(
     1,
-    Math.max(0, ((point.x - start.x) * dx + (point.y - start.y) * dy) / length2)
+    Math.max(
+      0,
+      ((point.x - start.x) * dx + (point.y - start.y) * dy) / length2,
+    ),
   );
   return Math.hypot(point.x - (start.x + t * dx), point.y - (start.y + t * dy));
 }
@@ -540,7 +616,10 @@ function pointInShape(point: Point, shape: HotspotShape) {
     );
   }
   if (shape.kind === "circle") {
-    return Math.hypot(point.x - shape.cx, point.y - shape.cy) <= shape.r + FIT_EPSILON;
+    return (
+      Math.hypot(point.x - shape.cx, point.y - shape.cy) <=
+      shape.r + FIT_EPSILON
+    );
   }
   if (shape.kind === "ellipse") {
     const rad = (shape.rotation * Math.PI) / 180;
@@ -550,24 +629,32 @@ function pointInShape(point: Point, shape: HotspotShape) {
     const dy = point.y - shape.cy;
     const localX = dx * cos + dy * sin;
     const localY = -dx * sin + dy * cos;
-    return (localX / shape.rx) ** 2 + (localY / shape.ry) ** 2 <= 1 + FIT_EPSILON;
+    return (
+      (localX / shape.rx) ** 2 + (localY / shape.ry) ** 2 <= 1 + FIT_EPSILON
+    );
   }
   const polygon = readPointList(shape.points);
   return polygon.length >= 3 && pointInPolygon(point, polygon);
 }
 
-function polyRadius(marker: Extract<HotspotMarkerShape, { kind: "poly" }>): number {
+function polyRadius(
+  marker: Extract<HotspotMarkerShape, { kind: "poly" }>,
+): number {
   const points = readPointList(marker.points);
   if (points.length === 0) return 0;
   const center = pointsCenter(points);
-  return Math.max(...points.map((point) => Math.hypot(point.x - center.x, point.y - center.y)));
+  return Math.max(
+    ...points.map((point) =>
+      Math.hypot(point.x - center.x, point.y - center.y),
+    ),
+  );
 }
 
 /** 다각형의 점 배치는 유지하고 무게중심만 옮긴다. 세 점이면 삼각형이다. */
 function movePoly(
   marker: Extract<HotspotMarkerShape, { kind: "poly" }>,
   x: number,
-  y: number
+  y: number,
 ): HotspotMarkerShape {
   const points = readPointList(marker.points);
   const center = pointsCenter(points);
@@ -581,7 +668,7 @@ function movePoly(
 
 function scalePoly(
   marker: Extract<HotspotMarkerShape, { kind: "poly" }>,
-  padding: number
+  padding: number,
 ): HotspotMarkerShape {
   const points = readPointList(marker.points);
   const center = pointsCenter(points);
@@ -593,13 +680,19 @@ function scalePoly(
     points: points
       .map(
         (point) =>
-          `${center.x + (point.x - center.x) * factor},${center.y + (point.y - center.y) * factor}`
+          `${center.x + (point.x - center.x) * factor},${
+            center.y + (point.y - center.y) * factor
+          }`,
       )
       .join(" "),
   };
 }
 
-function relocateMarker(marker: HotspotMarkerShape, x: number, y: number): HotspotMarkerShape {
+function relocateMarker(
+  marker: HotspotMarkerShape,
+  x: number,
+  y: number,
+): HotspotMarkerShape {
   if (marker.kind === "poly") return movePoly(marker, x, y);
   const placement = markerPlacement(marker);
   if (placement.kind === "poly") return marker;
@@ -615,7 +708,11 @@ function pointsCenter(points: readonly Point[]): Point {
 }
 
 function markerOutline(marker: HotspotMarkerShape): Point[] {
-  if (marker.kind === "triangle" || marker.kind === "poly" || marker.kind === "check") {
+  if (
+    marker.kind === "triangle" ||
+    marker.kind === "poly" ||
+    marker.kind === "check"
+  ) {
     return readPointList(marker.points);
   }
   if (marker.kind === "rect") {
@@ -639,7 +736,8 @@ function markerOutline(marker: HotspotMarkerShape): Point[] {
 function markerFits(shape: HotspotShape, marker: HotspotMarkerShape) {
   if (marker.kind === "circle" && shape.kind === "circle") {
     return (
-      Math.hypot(marker.cx - shape.cx, marker.cy - shape.cy) + marker.r <= shape.r + FIT_EPSILON
+      Math.hypot(marker.cx - shape.cx, marker.cy - shape.cy) + marker.r <=
+      shape.r + FIT_EPSILON
     );
   }
   if (marker.kind === "circle" && shape.kind === "rect") {
@@ -656,8 +754,8 @@ function markerFits(shape: HotspotShape, marker: HotspotMarkerShape) {
     if (polygon.length < 3 || !pointInPolygon(center, polygon)) return false;
     const clearance = Math.min(
       ...polygon.map((point, index) =>
-        distanceToSegment(center, point, polygon[(index + 1) % polygon.length])
-      )
+        distanceToSegment(center, point, polygon[(index + 1) % polygon.length]),
+      ),
     );
     return clearance + FIT_EPSILON >= marker.r;
   }
@@ -665,7 +763,8 @@ function markerFits(shape: HotspotShape, marker: HotspotMarkerShape) {
 }
 
 function interiorPoint(shape: HotspotShape): Point {
-  if (shape.kind === "circle" || shape.kind === "ellipse") return { x: shape.cx, y: shape.cy };
+  if (shape.kind === "circle" || shape.kind === "ellipse")
+    return { x: shape.cx, y: shape.cy };
   if (shape.kind === "rect") {
     return { x: shape.x + shape.width / 2, y: shape.y + shape.height / 2 };
   }
@@ -694,7 +793,7 @@ function interiorPoint(shape: HotspotShape): Point {
 function shiftMarkerInside(
   region: HotspotShape,
   marker: HotspotMarkerShape,
-  padding: number
+  padding: number,
 ): HotspotMarkerShape | null {
   const placement = markerPlacement(marker);
   const at = (point: Point) => relocateMarker(marker, point.x, point.y);
@@ -731,7 +830,7 @@ function shiftMarkerInside(
       at({
         x: origin.x + (anchor.x - origin.x) * t,
         y: origin.y + (anchor.y - origin.y) * t,
-      })
+      }),
     );
     if (fits(next)) return next;
   }
@@ -747,7 +846,7 @@ function shiftMarkerInside(
 export function containHotspotMarker(
   region: HotspotShape,
   marker: HotspotMarkerShape,
-  padding = 0
+  padding = 0,
 ): HotspotMarkerShape {
   const anchor = interiorPoint(region);
   return (
@@ -762,7 +861,7 @@ export function placeDefaultHotspotMarker(
   region: HotspotShape,
   kind: HotspotMarkerKind,
   size: number,
-  polyPoints?: string
+  polyPoints?: string,
 ): HotspotMarkerShape {
   const center = interiorPoint(region);
   return placeHotspotMarker(kind, center.x, center.y, size, polyPoints);
@@ -776,7 +875,12 @@ export function isHotspotGrouped(element: Element): boolean {
 }
 
 /** 그룹 채점 도형. 응답 처리의 쌍 조건과 같다. triangle은 쌍 정답에 넣지 않는다. */
-const GROUP_PAIR_SHAPES = new Set<HotspotMarkerKind>(["circle", "rect", "poly", "check"]);
+const GROUP_PAIR_SHAPES = new Set<HotspotMarkerKind>([
+  "circle",
+  "rect",
+  "poly",
+  "check",
+]);
 
 export interface HotspotGroupMember {
   chosen: boolean;
@@ -784,8 +888,11 @@ export interface HotspotGroupMember {
 }
 
 /** 같은 그룹의 모든 영역이 선택되고, 채점 도형이 하나일 때 그 쌍은 정답이다. */
-export function hotspotGroupPairCorrect(members: readonly HotspotGroupMember[]): boolean {
-  if (members.length === 0 || members.some((member) => !member.chosen)) return false;
+export function hotspotGroupPairCorrect(
+  members: readonly HotspotGroupMember[],
+): boolean {
+  if (members.length === 0 || members.some((member) => !member.chosen))
+    return false;
   const shape = members[0]?.studentShape;
   if (!shape || !GROUP_PAIR_SHAPES.has(shape)) return false;
   return members.every((member) => member.studentShape === shape);
@@ -810,17 +917,23 @@ export function hotspotAreaFeedback(input: {
 }): "correct" | "incorrect" | undefined {
   if (!input.submitted || !input.chosen) return undefined;
   const regionCorrect =
-    input.correctIds.length > 0 ? input.correctIds.includes(input.regionId) : input.itemCorrect;
+    input.correctIds.length > 0
+      ? input.correctIds.includes(input.regionId)
+      : input.itemCorrect;
   if (!regionCorrect) return "incorrect";
   if (input.grouped && input.groupMembers) {
-    return hotspotGroupPairCorrect(input.groupMembers) ? "correct" : "incorrect";
+    return hotspotGroupPairCorrect(input.groupMembers)
+      ? "correct"
+      : "incorrect";
   }
   const expected = input.answerShape ?? "circle";
   return input.studentShape === expected ? "correct" : "incorrect";
 }
 
 /** interaction `data-marker-shapes`. 공백 구분이고 모르는 토큰은 버린다. 속성이 없거나 비면 undefined다. */
-function readDeclaredMarkerShapes(element: Element): HotspotMarkerKind[] | undefined {
+function readDeclaredMarkerShapes(
+  element: Element,
+): HotspotMarkerKind[] | undefined {
   const raw = element.getAttribute("data-marker-shapes");
   if (raw === null) return undefined;
   const kinds = raw
@@ -837,7 +950,7 @@ function readDeclaredMarkerShapes(element: Element): HotspotMarkerKind[] | undef
  */
 export function hotspotMarkerKinds(
   choices: readonly HotspotChoice[],
-  declared?: readonly HotspotMarkerKind[]
+  declared?: readonly HotspotMarkerKind[],
 ): HotspotMarkerKind[] {
   const present = new Set<HotspotMarkerKind>(declared);
   if (!declared) {
@@ -851,7 +964,7 @@ export function hotspotMarkerKinds(
 /** RESPONSE_SHAPES에 넣을 값. 선택한 영역마다 `[영역ID, 도형]` 하나다. */
 export function buildHotspotShapes(
   ids: readonly string[],
-  placed: Readonly<Record<string, HotspotMarkerShape>>
+  placed: Readonly<Record<string, HotspotMarkerShape>>,
 ): Array<[string, string]> {
   return ids.flatMap((id) => {
     const marker = placed[id];
@@ -863,20 +976,41 @@ function isShapePair(value: unknown): value is readonly [unknown, unknown] {
   return Array.isArray(value) && value.length === 2;
 }
 
+/** API가 돌려주는 `"영역ID circle"`. 마지막 공백으로 나눈다. ID에 공백은 없다. */
+function readShapeString(item: string): [string, HotspotMarkerKind] | null {
+  const splitAt = item.lastIndexOf(" ");
+  if (splitAt <= 0) return null;
+  const identifier = item.slice(0, splitAt).trim();
+  const shape = item
+    .slice(splitAt + 1)
+    .trim()
+    .toLowerCase();
+  if (!identifier || !isHotspotMarkerKind(shape)) return null;
+  return [identifier, shape];
+}
+
 /**
  * 학생 도형 복원. 필드 자체가 없으면 null이다.
  * 빈 배열은 선택된 도형이 없다는 뜻이고, geometry로 도형을 보충하지 않는다.
+ * 플레이어 저장값은 `[영역ID, 도형]`이고, 조회 API는 `"영역ID 도형"` 문자열이다.
  */
-export function readHotspotShapes(value: unknown): Map<string, HotspotMarkerKind> | null {
+export function readHotspotShapes(
+  value: unknown,
+): Map<string, HotspotMarkerKind> | null {
   if (value === undefined || value === null) return null;
   const map = new Map<string, HotspotMarkerKind>();
   if (!Array.isArray(value)) return map;
   for (const item of value) {
-    if (!isShapePair(item)) continue;
-    const [identifier, shape] = item;
-    if (typeof identifier !== "string" || identifier.trim() === "") continue;
-    if (typeof shape !== "string" || !isHotspotMarkerKind(shape)) continue;
-    map.set(identifier, shape);
+    if (isShapePair(item)) {
+      const [identifier, shape] = item;
+      if (typeof identifier !== "string" || identifier.trim() === "") continue;
+      if (typeof shape !== "string" || !isHotspotMarkerKind(shape)) continue;
+      map.set(identifier, shape);
+      continue;
+    }
+    if (typeof item !== "string") continue;
+    const parsed = readShapeString(item);
+    if (parsed) map.set(parsed[0], parsed[1]);
   }
   return map;
 }
@@ -884,7 +1018,7 @@ export function readHotspotShapes(value: unknown): Map<string, HotspotMarkerKind
 /** RESPONSE_GEOMETRY에 넣을 값. 선택한 영역의 마커만 `id|shape|coords`로 넣는다. */
 export function buildHotspotGeometry(
   ids: readonly string[],
-  placed: Readonly<Record<string, HotspotMarkerShape>>
+  placed: Readonly<Record<string, HotspotMarkerShape>>,
 ): string[] {
   return ids.flatMap((id) => {
     const marker = placed[id];
@@ -894,10 +1028,14 @@ export function buildHotspotGeometry(
 
 const HOTSPOT_OVERLAP_ALL_ANSWER_REGIONS = "all-answer-regions";
 
-function readOverlapSelection(element: Element): "all-answer-regions" | "invalid" | undefined {
+function readOverlapSelection(
+  element: Element,
+): "all-answer-regions" | "invalid" | undefined {
   const raw = element.getAttribute("data-overlap-selection");
   if (raw === null || raw.trim() === "") return undefined;
-  return raw.trim() === HOTSPOT_OVERLAP_ALL_ANSWER_REGIONS ? "all-answer-regions" : "invalid";
+  return raw.trim() === HOTSPOT_OVERLAP_ALL_ANSWER_REGIONS
+    ? "all-answer-regions"
+    : "invalid";
 }
 
 /** `true`/`false`만 역할로 인정한다. 속성이 없거나 다른 값이면 null이다. */
@@ -916,12 +1054,14 @@ function readAnswerRegion(element: Element): boolean | null {
  */
 export function hotspotOverlapTargetIds(
   choices: readonly HotspotChoice[],
-  point: { x: number; y: number }
+  point: { x: number; y: number },
 ): string[] {
   const hits = choices.filter((choice) => pointInShape(point, choice.shape));
   const answers = hits.filter((choice) => choice.answerRegion === true);
   if (answers.length > 0) return answers.map((choice) => choice.identifier);
-  const topNormal = hits.filter((choice) => choice.answerRegion !== true).at(-1);
+  const topNormal = hits
+    .filter((choice) => choice.answerRegion !== true)
+    .at(-1);
   return topNormal ? [topNormal.identifier] : [];
 }
 
@@ -935,14 +1075,18 @@ export function resolveHotspotOverlapSelection(input: {
   stamp: (choice: HotspotChoice) => HotspotMarkerShape;
 }): { ids: string[]; placed: Record<string, HotspotMarkerShape> } | null {
   if (input.targetIds.length === 0) return null;
-  const choiceById = new Map(input.choices.map((choice) => [choice.identifier, choice]));
+  const choiceById = new Map(
+    input.choices.map((choice) => [choice.identifier, choice]),
+  );
   const targets = input.targetIds.flatMap((id) => {
     const choice = choiceById.get(id);
     return choice ? [choice] : [];
   });
   if (targets.length !== input.targetIds.length) return null;
 
-  const stamped = new Map(targets.map((choice) => [choice.identifier, input.stamp(choice)]));
+  const stamped = new Map(
+    targets.map((choice) => [choice.identifier, input.stamp(choice)]),
+  );
   const targetSet = new Set(input.targetIds);
   const allSameTool = targets.every((choice) => {
     const marker = stamped.get(choice.identifier);
@@ -980,9 +1124,15 @@ export function resolveHotspotOverlapSelection(input: {
   return { ids, placed };
 }
 
-export function readHotspotGeometry(value: unknown): Map<string, HotspotMarkerShape> {
+export function readHotspotGeometry(
+  value: unknown,
+): Map<string, HotspotMarkerShape> {
   const map = new Map<string, HotspotMarkerShape>();
-  const list = Array.isArray(value) ? value : typeof value === "string" && value ? [value] : [];
+  const list = Array.isArray(value)
+    ? value
+    : typeof value === "string" && value
+    ? [value]
+    : [];
   for (const item of list) {
     if (typeof item !== "string" || !item) continue;
     const parsed = parseHotspotGeometryValue(item);
@@ -1008,11 +1158,15 @@ export function parseHotspotModel(element: Element): HotspotModel | null {
     const identifier = child.getAttribute("identifier")?.trim() ?? "";
     const shape = readShape(child);
     const answerRegion = readAnswerRegion(child);
-    if (requireAnswerRegion && (answerRegion === null || !identifier || !shape)) {
+    if (
+      requireAnswerRegion &&
+      (answerRegion === null || !identifier || !shape)
+    ) {
       overlapInvalid = true;
     }
     if (!identifier || !shape) continue;
-    const label = child.getAttribute("hotspot-label")?.trim() || `영역 ${choiceIndex}`;
+    const label =
+      child.getAttribute("hotspot-label")?.trim() || `영역 ${choiceIndex}`;
     const markerKind = readMarkerKind(child);
     const marker = readMarker(child);
     const answerGroup = child.getAttribute("data-answer-group")?.trim();
@@ -1031,12 +1185,18 @@ export function parseHotspotModel(element: Element): HotspotModel | null {
   const markerSize = Number(element.getAttribute("data-answer-marker-size"));
   const markerShapes = readDeclaredMarkerShapes(element);
   const overlapSelection =
-    requestedOverlap === undefined ? undefined : overlapInvalid ? "invalid" : "all-answer-regions";
+    requestedOverlap === undefined
+      ? undefined
+      : overlapInvalid
+      ? "invalid"
+      : "all-answer-regions";
 
   return {
-    responseIdentifier: element.getAttribute("response-identifier")?.trim() || "RESPONSE",
+    responseIdentifier:
+      element.getAttribute("response-identifier")?.trim() || "RESPONSE",
     maxChoices: readMaxChoices(element),
-    answerMarkerSize: Number.isFinite(markerSize) && markerSize > 0 ? markerSize : 10,
+    answerMarkerSize:
+      Number.isFinite(markerSize) && markerSize > 0 ? markerSize : 10,
     grouped: isHotspotGrouped(element),
     ...(markerShapes ? { markerShapes } : {}),
     ...(overlapSelection ? { overlapSelection } : {}),
