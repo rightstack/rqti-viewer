@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import type {
   FeedbackSubmitResponse,
   MatchingOptionType,
@@ -17,6 +17,27 @@ interface AdjacentPair {
   pairIndex: number;
 }
 
+function pairsEqual(a: MatchingPairType[], b: MatchingPairType[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every(
+      (pair, index) => pair.leftId === b[index]?.leftId && pair.rightId === b[index]?.rightId
+    )
+  );
+}
+
+function adjacentPairsEqual(a: AdjacentPair[], b: AdjacentPair[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every(
+      (pair, index) =>
+        pair.leftId === b[index]?.leftId &&
+        pair.rightId === b[index]?.rightId &&
+        pair.pairIndex === b[index]?.pairIndex
+    )
+  );
+}
+
 interface MatchInteractionProps {
   element: Element;
   options: Omit<
@@ -29,24 +50,17 @@ interface MatchInteractionProps {
 export const MatchInteraction: React.FC<MatchInteractionProps> = ({ element, options }) => {
   const responseIdentifier = element.getAttribute("response-identifier") || "";
 
-  // responses가 외부에서 변경되면 컴포넌트 리셋 (key 변경)
-  // 제출 시(submitResponse 존재)에는 key를 동결하여 리마운트 방지
-  // theme: 테마 에디터 mock 정·오답 전환 시 responses가 바뀌어도 동결하면 matchedPairs가 갱신되지 않음
+  // 응답이 바뀌면 로컬 쌍만 맞춘다. 이 문자열을 그리드 key에 넣으면
+  // 쌍을 연결·해제할 때마다 선택지가 언마운트된다.
   const responsesResetKey = useMemo(
     () => `${responseIdentifier}-${JSON.stringify(options.responses?.[responseIdentifier] ?? [])}`,
     [responseIdentifier, options.responses]
   );
-  const stableKeyRef = useRef(responsesResetKey);
-  if (!options.submitResponse) {
-    // eslint-disable-next-line react-hooks/refs
-    stableKeyRef.current = responsesResetKey;
-  }
 
   const itemKey = options.itemKey?.trim() ?? "";
-  /** 캐시된 상세로 전환 시 인스턴스는 유지되므로, 문항·XML 단위로 높이 훅 effect를 재실행 */
-  const heightSyncKey = itemKey
-    ? `${itemKey}\0${responsesResetKey}`
-    : `${responsesResetKey}\0${element.outerHTML}`;
+  /** 문항·본문이 바뀔 때만 그리드를 다시 마운트하고 높이를 다시 잰다. */
+  const contentKey = `${itemKey}\0${element.outerHTML}`;
+  const heightSyncKey = contentKey;
 
   const matchSets = element.querySelectorAll("qti-simple-match-set");
   const matchSetCount = matchSets.length;
@@ -110,7 +124,7 @@ export const MatchInteraction: React.FC<MatchInteractionProps> = ({ element, opt
   const [isSubmit, setIsSubmit] = useState(!!options.isSubmit);
   const [submitMatchedPairs, setSubmitMatchedPairs] = useState<MatchingPairType[]>([]);
 
-  // 그리드 div의 key만 바뀌면 컴포넌트 state는 유지됨 → 외부 responses와 matchedPairs 불일치
+  // 제출 응답이 있으면 채점 스냅샷을 유지한다. 그 외에는 외부 responses와 로컬 쌍을 맞춘다.
   const shouldSyncPairsFromResponses = !options.submitResponse;
 
   // SIMULTANEOUS: 답안은 복원하되 정오답/피드백 미표시 (ChoiceInteraction과 동일)
@@ -182,39 +196,47 @@ export const MatchInteraction: React.FC<MatchInteractionProps> = ({ element, opt
   // preview: 정적 미리보기, 인터랙션 비활성. 채점 테마는 options.isSubmit일 때만
   const effectiveIsSubmit = showFeedback ? !!options.isSubmit : false;
 
-  /** 외부 responses와 로컬 매칭 상태 동기화. 의존성은 responsesResetKey(직렬화) 기준 */
-  useLayoutEffect(() => {
-    if (!shouldSyncPairsFromResponses) return;
-    const raw = options.responses?.[responseIdentifier];
-    const nextPairs = isMultiWay ? [] : parsePairs(raw);
-    const nextAdjacent = isMultiWay ? parsePairs(raw).map((p, i) => ({ ...p, pairIndex: i })) : [];
-    setMatchedPairs(nextPairs);
-    setAdjacentPairs(nextAdjacent);
-    setSelectedByPairIndex(
-      Array.from({ length: matchSetCount - 1 }, () => ({ left: null, right: null }))
-    );
-  }, [
-    shouldSyncPairsFromResponses,
-    responsesResetKey,
-    responseIdentifier,
-    matchSetCount,
-    isMultiWay,
-  ]);
-
-  useEffect(() => {
-    if (effectiveIsSubmit && !isSubmit) {
-      setSubmitMatchedPairs(matchedPairs);
-      setIsSubmit(true);
-    } else if (!effectiveIsSubmit && isSubmit) {
-      setIsSubmit(false);
+  // 응답 키가 바뀔 때만 외부 쌍을 맞춘다. matchedPairs 변경을 조건으로 쓰면
+  // 부모 응답이 오기 전에 방금 연결한 쌍을 되돌린다.
+  const responseSyncToken = shouldSyncPairsFromResponses ? responsesResetKey : null;
+  const [syncedResponseToken, setSyncedResponseToken] = useState<string | null>(responseSyncToken);
+  let pairsForSubmit = matchedPairs;
+  if (syncedResponseToken !== responseSyncToken) {
+    setSyncedResponseToken(responseSyncToken);
+    if (responseSyncToken !== null) {
+      const raw = options.responses?.[responseIdentifier];
+      const nextPairs = isMultiWay ? [] : parsePairs(raw);
+      const nextAdjacent = isMultiWay
+        ? parsePairs(raw).map((p, i) => ({ ...p, pairIndex: i }))
+        : [];
+      const unchanged = isMultiWay
+        ? adjacentPairsEqual(adjacentPairs, nextAdjacent)
+        : pairsEqual(matchedPairs, nextPairs);
+      if (!unchanged) {
+        pairsForSubmit = nextPairs;
+        setMatchedPairs(nextPairs);
+        setAdjacentPairs(nextAdjacent);
+        setSelectedByPairIndex(
+          Array.from({ length: matchSetCount - 1 }, () => ({ left: null, right: null }))
+        );
+      }
     }
-  }, [effectiveIsSubmit, isSubmit]);
+  }
 
-  // 리뷰(preview) 등에서 처음부터 isSubmit이 true면 위 effect가 submitMatchedPairs를 채우지 않음 → 동기화
-  useEffect(() => {
-    if (!effectiveIsSubmit || !isSubmit || isMultiWay) return;
-    setSubmitMatchedPairs(matchedPairs);
-  }, [effectiveIsSubmit, isSubmit, matchedPairs, isMultiWay]);
+  // 제출 여부가 바뀌거나, 제출 중 쌍이 바뀌면 채점 스냅샷을 맞춘다.
+  if (effectiveIsSubmit && !isSubmit) {
+    setSubmitMatchedPairs(pairsForSubmit);
+    setIsSubmit(true);
+  } else if (!effectiveIsSubmit && isSubmit) {
+    setIsSubmit(false);
+  } else if (
+    effectiveIsSubmit &&
+    isSubmit &&
+    !isMultiWay &&
+    !pairsEqual(submitMatchedPairs, pairsForSubmit)
+  ) {
+    setSubmitMatchedPairs(pairsForSubmit);
+  }
 
   // 옵션이 어느 match-set에 속하는지 확인
   const getOptionSetIndex = (optionId: string): number =>
@@ -559,8 +581,7 @@ export const MatchInteraction: React.FC<MatchInteractionProps> = ({ element, opt
     return firstChoice ? `set-${firstChoice.identifier}` : `set-idx-${setIndex}`;
   };
 
-  // eslint-disable-next-line react-hooks/refs
-  const gridMountKey = itemKey ? `${itemKey}-${stableKeyRef.current}` : stableKeyRef.current;
+  const gridMountKey = contentKey;
 
   return (
     <div

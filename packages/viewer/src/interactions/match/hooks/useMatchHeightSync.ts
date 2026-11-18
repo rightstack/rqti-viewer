@@ -8,10 +8,6 @@ interface UseMatchHeightSyncProps {
   hasSameOptionCount: boolean;
   leftChoicesLength: number;
   rightChoicesLength: number;
-  /**
-   * 문항·인스턴스 단위 식별. React Query 캐시 히트 등으로 MatchInteraction 인스턴스가 유지되고
-   * 옵션 개수만 같을 때도 그리드는 key로 리마운트되므로, 이 값이 바뀌면 측정 effect를 반드시 다시 돌린다.
-   */
   heightSyncKey: string;
   srcCardRefs: React.MutableRefObject<Array<HTMLDivElement | null>>;
   tgtCardRefs: React.MutableRefObject<Array<HTMLDivElement | null>>;
