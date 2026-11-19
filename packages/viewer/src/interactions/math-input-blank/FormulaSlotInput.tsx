@@ -17,6 +17,8 @@ import {
 import {
   MATH_BLANK_DISPLAY_SCALE,
   type SlotContentEm,
+  VCQ_COLUMN_WIDTH_SCALE,
+  VCQ_FORMULA_SLOT_SCALE,
   markerSlotWidthEm,
   markerSlotWidthPx,
 } from "./mathBlankLatex";
@@ -44,6 +46,23 @@ function clearSlotInlineSize(slot: HTMLElement) {
   slot.style.minWidth = "";
   slot.style.height = "";
   slot.style.minHeight = "";
+}
+
+/** 답 라벨 안의 분수·지수·근호만. 칸을 감싼 식의 분수는 조상이지 자손이 아니다. */
+const TALL_ANSWER_SELECTOR =
+  "mjx-mfrac, mjx-msup, mjx-msub, mjx-msubsup, mjx-msqrt, mjx-mroot";
+
+function hasSlotChildren(children: ReactNode): boolean {
+  return children !== null && children !== undefined && children !== false;
+}
+
+/** 공란은 `\Rule` 폭을 유지하고 높이만 기본 칸으로 둔다. 실측을 올리면 식 조판이 다시 돈다. */
+function pinVcqBaseHeight(slot: HTMLElement, fontSize: number, scale: number) {
+  const height = `${Math.ceil(markerSlotWidthPx(1, fontSize) * scale)}px`;
+  slot.style.width = "";
+  slot.style.minWidth = "";
+  slot.style.height = height;
+  slot.style.minHeight = height;
 }
 
 /** 슬롯을 채우는 라벨 박스가 아니라, 조판된 수식이나 글자의 고유 크기만 잰다. */
@@ -105,11 +124,16 @@ function fitSlotToContent(
 ): SlotContentEm {
   const { padX, padY, borderX, borderY } = readBoxExtras(blankStyle);
   const fontSize = parseFloat(blankStyle.fontSize) || 16;
-  const baseWidth = markerSlotWidthPx(widthCh, fontSize) * scale;
+  const inVcq = Boolean(box.closest(".qti-ext-vcq-grid"));
+  const widthScale = inVcq ? VCQ_COLUMN_WIDTH_SCALE : scale;
+  const baseWidth = markerSlotWidthPx(widthCh, fontSize) * widthScale;
   const baseHeight = markerSlotWidthPx(1, fontSize) * scale;
   const applied = applySlotBox(
     box,
-    Math.max(baseWidth, contentW + Math.max(padX + borderX, fontSize)),
+    Math.max(
+      baseWidth,
+      contentW + (inVcq ? padX + borderX : Math.max(padX + borderX, fontSize)),
+    ),
     Math.max(baseHeight, contentH + padY + borderY),
   );
   return { widthEm: applied.w / fontSize, heightEm: applied.h / fontSize };
@@ -131,6 +155,10 @@ export function FormulaSlotInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const useKeypad = level === "middle" || level === "high";
   const showPencil = !readOnly && value === "";
+  /** VCQ(세로셈) 수식 빈칸만 빈 슬롯을 축소한다. 일반 수식 빈칸은 1(그대로). 입력이 길어지면
+   *  applySlotBox가 내용 크기로 키우므로 성장은 유지되고 빈 상태만 standalone과 같은 크기가 된다. */
+  const hostScale = fitFormulaHost ? VCQ_FORMULA_SLOT_SCALE : 1;
+  const hostWidthScale = fitFormulaHost ? VCQ_COLUMN_WIDTH_SCALE : 1;
   /** 현재 값의 렌더 크기. 값이 바뀌면 다시 올 때까지 null이라, 이전 값 크기를 식에 알리지 않는다. */
   const [measured, setMeasured] = useState<MathKeyboardContentSize | null>(
     null,
@@ -202,6 +230,7 @@ export function FormulaSlotInput({
       size.width,
       size.height,
       widthCh,
+      hostScale,
     );
   };
 
@@ -242,7 +271,12 @@ export function FormulaSlotInput({
         fitFormulaHost && "qti-ext-math-blank-slot-content",
         stateClassName,
       )}
-      style={{ minWidth: markerSlotWidthEm(widthCh) }}
+      style={{
+        minWidth:
+          hostWidthScale === 1
+            ? markerSlotWidthEm(widthCh)
+            : `calc(${markerSlotWidthEm(widthCh)} * ${hostWidthScale})`,
+      }}
       data-response-identifier={id}
       onPointerDown={useKeypad ? openKeypadFromBox : undefined}
     >
@@ -304,11 +338,12 @@ export function FormulaSlotLatexDisplay({
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const contentRef = useRef<HTMLSpanElement>(null);
   const growToContent = !fillSlot;
+  /* 미리보기 조판도 풀어보기 입력 칸과 같은 배율이다. scale 1이면 칸이 2em으로 커지고 분수 정렬이 밀린다. */
   const sizeScale = fitFormulaHost
-    ? 1
+    ? VCQ_FORMULA_SLOT_SCALE
     : variant === "blank-box"
-    ? MATH_BLANK_DISPLAY_SCALE
-    : 1;
+      ? MATH_BLANK_DISPLAY_SCALE
+      : 1;
   const emitRef = useRef(onContentEm);
 
   useEffect(() => {
@@ -335,15 +370,26 @@ export function FormulaSlotLatexDisplay({
       if (size === "pending") return false;
       // 공백 정답은 선언된 \Rule 폭만 남긴다. 100% 라벨을 재면 칸이 계속 길어진다.
       if (size === "empty") {
-        clearSlotInlineSize(box);
+        if (!fitFormulaHost) {
+          clearSlotInlineSize(box);
+          return true;
+        }
+        pinVcqBaseHeight(
+          box,
+          parseFloat(getComputedStyle(wrapper).fontSize) || 16,
+          sizeScale,
+        );
         return true;
       }
       if (size.w === 0 && size.h === 0) return false;
+      const tallAnswer =
+        fitFormulaHost && Boolean(content.querySelector(TALL_ANSWER_SELECTOR));
       const em = fitSlotToContent(
         box,
         getComputedStyle(wrapper),
         size.w,
-        size.h,
+        /* 한 줄 숫자는 높이 0이라 기본 칸을 유지한다. 답 자체의 분수·지수만 조판 높이를 쓴다. */
+        fitFormulaHost && !tallAnswer ? 0 : size.h,
         widthCh,
         sizeScale,
       );
@@ -422,7 +468,9 @@ export function FormulaSlotLatexDisplay({
         "qti-ext-input-blank",
         fitFormulaHost && "qti-ext-math-blank-slot-content",
         getBlankVariantClass(variant),
-        growToContent && "qti-ext-input-blank--latex-content",
+        growToContent &&
+          (!fitFormulaHost || hasSlotChildren(children)) &&
+          "qti-ext-input-blank--latex-content",
         stateClassName,
       )}
     >

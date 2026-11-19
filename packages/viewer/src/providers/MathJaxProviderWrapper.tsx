@@ -1,5 +1,6 @@
-import { type ComponentProps, createContext, useContext, useEffect, useState } from "react";
+import { type ComponentProps, useEffect, useState } from "react";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
+import { MathJaxTextFontReadyContext, useMathJaxTextFontReady } from "./mathJaxTextFontReady";
 
 /**
  * MathJax 번들 소스. `src`를 지정하지 않으면 better-react-mathjax 기본값인
@@ -14,7 +15,6 @@ export const MATHJAX_SRC =
   "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.js";
 
 const MATHJAX_TEXT_FONT = '400 1em "Noto Serif KR"';
-const MathJaxTextFontReadyContext = createContext(false);
 
 const commonOutputOptions = {
   scale: 1,
@@ -67,7 +67,7 @@ const mathJaxConfig = {
 };
 
 export function MathJaxWithTextFont(props: ComponentProps<typeof MathJax>) {
-  const isTextFontReady = useContext(MathJaxTextFontReadyContext);
+  const isTextFontReady = useMathJaxTextFontReady();
   if (!isTextFontReady) return null;
   return <MathJax {...props} />;
 }

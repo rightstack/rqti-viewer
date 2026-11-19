@@ -20,6 +20,8 @@ import { MergedBlankSlot } from "./MergedBlankSlot";
 import {
   MATH_BLANK_DISPLAY_SCALE,
   type SlotContentEm,
+  VCQ_COLUMN_WIDTH_SCALE,
+  VCQ_FORMULA_SLOT_SCALE,
   buildMathBlankInstanceId,
   hasFormulaContext,
 } from "./mathBlankLatex";
@@ -605,7 +607,7 @@ function MathInputBlankView({
             />
           ) : (
             <>
-              {value ? renderCellText(value, `vcq-text-${id}`, id, true) : null}
+              {value ? renderCellText(value, `vcq-text-${id}`, id, false) : null}
               {!isReadOnly && (
                 <input
                   className="qti-ext-input-blank__field"
@@ -659,7 +661,14 @@ function MathInputBlankView({
           instanceId={instanceId}
           renderSlot={(id) => renderBlankSlot(id, id, isReadOnly)}
           fallback={renderSegments(segments, `math-blank-${instanceId}`)}
-          slotScale={displayOnly && !fillDisplaySlot ? MATH_BLANK_DISPLAY_SCALE : 1}
+          slotScale={
+            displayOnly && !fillDisplaySlot
+              ? MATH_BLANK_DISPLAY_SCALE
+              : useVcqFormulaFlow
+                ? VCQ_FORMULA_SLOT_SCALE
+                : 1
+          }
+          slotWidthScale={useVcqFormulaFlow ? VCQ_COLUMN_WIDTH_SCALE : undefined}
           contentDrivenSlots={useVcqFormulaFlow}
           slotContentEm={measureSlots ? slotRuleEm : undefined}
           awaitingMeasure={awaitingMeasure}

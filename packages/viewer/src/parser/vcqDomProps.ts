@@ -66,9 +66,9 @@ function vcqColTrack(
   if (unit !== undefined && unit !== 1) {
     return sizedTrack(`var(--vcq-cell) * ${unit} + 2 * var(--vcq-pad)`, unit < 1, unit >= 1);
   }
-  const minSize = "var(--vcq-cell) + 2 * var(--vcq-pad)";
+  const minSize = "var(--vcq-col) + 2 * var(--vcq-pad)";
   return {
-    template: `minmax(max(calc(${minSize}), var(--vcq-col-${index + 1}-content, 0px)), max-content)`,
+    template: `minmax(max(calc(${minSize}), var(--vcq-col-${index + 1}-content, 0px), var(--vcq-col-${index + 1}-merged, 0px)), max-content)`,
     minSize,
     shrinks: false,
   };

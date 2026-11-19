@@ -4992,13 +4992,34 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   min-height: 0;
 }
 
+/* 작은 그리드 병합 정답칸: 상자 높이는 일반 빈칸(--vcq-blank-box-size)과 같다.
+   absolute라 상자가 셀을 못 늘리므로, 셀 최소 높이를 일반 빈칸 행(상자 + 위아래 패딩)에 맞춘다.
+   다음 행의 가로선은 그 높이만큼 아래로 내려간다.
+   inset이 커진 셀에 맞춰 상자를 늘리지 않도록 높이를 고정하고 세로 가운데에 둔다.
+   narrow-division의 `... > .qti-ext-vcq-cell`(0,4,0)이 뒤에서 24px로 덮으므로
+   `.qti-ext-vcq-cell`을 더해 특이도(0,5,0)로 이긴다. */
 .qti-ext-vcq-grid--size-small
   .qti-ext-vcq-cell--merged:not(:has(.qti-ext-math-input-blank--vcq-formula))
-  .qti-ext-input-blank.qti-ext-text-entry-input {
+  :is(
+    .qti-ext-input-blank.qti-ext-text-entry-input,
+    .qti-ext-vcq-merged-display
+  ) {
+  top: calc((100% - var(--vcq-blank-box-size)) / 2);
+  bottom: auto;
+
   width: auto;
   min-width: 0;
-  height: auto;
-  min-height: 0;
+  height: var(--vcq-blank-box-size);
+  min-height: var(--vcq-blank-box-size);
+  max-height: var(--vcq-blank-box-size);
+}
+
+.qti-ext-vcq-grid--size-small
+  .qti-ext-vcq-row--normal
+  .qti-ext-vcq-cell.qti-ext-vcq-cell--merged:not(
+    :has(.qti-ext-math-input-blank--vcq-formula)
+  ) {
+  min-height: calc(var(--vcq-blank-box-size) + 2 * var(--vcq-pad));
 }
 
 /* 입력 전용: size=1 열을 상자(2em)에 맞춰 좌우 클릭으로 포커스 */
@@ -5090,10 +5111,38 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   visibility: hidden;
 }
 
+/* 조판과 칸 너비가 안정되기 전에는 흐름에서 빼 둔다. display:none 은 측정이 0이 된다. */
+.qti-ext-vcq-settle[data-vcq-settled="false"],
+.qti-ext-column-group[data-vcq-settled="false"] {
+  position: relative;
+
+  overflow: hidden;
+
+  height: 0;
+}
+
+.qti-ext-vcq-settle[data-vcq-settled="false"] > .qti-ext-vcq-grid,
+.qti-ext-column-group[data-vcq-settled="false"] .qti-ext-vcq-grid {
+  position: absolute;
+
+  visibility: hidden;
+}
+
 /* VCQ grid — 칸은 빈칸(1.1em)과 맞춤. 조립제만 syn-cell */
 .qti-ext-vcq-grid {
   --vcq-cell: var(--qti-math-blank-size, 2em);
-  --vcq-syn-cell: 2em;
+
+  /* 열 최소너비는 행 최소높이(--vcq-cell)와 분리한다. 에디터 COLUMN(40)/CELL(55) 비율. */
+  --vcq-col: calc(var(--vcq-cell) * 40 / 55);
+  --vcq-syn-cell: calc(var(--vcq-cell) * 60 / 55);
+
+  /* 셀 안에 들어가는 빈칸 박스 크기. 셀(--vcq-cell/--vcq-col)과 분리해 에디터처럼 박스만 작게.
+     빈 박스는 값이 들어오면 글자+패딩 높이(≈1.6em)로 커지므로, 빈 상태 기본값을 그 크기에 맞춰
+     한 자리 입력 시 크기 점프가 없게 한다. 셀(41×52)보다는 작아 셀을 넘지 않는다. 거의 정사각. */
+  --vcq-blank-box-size: 1.6em;
+
+  /* 빈칸 너비는 따로 둔 최소값이 아니라 열(--vcq-col)을 따른다. */
+  --vcq-blank-box-col: var(--vcq-col);
   --vcq-narrow: 0.65em;
   --vcq-narrow-box-nudge: 0.25em;
   --vcq-narrow-box-inset: 50% auto auto 50%;
@@ -5147,6 +5196,12 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   --vcq-box-inset: 3px;
   --vcq-regular-box-inset: 4px;
   --vcq-cell: calc(24px - 2 * var(--vcq-pad));
+
+  /* 작은 그리드는 에디터처럼 열 너비와 행 높이가 같다(별도 축소 없음). */
+  --vcq-col: var(--vcq-cell);
+
+  /* 일반 빈칸 너비는 열(16px)이 아니라 박스 높이(1.6em)와 같은 정사각으로 둔다. */
+  --vcq-blank-box-col: var(--vcq-blank-box-size);
   --vcq-row-narrow: calc(18px - 2 * var(--vcq-pad));
   --vcq-narrow: calc(12px - 2 * var(--vcq-pad));
   --vcq-narrow-box-nudge: 4px;
@@ -5190,7 +5245,9 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
 .qti-ext-vcq-grid--template-synthetic,
 .qti-ext-vcq-grid--template-synthetic-2 {
-  --vcq-cell: var(--vcq-syn-cell);
+  /* 조립제법은 열만 60/55. 빈칸 너비는 일반 열(40/55)을 유지한다. */
+  --vcq-col: var(--vcq-syn-cell);
+  --vcq-blank-box-col: calc(var(--vcq-cell) * 40 / 55);
 
   display: grid;
 
@@ -5221,7 +5278,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   align-items: center;
 
   box-sizing: border-box;
-  min-width: calc(var(--vcq-cell) + 2 * var(--vcq-pad));
+  min-width: calc(var(--vcq-col) + 2 * var(--vcq-pad));
   min-height: calc(var(--vcq-cell) + 2 * var(--vcq-pad));
   padding: var(--vcq-pad);
 
@@ -5250,6 +5307,21 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   min-height: calc(var(--vcq-cell) + 2 * var(--vcq-pad));
 }
 
+/* 단(column-group) 내 일반 행을 "같은 순번끼리" 정렬.
+   useVcqColumnRowHeight가 각 행에 --vcq-row-min(해당 순번의 단 내 최대 높이)을 넣는다(없으면 기본 높이).
+   한 그리드 안에서는 행마다 높이가 달라도 되고, 단 밖 단독 그리드는 변수가 없어 자연 높이를 유지한다.
+   일반 그리드는 행 박스에 적용(셀은 stretch로 따라옴). */
+.qti-ext-vcq-row:not(
+  .qti-ext-vcq-row--carry,
+  .qti-ext-vcq-row--narrow,
+  .qti-ext-vcq-row--spacer
+) {
+  min-height: max(
+    calc(var(--vcq-cell) + 2 * var(--vcq-pad)),
+    var(--vcq-row-min, 0px)
+  );
+}
+
 .qti-ext-vcq-grid--shared-cols > .qti-ext-vcq-row > .qti-ext-vcq-cell {
   width: 100%;
   min-width: 0;
@@ -5260,6 +5332,39 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   width: 100%;
   min-width: 0;
   max-width: 100%;
+}
+
+/* 조립제법·나눗셈 등 overlay 그리드는 행이 display:contents라 행 min-height가 안 먹는다.
+   행에 넣은 --vcq-row-min이 셀로 상속되므로 같은 값을 일반 행의 셀에 직접 적용해 행 트랙을 맞춘다. */
+:is(
+    .qti-ext-vcq-grid--overlay-grid,
+    .qti-ext-vcq-grid--template-synthetic,
+    .qti-ext-vcq-grid--template-synthetic-2,
+    .qti-ext-vcq-grid--template-div-forward,
+    .qti-ext-vcq-grid--template-div-backward
+  )
+  > .qti-ext-vcq-row:not(
+    .qti-ext-vcq-row--carry,
+    .qti-ext-vcq-row--narrow,
+    .qti-ext-vcq-row--spacer
+  )
+  > .qti-ext-vcq-cell {
+  min-height: max(
+    calc(var(--vcq-cell) + 2 * var(--vcq-pad)),
+    var(--vcq-row-min, 0px)
+  );
+}
+
+/* 긴 fallback은 걸친 열이 같이 넓어진다. max-width:100%면 그 합에 칸이 갇힌다. */
+:is(.qti-ext-vcq-grid--overlay-grid, .qti-ext-vcq-grid--shared-cols)
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell--merged:has(
+    :is(
+      .qti-ext-vcq-merged-input--fallback,
+      .qti-ext-vcq-merged-display--fallback
+    )
+  ) {
+  max-width: none;
 }
 
 .qti-ext-vcq-grid.qti-align-left
@@ -5396,7 +5501,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   align-items: stretch;
   grid-template-columns: var(
     --vcq-col-template,
-    repeat(4, minmax(var(--vcq-cell), max-content))
+    repeat(4, minmax(var(--vcq-col), max-content))
   );
 }
 
@@ -5495,6 +5600,16 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   line-height: 1;
 
   caret-color: var(--vcq-ink, #1f2328);
+  -webkit-text-fill-color: transparent;
+}
+
+/* 보이는 글자 위의 투명 입력. 전체선택 때도 선택 글자를 다시 그리지 않는다. */
+.qti-ext-math-blank-inline--vcq-standalone
+  > .qti-ext-input-blank__field::selection {
+  background: highlight;
+
+  color: transparent;
+
   -webkit-text-fill-color: transparent;
 }
 
@@ -5695,6 +5810,29 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   min-height: 0;
 }
 
+/* 세로셈 일반 display 상자는 입력 빈칸과 같은 크기. 수식 슬롯·좁은 칸은 자식 선택에서 빠진다. */
+.qti-ext-vcq-cell--blank:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  )
+  > .qti-ext-math-input-blank--display
+  > .qti-ext-math-blank-inline
+  > .qti-ext-input-blank--display {
+  position: absolute;
+  inset: 50% auto auto 50%;
+
+  overflow: hidden;
+
+  width: var(--vcq-blank-box-col);
+  min-width: var(--vcq-blank-box-col);
+  max-width: none;
+  height: var(--vcq-blank-box-size);
+  min-height: var(--vcq-blank-box-size);
+  max-height: var(--vcq-blank-box-size);
+
+  transform: translate(-50%, -50%);
+}
+
 .qti-ext-vcq-grid
   .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-col--narrow)
   .qti-ext-input-blank--display.qti-ext-input-blank--latex-content {
@@ -5748,9 +5886,13 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
   .qti-ext-input-blank--display
   .qti-ext-input-blank__label {
+  overflow: hidden;
+
   box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
   height: 100%;
+  max-height: 100%;
 }
 
 .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-col--narrow)
@@ -5831,16 +5973,6 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   display: inline-block;
 
   width: max-content;
-}
-
-.qti-ext-vcq-cell--blank
-  .qti-ext-math-input-blank--vcq-formula
-  .qti-ext-mjx-blank-slot {
-  overflow: clip;
-
-  vertical-align: middle !important;
-
-  overflow-clip-margin: 1px;
 }
 
 .qti-ext-vcq-cell--blank
@@ -5947,6 +6079,14 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 }
 /* stylelint-enable no-descending-specificity */
 
+/* 세로셈 수식 빈칸은 문장 빈칸 2em 최소 너비를 쓰지 않는다. 최소 너비는 열이다. */
+.qti-ext-vcq-grid .qti-ext-mjx-blank-slot,
+.qti-ext-vcq-grid
+  .qti-ext-math-input-blank--display
+  .qti-ext-mjx-blank-slot {
+  min-width: var(--vcq-col);
+}
+
 /* 일반 VCQ 단독형: 표시값을 intrinsic 폭 산정에 남겨 셀과 공통 열을 함께 확장한다. */
 .qti-ext-vcq-grid
   .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
@@ -5961,7 +6101,9 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   box-sizing: border-box;
   width: max-content;
   min-width: max-content;
-  min-height: var(--qti-math-blank-size, 2em);
+
+  /* 셀 높이(--vcq-cell)가 아니라 박스 크기를 쓴다 → 박스만 작아지고 셀 중앙에 놓인다. */
+  min-height: var(--vcq-blank-box-size, var(--qti-math-blank-size, 2em));
   padding: var(--qti-math-blank-pad, 0.2em);
 
   line-height: 1;
@@ -5975,11 +6117,13 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
   grid-area: 1 / 1;
 
+  /* 빈칸 박스 바닥 크기: 셀이 아니라 박스 크기(--vcq-blank-box-*) 기준으로 작게. 에디터 비율(40/55) */
   width: calc(
-    var(--qti-math-blank-size, 2em) - 2 * var(--qti-math-blank-pad, 0.2em)
+    var(--vcq-blank-box-col) - 2 * var(--qti-math-blank-pad, 0.2em)
   );
   height: calc(
-    var(--qti-math-blank-size, 2em) - 2 * var(--qti-math-blank-pad, 0.2em)
+    var(--vcq-blank-box-size, var(--qti-math-blank-size, 2em)) - 2 *
+      var(--qti-math-blank-pad, 0.2em)
   );
 
   pointer-events: none;
@@ -6004,6 +6148,19 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 }
 
 .qti-ext-vcq-grid
+  .qti-ext-vcq-cell--blank:not(
+    .qti-ext-vcq-cell--merged,
+    .qti-ext-vcq-col--narrow
+  )
+  .qti-ext-math-blank-inline--vcq-standalone
+  > .qti-ext-input-blank__field {
+  inset: 0 0 var(--qti-math-blank-pad, 0.2em);
+
+  height: auto;
+  padding: 0;
+}
+
+.qti-ext-vcq-grid
   .qti-ext-vcq-cell--blank:not(.qti-ext-vcq-cell--merged)
   .qti-ext-math-blank-inline--vcq-standalone
   > .qti-ext-mathfield {
@@ -6011,6 +6168,23 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   grid-area: 1 / 1;
 
   width: max-content;
+}
+
+/* 미리보기 일반 글자는 조판 박스 없이 풀어보기 입력과 같은 칸 높이에 둔다. */
+.qti-ext-vcq-cell--blank:not(.qti-ext-vcq-col--narrow)
+  .qti-ext-math-blank-inline--vcq-standalone
+  > .qti-ext-mathfield:not(:has(mjx-container)) {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+  align-self: center;
+
+  /* 패딩 안에 두어야 래퍼가 박스 높이(1.6em)를 넘지 않는다. */
+  height: calc(
+    var(--vcq-blank-box-size, var(--qti-math-blank-size, 2em)) - 2 *
+      var(--qti-math-blank-pad, 0.2em)
+  );
 }
 
 /* VCQ 칸 임베디드 키패드. overlay 상자(z 0, pointer-events none) 위에 흐름으로 놓여 렌더 크기만큼 셀을 키운다.
@@ -6192,7 +6366,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   min-width: max(
     var(
       --vcq-merged-min-width,
-      calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2))
+      calc(var(--vcq-col) * var(--vcq-blank-col-span, 2))
     ),
     var(--vcq-merged-fallback-min, max-content)
   );
@@ -6214,7 +6388,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
   min-width: var(
     --vcq-merged-min-width,
-    calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2))
+    calc(var(--vcq-col) * var(--vcq-blank-col-span, 2))
   );
   min-height: calc(var(--vcq-cell) + 2 * var(--vcq-pad));
   padding: 0;
@@ -6233,7 +6407,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   min-width: max(
     var(
       --vcq-merged-min-width,
-      calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2))
+      calc(var(--vcq-col) * var(--vcq-blank-col-span, 2))
     ),
     max-content
   );
@@ -6337,7 +6511,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   min-width: max(
     var(
       --vcq-merged-min-width,
-      calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2))
+      calc(var(--vcq-col) * var(--vcq-blank-col-span, 2))
     ),
     var(--vcq-merged-fallback-min, max-content)
   );
@@ -6351,7 +6525,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   min-width: max(
     var(
       --vcq-merged-min-width,
-      calc(var(--vcq-cell) * var(--vcq-blank-col-span, 2))
+      calc(var(--vcq-col) * var(--vcq-blank-col-span, 2))
     ),
     max-content
   );
@@ -6386,6 +6560,21 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
   pointer-events: none;
   font-variant-numeric: tabular-nums;
+}
+
+/* 작은 그리드 자릿값 숫자는 셀을 채운 뒤 가운데에 있다.
+   정답 상자도 같은 높이로 셀 가운데에 두므로 추가로 내리지 않는다. */
+.qti-ext-vcq-grid--size-small
+  .qti-ext-vcq-cell--merged:has(
+    :is(
+      .qti-ext-vcq-merged-input:not(.qti-ext-vcq-merged-input--fallback),
+      .qti-ext-vcq-merged-display:not(.qti-ext-vcq-merged-display--fallback)
+    )
+  )
+  .qti-ext-vcq-merged-answer-slot {
+  align-self: stretch;
+
+  transform: none;
 }
 
 .qti-ext-vcq-merged-input {
@@ -6463,6 +6652,36 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
   caret-color: auto;
   -webkit-text-fill-color: currentcolor;
+}
+
+/* 일반 그리드 병합 빈칸은 처음부터 셀 너비만큼 차지한다. 높이는 일반 빈칸과 같다. */
+.qti-ext-vcq-grid:not(.qti-ext-vcq-grid--size-small)
+  .qti-ext-vcq-cell--merged
+  .qti-ext-vcq-merged-input.qti-ext-vcq-merged-input--fallback,
+.qti-ext-vcq-grid:not(.qti-ext-vcq-grid--size-small)
+  .qti-ext-vcq-cell--merged
+  .qti-ext-vcq-merged-display.qti-ext-vcq-merged-display--fallback {
+  place-self: center stretch;
+
+  width: 100%;
+  min-width: 100%;
+  max-width: none;
+  height: var(--vcq-blank-box-size);
+  min-height: var(--vcq-blank-box-size);
+}
+
+/* 자릿값으로 나뉜 병합 입력은 2em 높이 규칙에 걸려 일반 빈칸보다 커지고 위로 붙는다. */
+.qti-ext-vcq-grid:not(.qti-ext-vcq-grid--size-small)
+  .qti-ext-vcq-cell--merged
+  .qti-ext-vcq-merged-input:not(.qti-ext-vcq-merged-input--fallback),
+.qti-ext-vcq-grid:not(.qti-ext-vcq-grid--size-small)
+  .qti-ext-vcq-cell--merged
+  .qti-ext-vcq-merged-display:not(.qti-ext-vcq-merged-display--fallback) {
+  top: calc((100% - var(--vcq-blank-box-size)) / 2);
+  bottom: auto;
+
+  height: var(--vcq-blank-box-size);
+  min-height: var(--vcq-blank-box-size);
 }
 
 .qti-ext-vcq-grid
@@ -6548,7 +6767,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   transform: none;
 }
 
-/* display 그리드 병합 칸 — 입력형 테마 없이 병합 열 너비를 채움.
+/* display 그리드 병합 칸 — 가로는 셀, 세로는 입력 병합 빈칸과 같다.
    수식 슬롯 안 빈칸은 제외. --merged 는 contents지만 `>` 는 DOM만 본다. */
 .qti-ext-vcq-grid--display
   .qti-ext-vcq-cell--merged
@@ -6558,19 +6777,22 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   > .qti-ext-math-input-blank--merged
   > .qti-ext-input-blank--display {
   position: absolute;
-  inset: var(--vcq-box-inset);
+  inset: calc((100% - var(--vcq-blank-box-size)) / 2) 0 auto;
 
   display: flex;
+  overflow: hidden;
 
   justify-content: center;
   justify-self: stretch;
   align-items: center;
   grid-column: 1 / -1;
 
-  width: auto;
-  min-width: 0;
-  height: unset;
-  min-height: unset;
+  width: 100%;
+  min-width: 100%;
+  max-width: none;
+  height: var(--vcq-blank-box-size);
+  min-height: var(--vcq-blank-box-size);
+  max-height: var(--vcq-blank-box-size);
   padding: 0;
 }
 
@@ -6636,9 +6858,9 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   grid-column: 1 / -1;
 
   width: max-content;
-  min-width: var(--qti-math-blank-size, 2em);
+  min-width: 0;
   height: auto;
-  min-height: var(--qti-math-blank-size, 2em);
+  min-height: var(--vcq-blank-box-size, 1.6em);
 
   text-align: center;
 }

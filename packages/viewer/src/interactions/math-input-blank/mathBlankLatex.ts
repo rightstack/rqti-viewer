@@ -49,6 +49,15 @@ const CSS_MIN_SLOT_EM = 2;
 /** size가 1 오를 때마다 더하는 폭. */
 const SLOT_SIZE_STEP_EM = 1;
 export const MATH_BLANK_DISPLAY_SCALE: number = 0.85;
+/**
+ * VCQ(세로셈) 수식 빈칸(분수·근호 등)의 조판 슬롯 축소율.
+ * 일반 빈칸은 CSS `--vcq-blank-box-size`(1.6em)로 박스 크기를 맞췄지만, 수식 빈칸 슬롯은
+ * `\Rule`(mjx-mspace, 인라인 크기)이라 CSS로 못 줄인다. 기본 슬롯 2em을 박스 높이 1.6em에
+ * 맞춰(baseline·분수선 정렬) 1.6/2를 곱한다. CSS `--vcq-blank-box-size`가 바뀌면 함께 맞춰야 한다.
+ */
+export const VCQ_FORMULA_SLOT_SCALE: number = 1.6 / CSS_MIN_SLOT_EM;
+/** 세로셈 열은 행보다 좁다. 빈칸 최소 너비에 높이용 배율을 쓰면 열이 그 너비로 되돌아간다. */
+export const VCQ_COLUMN_WIDTH_SCALE: number = 40 / 55;
 
 function actualMinSlotEm(widthCh: number | undefined): number {
   const ch = widthCh !== undefined && widthCh > 0 ? widthCh : 1;
@@ -75,9 +84,10 @@ function slotCommand(
   id: string,
   widthCh: number | undefined,
   scale = 1,
-  measured?: SlotContentEm
+  measured?: SlotContentEm,
+  widthScale = scale
 ): string {
-  const widthEm = (measured?.widthEm ?? actualMinSlotEm(widthCh) * scale).toFixed(2);
+  const widthEm = (measured?.widthEm ?? actualMinSlotEm(widthCh) * widthScale).toFixed(2);
   const totalEm = measured?.heightEm ?? CSS_MIN_SLOT_EM * scale;
   const halfEm = (totalEm / 2).toFixed(2);
   // depth=0이면 칸 전체가 기준선 위라 옆 숫자(2.8)가 칸 밑으로 붙는다.
@@ -108,7 +118,8 @@ export function toTypesetSlotLatex(
   instanceId: string,
   scale = 1,
   ignoreDeclaredWidth = false,
-  slotContentEm?: Record<string, SlotContentEm>
+  slotContentEm?: Record<string, SlotContentEm>,
+  widthScale = scale
 ): TypesetSlotLatex {
   const ids: string[] = [];
   const seen = new Set<string>();
@@ -121,7 +132,7 @@ export function toTypesetSlotLatex(
     remember(id);
     const declared = ignoreDeclaredWidth ? undefined : parseWidthToken(width);
     // `{{ID}{N}}`의 첫 `{`는 `\overline{…}` 인자 괄호이기도 하다. 그룹을 유지해야 윗줄이 남는다.
-    return `{${slotCommand(instanceId, id, declared, scale, slotContentEm?.[id])}}`;
+    return `{${slotCommand(instanceId, id, declared, scale, slotContentEm?.[id], widthScale)}}`;
   };
 
   INPUTBLANK_RE.lastIndex = 0;

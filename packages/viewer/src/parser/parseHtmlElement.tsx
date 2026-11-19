@@ -7,7 +7,9 @@
  */
 import React from "react";
 import { AudioPlayer } from "../components/AudioPlayer";
+import { VcqColumnGroup } from "../components/VcqColumnGroup";
 import { VcqDivisionBarTrack } from "../components/VcqDivisionBarTrack";
+import { VcqSettledGrid } from "../components/VcqSettledGrid";
 import { VcqSyntheticBracket } from "../components/VcqSyntheticBracket";
 import { MathInputBlankDisplayMarkup } from "../interactions/math-input-blank/MathInputBlankInteraction";
 import {
@@ -365,6 +367,33 @@ export const parseHTMLElement = (
           >
             {groupedChildren}
           </VcqSyntheticBracket>
+        );
+      }
+
+      // 세로셈이 들어있는 단: 같은 단 내 세로셈들의 일반 행 높이를 통일한다.
+      if (className.includes("qti-ext-column-group") && element.querySelector(".qti-ext-vcq-grid")) {
+        return (
+          <VcqColumnGroup
+            key={`div-${index}`}
+            className={gridClassName}
+            style={vcq.style}
+            dataAttrs={vcq.dataAttrs}
+          >
+            {groupedChildren}
+          </VcqColumnGroup>
+        );
+      }
+
+      if (className.includes("qti-ext-vcq-grid") && !element.closest(".qti-ext-column-group")) {
+        return (
+          <VcqSettledGrid
+            key={`div-${index}`}
+            className={gridClassName}
+            style={vcq.style}
+            dataAttrs={vcq.dataAttrs}
+          >
+            {groupedChildren}
+          </VcqSettledGrid>
         );
       }
 

@@ -18,6 +18,8 @@ type MathBlankFormulaProps = {
   renderSlot: (id: string) => ReactNode;
   fallback: ReactNode;
   slotScale?: number;
+  /** 너비 배율. 없으면 높이 배율과 같다. 세로셈은 열 비율만 따로 쓴다. */
+  slotWidthScale?: number;
   contentDrivenSlots?: boolean;
   /** 실측한 칸 크기. Rule(윗줄·화살표 폭)을 포털 상자에 맞춘다. */
   slotContentEm?: Record<string, SlotContentEm>;
@@ -55,12 +57,14 @@ function makeContentKey(
   latex: string,
   slotScale: number,
   contentDrivenSlots: boolean,
-  slotContentEm?: Record<string, SlotContentEm>
+  slotContentEm?: Record<string, SlotContentEm>,
+  slotWidthScale?: number
 ): string {
   return [
     instanceId,
     latex,
     String(slotScale),
+    slotWidthScale === undefined ? "" : String(slotWidthScale),
     contentDrivenSlots ? "1" : "0",
     slotEmKey(slotContentEm),
   ].join("\u0000");
@@ -72,7 +76,8 @@ function createFormulaLayer(
   latex: string,
   slotScale: number,
   contentDrivenSlots: boolean,
-  slotContentEm?: Record<string, SlotContentEm>
+  slotContentEm?: Record<string, SlotContentEm>,
+  slotWidthScale?: number
 ): FormulaLayer {
   const instanceKey = `${instanceId}g${id}`;
   const slotted = toTypesetSlotLatex(
@@ -80,11 +85,19 @@ function createFormulaLayer(
     instanceKey,
     slotScale,
     contentDrivenSlots,
-    slotContentEm
+    slotContentEm,
+    slotWidthScale
   );
   return {
     id,
-    contentKey: makeContentKey(instanceId, latex, slotScale, contentDrivenSlots, slotContentEm),
+    contentKey: makeContentKey(
+      instanceId,
+      latex,
+      slotScale,
+      contentDrivenSlots,
+      slotContentEm,
+      slotWidthScale
+    ),
     instanceKey,
     typesetLatex: slotted.latex,
     ids: slotted.ids,
@@ -196,6 +209,7 @@ export function MathBlankFormula({
   renderSlot,
   fallback,
   slotScale = 1,
+  slotWidthScale,
   contentDrivenSlots = false,
   slotContentEm,
   awaitingMeasure = false,
@@ -203,7 +217,15 @@ export function MathBlankFormula({
   const [layerSeq, setLayerSeq] = useState(0);
   const [visible, setVisible] = useState<FormulaLayer | null>(null);
   const [pending, setPending] = useState<FormulaLayer | null>(() =>
-    createFormulaLayer(0, instanceId, latex, slotScale, contentDrivenSlots, slotContentEm)
+    createFormulaLayer(
+      0,
+      instanceId,
+      latex,
+      slotScale,
+      contentDrivenSlots,
+      slotContentEm,
+      slotWidthScale
+    )
   );
   const [pendingHostsReady, setPendingHostsReady] = useState(false);
   const [visiblePainted, setVisiblePainted] = useState(false);
@@ -216,7 +238,8 @@ export function MathBlankFormula({
     latex,
     slotScale,
     contentDrivenSlots,
-    slotContentEm
+    slotContentEm,
+    slotWidthScale
   );
 
   /**
@@ -234,7 +257,15 @@ export function MathBlankFormula({
     setLayerSeq(nextId);
     setPendingHostsReady(false);
     setPending(
-      createFormulaLayer(nextId, instanceId, latex, slotScale, contentDrivenSlots, slotContentEm)
+      createFormulaLayer(
+        nextId,
+        instanceId,
+        latex,
+        slotScale,
+        contentDrivenSlots,
+        slotContentEm,
+        slotWidthScale
+      )
     );
   }
 

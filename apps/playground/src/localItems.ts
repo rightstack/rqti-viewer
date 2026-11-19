@@ -3,6 +3,8 @@ import {
   type QuestionItem,
   type SampleItem,
 } from "@rightstack/rqti-viewer";
+import { VCQ_COLUMN_TEST_XML } from "./vcqColumnTestXml";
+import { VCQ_MULTIPLY_COLUMN_XML } from "./vcqMultiplyColumnXml";
 
 /**
  * QMS 상세 API에 없는 로컬 테스트 문항.
@@ -904,6 +906,39 @@ export const LOCAL_ITEMS: Record<string, QuestionItem> = {
     settings: null,
     feedbacks: [],
   },
+  i_3vp8sc9ukub9eqfb: {
+    id: -33,
+    qtiIdentifier: "i_3vp8sc9ukub9eqfb",
+    title: "세로셈 단 설정 테스트",
+    type: ITEM_TYPE.VCQ,
+    qtiXml: VCQ_COLUMN_TEST_XML,
+    correctAnswer: {
+      RESPONSE_1: ["$49$"],
+      RESPONSE_2: ["$8$"],
+      RESPONSE_3: ["$1$"],
+      RESPONSE_4: ["$8$"],
+      RESPONSE_5: ["$18$"],
+      RESPONSE_6: ["$0$"],
+    },
+    settings: null,
+    feedbacks: [],
+  },
+  i_7lwrunhnz1v66q7u: {
+    id: -34,
+    qtiIdentifier: "i_7lwrunhnz1v66q7u",
+    title: "[엠티처_단원평가심화3회] 수학3-1_4_02",
+    type: ITEM_TYPE.VCQ,
+    qtiXml: VCQ_MULTIPLY_COLUMN_XML,
+    correctAnswer: {
+      RESPONSE_2: ["$200$"],
+      RESPONSE_3: ["$2$"],
+      RESPONSE_4: ["$0$"],
+      RESPONSE_5: ["$8$"],
+      RESPONSE_6: ["$8$"],
+    },
+    settings: null,
+    feedbacks: [],
+  },
   i_uwns0ub393c7rtfs: {
     id: -32,
     qtiIdentifier: "i_uwns0ub393c7rtfs",
@@ -979,6 +1014,16 @@ export const LOCAL_SAMPLE_ITEMS: SampleItem[] = [
     type: ITEM_TYPE.GMQ,
     label: "빈칸 매칭 · 중복 NO",
     qtiIdentifier: "i_zn1mtgpfmo4pd6m8",
+  },
+  {
+    type: ITEM_TYPE.VCQ,
+    label: "세로셈형 · 단 설정 (VCQ)",
+    qtiIdentifier: "i_3vp8sc9ukub9eqfb",
+  },
+  {
+    type: ITEM_TYPE.VCQ,
+    label: "세로셈형 · 곱셈 단 (VCQ)",
+    qtiIdentifier: "i_7lwrunhnz1v66q7u",
   },
   {
     type: ITEM_TYPE.VCQ,
