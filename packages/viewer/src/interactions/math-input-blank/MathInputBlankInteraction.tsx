@@ -245,13 +245,20 @@ function useVcqIntrinsicColumn(
     const column = vcqCellColumn(cell);
     const releasePlainMathWatch = retainPlainMathColumnWatch(grid);
 
+    const narrowCell =
+      cell.classList.contains("qti-ext-vcq-col--narrow") ||
+      cell.hasAttribute("data-vcq-width-unit");
     let active = true;
     const measure = (allowShrink = !cell.contains(document.activeElement)) => {
       if (!active) return;
-      const content =
-        root.querySelector<HTMLElement>(
-          ".qti-ext-math-blank-inline--vcq-standalone, .qti-ext-math-blank-formula"
-        ) ?? root;
+      const flowed = root.querySelector<HTMLElement>(
+        ".qti-ext-math-blank-inline--vcq-standalone, .qti-ext-math-blank-formula"
+      );
+      const text = narrowCell
+        ? root.querySelector<HTMLElement>(".qti-ext-mathfield, .qti-ext-input-blank__label")
+        : null;
+      const content = flowed ?? text ?? (narrowCell ? null : root);
+      if (!content) return;
       const width = cellContentWidth(cell, content);
       if (width <= 0) return;
       const prev = Number.parseFloat(cell.dataset.vcqIntrinsicWidth ?? "0") || 0;
@@ -272,7 +279,7 @@ function useVcqIntrinsicColumn(
     const resizeObserver = new ResizeObserver(() => measure());
     resizeObserver.observe(
       root.querySelector<HTMLElement>(
-        ".qti-ext-math-blank-inline--vcq-standalone, .qti-ext-math-blank-formula"
+        ".qti-ext-math-blank-inline--vcq-standalone, .qti-ext-math-blank-formula, .qti-ext-mathfield, .qti-ext-input-blank__label"
       ) ?? root
     );
     document.addEventListener("focusout", onFocusOut, true);
@@ -370,7 +377,8 @@ function MathInputBlankView({
   const useVcqContentFlow = canUseVcqTypedFlow && mergedColSpan < 2;
   const useVcqFormulaFlow = formulaContext && canUseVcqTypedFlow;
   const useVcqStandaloneFlow = !formulaContext && useVcqContentFlow;
-  useVcqIntrinsicColumn(rootRef, useVcqContentFlow, String(options.mode));
+  const measureNarrowContent = inVcqBlankCell && inVcqNarrowCell && mergedColSpan < 2;
+  useVcqIntrinsicColumn(rootRef, useVcqContentFlow || measureNarrowContent, String(options.mode));
   const inNarrowRow = Boolean(contextElement.closest(".qti-ext-vcq-row--narrow"));
   const inVcqCell = inVcqBlankCell || mergedColSpan >= 2;
   const fillDisplaySlot = inNarrowRow || inVcqCell;

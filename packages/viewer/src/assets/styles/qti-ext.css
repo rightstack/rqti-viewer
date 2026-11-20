@@ -5706,13 +5706,45 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   justify-content: center;
   align-items: center;
 
-  width: calc(var(--vcq-narrow) + 2 * var(--vcq-pad));
+  width: auto;
   min-width: calc(var(--vcq-narrow) + 2 * var(--vcq-pad));
-  max-width: calc(var(--vcq-narrow) + 2 * var(--vcq-pad));
+  max-width: none;
   padding: calc(var(--vcq-pad) * 2);
 }
 
-/* size-small 소수점 열: 트랙 12px은 유지하고 상자만 칸 안쪽(~10px)에 맞춘다. */
+/* 표시 글자는 최소 폭 안에 두고, 더 길면 칸이 내용만큼 늘어난다. */
+.qti-ext-vcq-col--narrow:not(.qti-ext-vcq-cell--blank) {
+  padding: var(--vcq-pad);
+}
+
+.qti-ext-vcq-col--narrow.qti-align-left:not(.qti-ext-vcq-cell--blank) {
+  justify-content: flex-start;
+
+  text-align: left;
+}
+
+.qti-ext-vcq-col--narrow.qti-align-right:not(.qti-ext-vcq-cell--blank) {
+  justify-content: flex-end;
+
+  text-align: right;
+}
+
+.qti-ext-vcq-col--narrow.qti-align-center:not(.qti-ext-vcq-cell--blank) {
+  justify-content: center;
+
+  text-align: center;
+}
+
+/* overlay·shared 열은 셀을 트랙에 맞추지만, 좁은 칸은 긴 글자만큼 트랙을 늘린다. */
+:is(.qti-ext-vcq-grid--overlay-grid, .qti-ext-vcq-grid--shared-cols)
+  > .qti-ext-vcq-row
+  > .qti-ext-vcq-cell.qti-ext-vcq-col--narrow {
+  width: auto;
+  min-width: calc(var(--vcq-narrow) + 2 * var(--vcq-pad));
+  max-width: none;
+}
+
+/* size-small 소수점 열: 짧은 글자는 최소 폭을 유지하고 상자만 칸 안쪽에 맞춘다. */
 .qti-ext-vcq-grid--size-small .qti-ext-vcq-col--narrow {
   padding: 1px;
 }
@@ -6244,28 +6276,31 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
   ) {
   inset: var(--vcq-narrow-box-inset);
 
-  width: var(--vcq-narrow-box-size);
+  width: max-content;
   min-width: var(--vcq-narrow-box-min);
-  max-width: var(--vcq-narrow-box-max);
+  max-width: none;
   height: var(--vcq-narrow-box-size);
   min-height: var(--vcq-narrow-box-min);
-  max-height: var(--vcq-narrow-box-max);
+  max-height: none;
   padding: 0;
 
   transform: var(--vcq-narrow-box-transform);
 }
 
-/* 라벨이 있는 narrow 칸: 상자 크기는 유지하고 글자만 칸 안에 맞게 줄인다. */
+/* 라벨이 있는 narrow 칸: 한 글자는 최소 상자에 두고, 더 길면 상자·칸이 글자만큼 늘어난다. */
 .qti-ext-vcq-cell--blank.qti-ext-vcq-col--narrow:not(.qti-ext-vcq-cell--merged)
   :where(
     .qti-ext-input-blank--display:has(.qti-ext-input-blank__label:not(:empty)),
     .qti-ext-input-blank:has(.qti-ext-input-blank__label:not(:empty))
   ) {
   display: flex;
-  overflow: hidden;
+  overflow: visible;
 
   justify-content: center;
   align-items: center;
+
+  width: max-content;
+  max-width: none;
 }
 
 .qti-ext-vcq-cell--blank.qti-ext-vcq-col--narrow:not(.qti-ext-vcq-cell--merged)
@@ -6285,7 +6320,7 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 
   padding: 0;
 
-  font-size: calc(var(--vcq-narrow-box-size) - 4px);
+  font-size: inherit;
   line-height: 1;
 }
 
@@ -6329,15 +6364,13 @@ textarea.qti-ext-text-entry-input:placeholder-shown {
 }
 
 .qti-ext-vcq-cell[data-vcq-width-unit] {
-  overflow: hidden;
+  overflow: visible;
 
-  width: calc(var(--vcq-cell) * var(--vcq-width-unit, 1) + 2 * var(--vcq-pad));
+  width: auto;
   min-width: calc(
     var(--vcq-cell) * var(--vcq-width-unit, 1) + 2 * var(--vcq-pad)
   );
-  max-width: calc(
-    var(--vcq-cell) * var(--vcq-width-unit, 1) + 2 * var(--vcq-pad)
-  );
+  max-width: none;
 }
 
 .qti-ext-vcq-cell--merged

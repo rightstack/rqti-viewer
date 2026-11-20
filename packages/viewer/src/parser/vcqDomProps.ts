@@ -46,9 +46,10 @@ type VcqColTrack = {
   shrinks: boolean;
 };
 
-function sizedTrack(minSize: string, shrinks: boolean, grow: boolean): VcqColTrack {
+/** 최소 폭은 유지하고, 칸 글자가 더 길면 그 폭까지 늘어난다. 작은 그리드도 같다. */
+function growingTrack(minSize: string, index: number, shrinks: boolean): VcqColTrack {
   return {
-    template: grow ? `minmax(calc(${minSize}), max-content)` : `calc(${minSize})`,
+    template: `minmax(max(calc(${minSize}), var(--vcq-col-${index + 1}-content, 0px)), max-content)`,
     minSize,
     shrinks,
   };
@@ -60,11 +61,11 @@ function vcqColTrack(
   widthUnits: Map<number, number>
 ): VcqColTrack {
   if (narrowCols.has(index)) {
-    return sizedTrack("var(--vcq-narrow) + 2 * var(--vcq-pad)", true, false);
+    return growingTrack("var(--vcq-narrow) + 2 * var(--vcq-pad)", index, true);
   }
   const unit = widthUnits.get(index);
   if (unit !== undefined && unit !== 1) {
-    return sizedTrack(`var(--vcq-cell) * ${unit} + 2 * var(--vcq-pad)`, unit < 1, unit >= 1);
+    return growingTrack(`var(--vcq-cell) * ${unit} + 2 * var(--vcq-pad)`, index, unit < 1);
   }
   const minSize = "var(--vcq-col) + 2 * var(--vcq-pad)";
   return {
