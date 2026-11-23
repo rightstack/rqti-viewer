@@ -45,6 +45,10 @@ export const useMatchHeightSync = (props: UseMatchHeightSyncProps) => {
    * 옵션 개수가 바뀌면(useLayoutEffect deps 변경) 잠금 해제 후 재결정.
    */
   const lockedShortColumnRef = useRef<"left" | "right" | null>(null);
+  /** 수식 재측정 중 ResizeObserver가 다시 들어오는 것 방지 */
+  const mathMeasuringRef = useRef(false);
+  /** 마지막으로 높이에 반영한 mjx-container 크기. 같으면 재측정하지 않는다. */
+  const mathSizeSignatureRef = useRef("");
 
   /**
    * 이전 컨테이너 너비 저장 - ResizeObserver 무한 루프 방지
@@ -144,6 +148,52 @@ export const useMatchHeightSync = (props: UseMatchHeightSyncProps) => {
     tgtOptionRefs,
   ]);
 
+  const cardElements = useCallback(
+    () =>
+      hasSameOptionCount
+        ? [
+            ...srcCardRefs.current.slice(0, leftChoicesLength),
+            ...tgtCardRefs.current.slice(0, rightChoicesLength),
+          ]
+        : [
+            ...srcOptionRefs.current.slice(0, leftChoicesLength),
+            ...tgtOptionRefs.current.slice(0, rightChoicesLength),
+          ],
+    [
+      hasSameOptionCount,
+      leftChoicesLength,
+      rightChoicesLength,
+      srcCardRefs,
+      tgtCardRefs,
+      srcOptionRefs,
+      tgtOptionRefs,
+    ]
+  );
+
+  const remeasureFromNaturalHeights = useCallback(() => {
+    const cards = cardElements();
+    cards.forEach((card) => {
+      if (card) card.style.transition = "none";
+    });
+
+    if (hasSameOptionCount) {
+      flushSync(() => setRowHeights([]));
+    } else {
+      lockedShortColumnRef.current = null;
+      flushSync(() => {
+        setShortColumnMinHeights([]);
+        setShortColumn(null);
+      });
+    }
+    flushSync(() => {
+      measureHeight();
+    });
+
+    cards.forEach((card) => {
+      if (card) card.style.transition = "";
+    });
+  }, [cardElements, hasSameOptionCount, measureHeight]);
+
   // 초기 측정: 옵션 개수·문항(heightSyncKey) 변경 시 잠금 해제 + rAF + 200ms 폴백(폰트/이미지 로딩 대비)
   useLayoutEffect(() => {
     if (isMultiWay) return;
@@ -154,12 +204,19 @@ export const useMatchHeightSync = (props: UseMatchHeightSyncProps) => {
     setShortColumnMinHeights([]);
     setShortColumn(null);
     const rafId = requestAnimationFrame(measureHeight);
-    const t = window.setTimeout(measureHeight, 200);
+    const t = window.setTimeout(() => {
+      const root = gridContainerRef.current;
+      if (root?.querySelector("mjx-container")) {
+        remeasureFromNaturalHeights();
+        return;
+      }
+      measureHeight();
+    }, 200);
     return () => {
       cancelAnimationFrame(rafId);
       window.clearTimeout(t);
     };
-  }, [measureHeight, isMultiWay, heightSyncKey]);
+  }, [measureHeight, remeasureFromNaturalHeights, isMultiWay, heightSyncKey, gridContainerRef]);
 
   /**
    * 미디어 레이아웃 감지: img load/decode, video loadedmetadata 이후 재측정
@@ -187,9 +244,9 @@ export const useMatchHeightSync = (props: UseMatchHeightSyncProps) => {
       if (cancelled) return;
       requestAnimationFrame(() => {
         if (cancelled) return;
-        const cardElements = getCardElements();
+        const mediaCards = getCardElements();
 
-        cardElements.forEach((cardElement) => {
+        mediaCards.forEach((cardElement) => {
           if (cardElement) cardElement.style.transition = "none";
         });
 
@@ -203,7 +260,7 @@ export const useMatchHeightSync = (props: UseMatchHeightSyncProps) => {
         measureHeight();
 
         requestAnimationFrame(() => {
-          cardElements.forEach((cardElement) => {
+          mediaCards.forEach((cardElement) => {
             if (cardElement) cardElement.style.transition = "";
           });
         });
@@ -364,6 +421,106 @@ export const useMatchHeightSync = (props: UseMatchHeightSyncProps) => {
     srcOptionRefs,
     tgtOptionRefs,
   ]);
+
+  useLayoutEffect(() => {
+    const root = gridContainerRef.current;
+    if (!root || isMultiWay) return;
+
+    mathSizeSignatureRef.current = "";
+    let rafId = 0;
+    let settleFrames = 0;
+    const settleLimit = 15;
+
+    const mathLayoutSignature = () => {
+      const mathNodes = Array.from(root.querySelectorAll<HTMLElement>("mjx-container"));
+      if (mathNodes.length === 0) return "";
+      const math = mathNodes.map((node) => `${node.offsetWidth}x${node.offsetHeight}`).join("|");
+      const content = Array.from(
+        root.querySelectorAll<HTMLElement>(".qti-ext-match-option-content")
+      )
+        .filter((node) => node.querySelector("mjx-container"))
+        .map((node) => String(node.offsetHeight))
+        .join("|");
+      return `${math}#${content}`;
+    };
+
+    const scheduleMathRemeasure = () => {
+      cancelAnimationFrame(rafId);
+      settleFrames = 0;
+      let previous = "";
+      let stableFrames = 0;
+
+      const tick = () => {
+        settleFrames += 1;
+        const signature = mathLayoutSignature();
+        const mathBox = signature.split("#")[0] ?? "";
+        const mathPending =
+          !signature || mathBox.split("|").every((part) => part === "" || part === "0x0");
+
+        if (mathPending || mathMeasuringRef.current) {
+          if (settleFrames < settleLimit) rafId = requestAnimationFrame(tick);
+          return;
+        }
+
+        if (signature === previous) stableFrames += 1;
+        else {
+          previous = signature;
+          stableFrames = 1;
+        }
+
+        if (stableFrames < 2 && settleFrames < settleLimit) {
+          rafId = requestAnimationFrame(tick);
+          return;
+        }
+        if (signature === mathSizeSignatureRef.current) return;
+
+        mathMeasuringRef.current = true;
+        mathSizeSignatureRef.current = signature;
+        try {
+          remeasureFromNaturalHeights();
+          mathSizeSignatureRef.current = mathLayoutSignature();
+        } finally {
+          mathMeasuringRef.current = false;
+        }
+      };
+
+      rafId = requestAnimationFrame(tick);
+    };
+
+    const mathResizeObserver = new ResizeObserver(() => {
+      scheduleMathRemeasure();
+    });
+
+    const watchMathNodes = () => {
+      root.querySelectorAll("mjx-container").forEach((node) => {
+        mathResizeObserver.observe(node);
+        const content = node.closest(".qti-ext-match-option-content");
+        if (content) mathResizeObserver.observe(content);
+      });
+    };
+
+    const mutationObserver = new MutationObserver((mutations) => {
+      const mathAdded = mutations.some((mutation) =>
+        Array.from(mutation.addedNodes).some((node) => {
+          if (!(node instanceof Element)) return false;
+          return node.localName === "mjx-container" || node.querySelector("mjx-container") !== null;
+        })
+      );
+      if (!mathAdded) return;
+      watchMathNodes();
+      scheduleMathRemeasure();
+    });
+
+    watchMathNodes();
+    mutationObserver.observe(root, { childList: true, subtree: true });
+
+    return () => {
+      mutationObserver.disconnect();
+      mathResizeObserver.disconnect();
+      cancelAnimationFrame(rafId);
+      mathMeasuringRef.current = false;
+    };
+  }, [isMultiWay, heightSyncKey, gridContainerRef, remeasureFromNaturalHeights]);
 
   return {
     rowHeights,
