@@ -768,6 +768,13 @@
   white-space: pre; /* 번호 뒤 띄어쓰기(접미사)가 영역을 차지하도록 */
 }
 
+/* 앞: 발문 문단 안의 span. 블록으로 두면 발문 윗줄에 떨어진다. */
+span.qti-ext-question-number {
+  display: inline;
+
+  vertical-align: baseline;
+}
+
 /* 문항 번호 - position: top (문항 좌측 상단 블록) */
 .qti-ext-question-number-top {
   margin-bottom: 0.25rem;
@@ -7522,6 +7529,21 @@ p:has(.qti-ext-image-input-blank) {
 .qti-ext-hotspot {
   width: max-content;
   max-width: min(100%, var(--qti-graphic-interaction-max-width));
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.qti-ext-container:has(.qti-ext-hotspot__leading),
+.qti-ext-hotspot:has(> .qti-ext-hotspot__leading) {
+  max-width: none;
+}
+
+.qti-ext-hotspot__leading {
+  display: flex;
+
+  align-items: flex-start;
+  column-gap: 0.25rem;
+
+  width: max-content;
 }
 
 /* 이미지는 블록이라 text-align이 먹지 않는다. 수축된 상자를 본문 안에서 민다. */

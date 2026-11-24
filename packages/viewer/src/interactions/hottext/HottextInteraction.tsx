@@ -14,6 +14,7 @@ import {
 import { parseTextWithLaTeX } from "../../parser/parseLatexToReact";
 import { FloatToolbar, type FloatToolbarTool } from "../../shared/FloatToolbar";
 import type { QTIParserOptions } from "../../types";
+import { placeBodyInlineQuestionNumber } from "../../utils/inlineQuestionNumber";
 import { HottextChoice } from "./HottextChoice";
 import {
   HOTTEXT_MARKER_SHAPE_NAME,
@@ -424,6 +425,13 @@ export function HottextInteraction({
     .filter(Boolean)
     .join(" ");
 
+  const body = placeBodyInlineQuestionNumber(
+    content,
+    options.inlineQuestionNumberLabel,
+    options.inlineQuestionNumberBadge,
+    element,
+  );
+
   return (
     <div
       key={`hottext-${responseIdentifier}-${index}`}
@@ -444,7 +452,7 @@ export function HottextInteraction({
           }}
         />
       ) : null}
-      {content}
+      {body}
     </div>
   );
 }

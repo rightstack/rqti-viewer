@@ -11,6 +11,7 @@ import type {
 } from "../../types";
 import { extractMediaFromElement, extractTextFromElement } from "../../utils";
 import { listStyleMarkerForIndex } from "../../utils/choiceAnswerDisplayFromQti";
+import { placeBodyInlineQuestionNumber } from "../../utils/inlineQuestionNumber";
 import { getListStyleLabel } from "../../utils/listStyleLabel";
 import { Gap } from "./components/Gap";
 import { GapChoice } from "./components/GapChoice";
@@ -625,6 +626,13 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
     });
   }, [element, options, processGapNode, choicesGroup, firstGapTextPanel]);
 
+  const bodyContent = placeBodyInlineQuestionNumber(
+    renderContent,
+    options.inlineQuestionNumberLabel,
+    options.inlineQuestionNumberBadge,
+    element,
+  );
+
   const handleInteractionKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (mode !== "click" || isPreview || isSubmit || e.key !== "Escape" || !armedChoiceId) return;
     e.preventDefault();
@@ -638,7 +646,7 @@ export const GapMatchInteraction: React.FC<GapMatchInteractionProps> = ({
       onKeyDown={handleInteractionKeyDown}
     >
       {panelCount === 0 && choicesPosition === "top" && choicesGroup}
-      {renderContent}
+      {bodyContent}
       {panelCount === 0 && choicesPosition === "bottom" && choicesGroup}
     </div>
   );

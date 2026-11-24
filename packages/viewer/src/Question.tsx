@@ -380,41 +380,6 @@ function Question({
           ),
     [responsesForParseKey, internalIsSubmit, textEntryIds, responsesProp],
   );
-  const parserOptions = useMemo<QTIParserOptions>(
-    () => ({
-      ignoreAnswerOrder,
-      token,
-      baseUrl,
-      questionType: type,
-      placeholder,
-      theme,
-      mode,
-      correct,
-      submitResponse: effectiveSubmitResponse,
-      responses: responsesForParse,
-      correctAnswers: correctAnswers ?? effectiveSubmitResponse?.correctAnswer,
-      isSubmit: internalIsSubmit,
-      itemKey: itemKeyProp,
-      onResponseChange: mode === "practice" ? handleResponseChange : undefined,
-    }),
-    [
-      ignoreAnswerOrder,
-      token,
-      baseUrl,
-      type,
-      placeholder,
-      theme,
-      mode,
-      correct,
-      effectiveSubmitResponse,
-      responsesForParse,
-      correctAnswers,
-      internalIsSubmit,
-      itemKeyProp,
-      handleResponseChange,
-    ],
-  );
-
   // 문항 번호: questionNumberConfig가 있을 때만 표시
   const qnConfig = theme?.questionNumberConfig;
   const enabled =
@@ -444,6 +409,68 @@ function Question({
     mode === "preview" ? !!correct : !!effectiveSubmitResponse?.correct;
   const correctIconUrl = theme?.feedbackConfig?.common?.correctIconUrl;
   const incorrectIconUrl = theme?.feedbackConfig?.common?.incorrectIconUrl;
+
+  const parserOptions = useMemo<QTIParserOptions>(() => {
+    const options: QTIParserOptions = {
+      ignoreAnswerOrder,
+      token,
+      baseUrl,
+      questionType: type,
+      placeholder,
+      theme,
+      mode,
+      correct,
+      submitResponse: effectiveSubmitResponse,
+      responses: responsesForParse,
+      correctAnswers: correctAnswers ?? effectiveSubmitResponse?.correctAnswer,
+      isSubmit: internalIsSubmit,
+      itemKey: itemKeyProp,
+      onResponseChange: mode === "practice" ? handleResponseChange : undefined,
+    };
+    if (showQuestionNumber && position === "rqti:inline" && questionNumberLabel) {
+      options.inlineQuestionNumberLabel = questionNumberLabel;
+      if (showFeedbackBadge) {
+        options.inlineQuestionNumberBadge = (
+          <span className="qti-ext-feedback-badge" aria-hidden>
+            {isCorrectBadge ? (
+              correctIconUrl ? (
+                <img src={correctIconUrl} alt="" className="qti-ext-feedback-badge-img" />
+              ) : (
+                <CorrectIcon />
+              )
+            ) : incorrectIconUrl ? (
+              <img src={incorrectIconUrl} alt="" className="qti-ext-feedback-badge-img" />
+            ) : (
+              <IncorrectIcon />
+            )}
+          </span>
+        );
+      }
+    }
+    return options;
+  }, [
+    ignoreAnswerOrder,
+    token,
+    baseUrl,
+    type,
+    placeholder,
+    theme,
+    mode,
+    correct,
+    effectiveSubmitResponse,
+    responsesForParse,
+    correctAnswers,
+    internalIsSubmit,
+    itemKeyProp,
+    handleResponseChange,
+    showQuestionNumber,
+    position,
+    questionNumberLabel,
+    showFeedbackBadge,
+    isCorrectBadge,
+    correctIconUrl,
+    incorrectIconUrl,
+  ]);
 
   const parsedContent = useMemo(
     () => (data ? parseQTIToReact(data, parserOptions) : null),

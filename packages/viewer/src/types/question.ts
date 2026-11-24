@@ -139,6 +139,9 @@ export interface QTIParserOptions {
    * gap-match가 `qti-gap` / `qti-gap-text` / `qti-ext-gap-text-panel`을 처리하는 데 사용.
    */
   renderCustomNode?: (element: Element, index: number) => ReactNode | undefined;
+  /** 인라인 문항 번호. 빈칸매칭·핫텍스트·핫스팟이 본문 첫 줄에 넣는다. */
+  inlineQuestionNumberLabel?: string;
+  inlineQuestionNumberBadge?: ReactNode;
 }
 
 export interface MatchingPairType {

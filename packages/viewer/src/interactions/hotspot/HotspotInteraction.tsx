@@ -2,6 +2,7 @@ import {
   type DragEvent,
   type KeyboardEvent,
   type MouseEvent,
+  type ReactNode,
   type SyntheticEvent,
   useCallback,
   useMemo,
@@ -12,6 +13,7 @@ import { Check, Triangle } from "lucide-react";
 import HotspotShapeIcon from "./HotspotShapeIcon";
 import { FloatToolbar } from "../../shared/FloatToolbar";
 import type { FeedbackSubmitResponse, QTIParserOptions } from "../../types";
+import { inlineQuestionNumberNode } from "../../utils/inlineQuestionNumber";
 import { resolveMediaUrl } from "../../utils/urlUtils";
 import {
   HOTSPOT_GEOMETRY_RESPONSE_ID,
@@ -120,6 +122,16 @@ function firstPolySides(choices: readonly HotspotChoice[]): number | undefined {
   if (marker?.kind !== "poly") return undefined;
   const count = marker.points.split(/\s+/).filter(Boolean).length;
   return count >= 3 ? count : undefined;
+}
+
+function HotspotStageFrame({ leading, children }: { leading: ReactNode; children: ReactNode }) {
+  if (!leading) return children;
+  return (
+    <div className="qti-ext-hotspot__leading">
+      {leading}
+      {children}
+    </div>
+  );
 }
 
 function buildImageSrc(src: string, token: string | undefined): string | undefined {
@@ -520,6 +532,12 @@ export function HotspotInteraction({ element, options, index }: HotspotInteracti
     event.preventDefault();
   };
 
+  const inlineNumber = inlineQuestionNumberNode(
+    options.inlineQuestionNumberLabel,
+    options.inlineQuestionNumberBadge,
+    element,
+  );
+
   return (
     <div
       className={`qti-ext-hotspot ${xmlClass}`.trim()}
@@ -542,17 +560,18 @@ export function HotspotInteraction({ element, options, index }: HotspotInteracti
           }}
         />
       ) : null}
-      <div
-        ref={stageRef}
-        className="qti-ext-hotspot__stage"
-        data-interactive={interactive ? "true" : undefined}
-        style={
-          answerFrame
-            ? { width: answerFrame.stageWidth, height: answerFrame.stageHeight }
-            : undefined
-        }
-        onClick={(event) => event.stopPropagation()}
-      >
+      <HotspotStageFrame leading={inlineNumber}>
+        <div
+          ref={stageRef}
+          className="qti-ext-hotspot__stage"
+          data-interactive={interactive ? "true" : undefined}
+          style={
+            answerFrame
+              ? { width: answerFrame.stageWidth, height: answerFrame.stageHeight }
+              : undefined
+          }
+          onClick={(event) => event.stopPropagation()}
+        >
         <img
           ref={imageRef}
           className="qti-ext-image qti-ext-hotspot__image"
@@ -631,7 +650,8 @@ export function HotspotInteraction({ element, options, index }: HotspotInteracti
             );
           })}
         </svg>
-      </div>
+        </div>
+      </HotspotStageFrame>
     </div>
   );
 }
