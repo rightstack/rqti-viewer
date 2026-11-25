@@ -9,7 +9,6 @@ import React from "react";
 import { AudioPlayer } from "../components/AudioPlayer";
 import { VcqColumnGroup } from "../components/VcqColumnGroup";
 import { VcqDivisionBarTrack } from "../components/VcqDivisionBarTrack";
-import { VcqSettledGrid } from "../components/VcqSettledGrid";
 import { VcqSyntheticBracket } from "../components/VcqSyntheticBracket";
 import { MathInputBlankDisplayMarkup } from "../interactions/math-input-blank/MathInputBlankInteraction";
 import {
@@ -381,19 +380,6 @@ export const parseHTMLElement = (
           >
             {groupedChildren}
           </VcqColumnGroup>
-        );
-      }
-
-      if (className.includes("qti-ext-vcq-grid") && !element.closest(".qti-ext-column-group")) {
-        return (
-          <VcqSettledGrid
-            key={`div-${index}`}
-            className={gridClassName}
-            style={vcq.style}
-            dataAttrs={vcq.dataAttrs}
-          >
-            {groupedChildren}
-          </VcqSettledGrid>
         );
       }
 
